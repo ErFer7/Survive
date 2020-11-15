@@ -26,13 +26,13 @@ void GameConsoleInit (int *width, int *heigth, HANDLE *handle) {
 
 void BuildBorders (int width, int heigth) {
 
-    for (int i = 0; i < width; ++i) {
+    for (int i = 0; i < width; i++) {
 
         PrintCharOnPosition(219, 7, i, 0);
         PrintCharOnPosition(219, 7, i, heigth - 2);
     };
 
-    for (int i = 0; i < heigth - 1; ++i) {
+    for (int i = 0; i < heigth - 1; i++) {
 
         PrintCharOnPosition(219, 7, 0, i);
         PrintCharOnPosition(219, 7, width - 1, i);
@@ -64,9 +64,9 @@ void BuildMainMenu (enum GameState state) {
 
 void Clear (int width, int heigth) {
 
-    for (int i = 0; i < width; ++i) {
+    for (int i = 0; i < width; i++) {
 
-        for (int j = 0; j < heigth; ++j) {
+        for (int j = 0; j < heigth; j++) {
 
             PrintCharOnPosition(255, 7, i, j);
         }
@@ -75,7 +75,7 @@ void Clear (int width, int heigth) {
 
 void Render () {
 
-    for (int i = 0; i < objectArray.used; ++i) {
+    for (int i = 0; i < objectArray.used; i++) {
 
         if (objectArray.array[i].updateRender) {
 
@@ -99,7 +99,7 @@ void GenerateWorld (int width, int heigth) {
     Object player = {254, 15, {width / 2, heigth / 2}, {width / 2, heigth / 2}, PLAYER, 1};
     InsertObjectOnArray(&objectArray, player);
 
-    for (int i = 0; i < width; ++i) {
+    for (int i = 0; i < width; i++) {
 
         Object topWall = {219, 7, {i, 0}, {i, 0}, WALL, 1};
         Object bottonWall = {219, 7, {i, heigth - 2}, {i, heigth - 2}, WALL, 1};
@@ -108,7 +108,7 @@ void GenerateWorld (int width, int heigth) {
         InsertObjectOnArray(&objectArray, bottonWall);
     };
 
-    for (int i = 0; i < heigth - 2; ++i) {
+    for (int i = 0; i < heigth - 2; i++) {
 
         Object leftWall = {219, 7, {0, i}, {0, i}, WALL, 1};
         Object rightWall = {219, 7, {width - 1, i}, {width - 1, i}, WALL, 1};
@@ -172,7 +172,7 @@ void PlayerControl () {
 
     if (moved) {
 
-        for (int i = 1; i < objectArray.used; ++i) {
+        for (int i = 1; i < objectArray.used; i++) {
 
             if (movingUp || movingDown || movingRight || movingLeft) {
 
@@ -205,25 +205,25 @@ void PlayerControl () {
 
     if (movingUp) {
 
-        --objectArray.array[0].position[1];
+        objectArray.array[0].position[1]--;
         objectArray.array[0].updateRender = 1;
     }
 
     if (movingDown) {
 
-        ++objectArray.array[0].position[1];
+        objectArray.array[0].position[1]++;
         objectArray.array[0].updateRender = 1;
     }
 
     if (movingRight) {
 
-        ++objectArray.array[0].position[0];
+        objectArray.array[0].position[0]++;
         objectArray.array[0].updateRender = 1;
     }
 
     if (movingLeft) {
 
-        --objectArray.array[0].position[0];
+        objectArray.array[0].position[0]--;
         objectArray.array[0].updateRender = 1;
     }
 }
