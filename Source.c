@@ -80,7 +80,7 @@ void Render () {
         if (objectArray.array[i].updateRender) {
 
             if (objectArray.array[i].oldPosition[0] != objectArray.array[i].position[0] || objectArray.array[i].oldPosition[1] != objectArray.array[i].position[1]) {
-                
+
                 PrintCharOnPosition(255, 0, objectArray.array[i].oldPosition[0], objectArray.array[i].oldPosition[1]);
             }
 
@@ -106,7 +106,7 @@ void GenerateWorld (int width, int heigth) {
 
         InsertObjectOnArray(&objectArray, topWall);
         InsertObjectOnArray(&objectArray, bottonWall);
-    };
+    }
 
     for (int i = 0; i < heigth - 2; i++) {
 
@@ -115,7 +115,7 @@ void GenerateWorld (int width, int heigth) {
 
         InsertObjectOnArray(&objectArray, leftWall);
         InsertObjectOnArray(&objectArray, rightWall);
-    };  
+    }
 }
 
 void ObjectArrayInit (ObjectArray *objectArray, size_t initialSize) {
