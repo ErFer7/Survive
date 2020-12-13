@@ -1,6 +1,16 @@
-// Sobreviva - Jogo de Testes - V1.2.6 - ErFer7
+// Sobreviva - Jogo de Testes - V 2.4 - ErFer7
 // Use "gcc Source.c Main.c -o Survive" para compilar.
-// V 1.3 - INDEV
+
+/***
+ *     $$$$$$\   $$$$$$\  $$$$$$$\  $$$$$$$\  $$$$$$$$\ $$\    $$\ $$$$$$\ $$\    $$\  $$$$$$\  
+ *    $$  __$$\ $$  __$$\ $$  __$$\ $$  __$$\ $$  _____|$$ |   $$ |\_$$  _|$$ |   $$ |$$  __$$\ 
+ *    $$ /  \__|$$ /  $$ |$$ |  $$ |$$ |  $$ |$$ |      $$ |   $$ |  $$ |  $$ |   $$ |$$ /  $$ |
+ *    \$$$$$$\  $$ |  $$ |$$$$$$$\ |$$$$$$$  |$$$$$\    \$$\  $$  |  $$ |  \$$\  $$  |$$$$$$$$ |
+ *     \____$$\ $$ |  $$ |$$  __$$\ $$  __$$< $$  __|    \$$\$$  /   $$ |   \$$\$$  / $$  __$$ |
+ *    $$\   $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |        \$$$  /    $$ |    \$$$  /  $$ |  $$ |
+ *    \$$$$$$  | $$$$$$  |$$$$$$$  |$$ |  $$ |$$$$$$$$\    \$  /   $$$$$$\    \$  /   $$ |  $$ |
+ *     \______/  \______/ \_______/ \__|  \__|\________|    \_/    \______|    \_/    \__|  \__|                                                                                         
+ */
 
 #include "Header.h"
 
@@ -9,7 +19,7 @@
 
 int main() {
 
-    GameInit();
+    GameInit(128);
     BuildMainMenu(MAINMENU);
 
     while (gameState == MAINMENU) {
@@ -19,7 +29,7 @@ int main() {
             gameState = INGAME;
         }
 
-        Sleep(1);
+        Tick(0.0);
     }
     
     GenerateWorld(consoleWidth, consoleHeigth);
@@ -40,15 +50,20 @@ int main() {
 
         PlayerControl();
 
+        UpdatePhysics();
         Render();
 
         QueryPerformanceCounter(&t2);
-        elapsedTime = 1000.0 / ((t2.QuadPart - t1.QuadPart) * 1000.0 / frequency.QuadPart);
-        char out[25];
-        sprintf(out, "%.3f fps", elapsedTime);
+
+        // Tempo em milisegundos
+        elapsedTime = (t2.QuadPart - t1.QuadPart) * 1000.0 / frequency.QuadPart;
+
+        float frameTime = Tick(elapsedTime);
+
+        char out[10];
+        sprintf(out, "%.3f fps", 1000.0f / frameTime);
 
         PrintStringOnPosition(out, 7, 0, consoleHeigth - 1);
-        Sleep(1);
     }
 
     FreeObjectArray(&objectArray);

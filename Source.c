@@ -5,12 +5,14 @@
 #include <Windows.h>
 #include <time.h>
 
-void GameInit () {
+void GameInit (int t) {
 
     GameConsoleInit(&consoleWidth, &consoleHeigth, &consoleHandle);
     ObjectArrayInit(&objectArray, 0);
 
     srand((unsigned)time(NULL));
+
+    tick = t;
 }
 
 void GameConsoleInit (int *width, int *heigth, HANDLE *handle) {
@@ -57,9 +59,49 @@ void PrintCharOnPosition (char c, int color, int x, int y) {
 
 void BuildMainMenu (enum GameState state) {
 
+    // Mudar o título para inglês
+
     BuildBorders(consoleWidth, consoleHeigth);
-    PrintStringOnPosition("S U R V I V E", 12, consoleWidth / 2 - 8, consoleHeigth / 2 - 3);
-    PrintStringOnPosition("PLAY [Enter]", 7, consoleWidth / 2 - 6, consoleHeigth / 2 - 1);
+    PrintStringOnPosition("  ______    ______   _______   _______   ________  __     __  ______  __     __   ______  ",
+                          12,
+                          consoleWidth / 2 - 45,
+                          consoleHeigth / 2 - 10);
+    PrintStringOnPosition(" /      \\  /      \\ |       \\ |       \\ |        \\|  \\   |  \\|      \\|  \\   |  \\ /      \\ ",
+                          12,
+                          consoleWidth / 2 - 45,
+                          consoleHeigth / 2 - 9);
+    PrintStringOnPosition("|  $$$$$$\\|  $$$$$$\\| $$$$$$$\\| $$$$$$$\\| $$$$$$$$| $$   | $$ \\$$$$$$| $$   | $$|  $$$$$$\\",
+                          12,
+                          consoleWidth / 2 - 45,
+                          consoleHeigth / 2 - 8);
+    PrintStringOnPosition("| $$___\\$$| $$  | $$| $$__/ $$| $$__| $$| $$__    | $$   | $$  | $$  | $$   | $$| $$__| $$",
+                          12,
+                          consoleWidth / 2 - 45,
+                          consoleHeigth / 2 - 7);
+    PrintStringOnPosition(" \\$$    \\ | $$  | $$| $$    $$| $$    $$| $$  \\    \\$$\\ /  $$  | $$   \\$$\\ /  $$| $$    $$",
+                          12,
+                          consoleWidth / 2 - 45,
+                          consoleHeigth / 2 - 6);
+    PrintStringOnPosition(" _\\$$$$$$\\| $$  | $$| $$$$$$$\\| $$$$$$$\\| $$$$$     \\$$\\  $$   | $$    \\$$\\  $$ | $$$$$$$$",
+                          12,
+                          consoleWidth / 2 - 45,
+                          consoleHeigth / 2 - 5);
+    PrintStringOnPosition("|  \\__| $$| $$__/ $$| $$__/ $$| $$  | $$| $$_____    \\$$ $$   _| $$_    \\$$ $$  | $$  | $$",
+                          12,
+                          consoleWidth / 2 - 45,
+                          consoleHeigth / 2 - 4);
+    PrintStringOnPosition(" \\$$    $$ \\$$    $$| $$    $$| $$  | $$| $$     \\    \\$$$   |   $$ \\    \\$$$   | $$  | $$",
+                          12,
+                          consoleWidth / 2 - 45,
+                          consoleHeigth / 2 - 3);
+    PrintStringOnPosition("  \\$$$$$$   \\$$$$$$  \\$$$$$$$  \\$$   \\$$ \\$$$$$$$$     \\$     \\$$$$$$     \\$     \\$$   \\$$",
+                          12,
+                          consoleWidth / 2 - 45,
+                          consoleHeigth / 2 - 2);
+
+    PrintStringOnPosition("V 2.4", 10, 1, 1);
+    PrintStringOnPosition("PLAY [Enter]", 7, consoleWidth / 2 - 6, consoleHeigth / 2 + 1);
+    PrintStringOnPosition("INFO [I]", 7, consoleWidth / 2 - 6, consoleHeigth / 2 + 2);
 }
 
 void Clear (int width, int heigth) {
@@ -79,12 +121,19 @@ void Render () {
 
         if (objectArray.array[i].updateRender) {
 
-            if (objectArray.array[i].oldPosition[0] != objectArray.array[i].position[0] || objectArray.array[i].oldPosition[1] != objectArray.array[i].position[1]) {
+            PrintCharOnPosition(objectArray.array[i].c,
+                                objectArray.array[i].color,
+                                objectArray.array[i].position[0],
+                                objectArray.array[i].position[1]);
 
-                PrintCharOnPosition(255, 0, objectArray.array[i].oldPosition[0], objectArray.array[i].oldPosition[1]);
+            if (objectArray.array[i].oldPosition[0] != objectArray.array[i].position[0] ||
+                objectArray.array[i].oldPosition[1] != objectArray.array[i].position[1]) {
+
+                PrintCharOnPosition(255,
+                                    0,
+                                    objectArray.array[i].oldPosition[0],
+                                    objectArray.array[i].oldPosition[1]);
             }
-
-            PrintCharOnPosition(objectArray.array[i].c, objectArray.array[i].color, objectArray.array[i].position[0], objectArray.array[i].position[1]);
 
             objectArray.array[i].oldPosition[0] = objectArray.array[i].position[0];
             objectArray.array[i].oldPosition[1] = objectArray.array[i].position[1];
@@ -92,17 +141,35 @@ void Render () {
             objectArray.array[i].updateRender = 0;
         }
     }
+
+    PrintCharOnPosition(255, 0, consoleWidth - 2, consoleHeigth - 1);
 }
 
 void GenerateWorld (int width, int heigth) {
 
-    Object player = {254, 15, {width / 2, heigth / 2}, {width / 2, heigth / 2}, PLAYER, 1};
+    Object player = {254,
+                     15,
+                     {width / 2, heigth / 2},
+                     {width / 2, heigth / 2},
+                     {(float)(width / 2), (float)(heigth / 2)},
+                     0.5f,
+                     PLAYER,
+                     1};
+
     InsertObjectOnArray(&objectArray, player);
 
     for (int i = 0; i < width; i++) {
 
-        Object topWall = {219, 7, {i, 0}, {i, 0}, WALL, 1};
-        Object bottonWall = {219, 7, {i, heigth - 2}, {i, heigth - 2}, WALL, 1};
+        Object topWall = {219, 7, {i, 0}, {i, 0}, {(float)i, 0.0f}, 0.0f, WALL, 1};
+
+        Object bottonWall = {219,
+                             7,
+                             {i, heigth - 2},
+                             {i, heigth - 2},
+                             {(float)i, (float)(heigth - 2)},
+                             0.0f,
+                             WALL,
+                             1};
 
         InsertObjectOnArray(&objectArray, topWall);
         InsertObjectOnArray(&objectArray, bottonWall);
@@ -110,8 +177,15 @@ void GenerateWorld (int width, int heigth) {
 
     for (int i = 0; i < heigth - 2; i++) {
 
-        Object leftWall = {219, 7, {0, i}, {0, i}, WALL, 1};
-        Object rightWall = {219, 7, {width - 1, i}, {width - 1, i}, WALL, 1};
+        Object leftWall = {219, 7, {0, i}, {0, i}, {0.0f, (float)i}, 0.0f, WALL, 1};
+        Object rightWall = {219,
+                            7,
+                            {width - 1, i},
+                            {width - 1, i},
+                            {(float)(width - 1), (float)i},
+                            0.0f,
+                            WALL,
+                            1};
 
         InsertObjectOnArray(&objectArray, leftWall);
         InsertObjectOnArray(&objectArray, rightWall);
@@ -176,22 +250,30 @@ void PlayerControl () {
 
             if (movingUp || movingDown || movingRight || movingLeft) {
 
-                if (movingUp && objectArray.array[i].position[1] == objectArray.array[0].position[1] - 1 && objectArray.array[i].position[0] == objectArray.array[0].position[0]) {
+                if (movingUp &&
+                    objectArray.array[i].position[1] == objectArray.array[0].position[1] - 1 &&
+                    objectArray.array[i].position[0] == objectArray.array[0].position[0]) {
 
                     movingUp = 0;
                 }
 
-                if (movingDown && objectArray.array[i].position[1] == objectArray.array[0].position[1] + 1 && objectArray.array[i].position[0] == objectArray.array[0].position[0]) {
+                if (movingDown &&
+                    objectArray.array[i].position[1] == objectArray.array[0].position[1] + 1 &&
+                    objectArray.array[i].position[0] == objectArray.array[0].position[0]) {
 
                     movingDown = 0;
                 }
 
-                if (movingRight && objectArray.array[i].position[0] == objectArray.array[0].position[0] + 1 && objectArray.array[i].position[1] == objectArray.array[0].position[1]) {
+                if (movingRight &&
+                    objectArray.array[i].position[0] == objectArray.array[0].position[0] + 1 &&
+                    objectArray.array[i].position[1] == objectArray.array[0].position[1]) {
 
                     movingRight = 0;
                 }
 
-                if (movingLeft && objectArray.array[i].position[0] == objectArray.array[0].position[0] - 1 && objectArray.array[i].position[1] == objectArray.array[0].position[1]) {
+                if (movingLeft &&
+                    objectArray.array[i].position[0] == objectArray.array[0].position[0] - 1 &&
+                    objectArray.array[i].position[1] == objectArray.array[0].position[1]) {
 
                     movingLeft = 0;
                 }
@@ -205,25 +287,46 @@ void PlayerControl () {
 
     if (movingUp) {
 
-        objectArray.array[0].position[1]--;
+        objectArray.array[0].interPosition[1] -= objectArray.array[0].speed;
         objectArray.array[0].updateRender = 1;
     }
 
     if (movingDown) {
 
-        objectArray.array[0].position[1]++;
+        objectArray.array[0].interPosition[1] += objectArray.array[0].speed;
         objectArray.array[0].updateRender = 1;
     }
 
     if (movingRight) {
 
-        objectArray.array[0].position[0]++;
+        objectArray.array[0].interPosition[0] += objectArray.array[0].speed;
         objectArray.array[0].updateRender = 1;
     }
 
     if (movingLeft) {
 
-        objectArray.array[0].position[0]--;
+        objectArray.array[0].interPosition[0] -= objectArray.array[0].speed;
         objectArray.array[0].updateRender = 1;
+    }
+}
+
+float Tick(double elapsedTime) {
+
+    int correctionTime = (int)(1000.0 / (double)tick - elapsedTime);
+
+    if (correctionTime > 0) {
+
+        Sleep(correctionTime);
+    }
+
+    return correctionTime;
+}
+
+void UpdatePhysics() {
+
+    for (int i = 0; i < objectArray.used; i++) {
+
+        objectArray.array[0].position[0] = (int)objectArray.array[0].interPosition[0];
+        objectArray.array[0].position[1] = (int)objectArray.array[0].interPosition[1];
     }
 }

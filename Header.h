@@ -11,6 +11,8 @@ typedef struct {
     int color;
     int position[2];
     int oldPosition[2];
+    float interPosition[2];
+    float speed;
     enum ObjectType type;
     int updateRender;
     
@@ -28,8 +30,9 @@ int consoleWidth, consoleHeigth;
 HANDLE consoleHandle;
 enum GameState gameState;
 ObjectArray objectArray;
+int tick;
 
-void GameInit();
+void GameInit (int t);
 void GameConsoleInit (int *width, int *heigth, HANDLE *handle);
 void BuildBorders(int width, int heigth);
 void PrintStringOnPosition(char* s, int color, int x, int y);
@@ -42,3 +45,5 @@ void InsertObjectOnArray (ObjectArray *objectArray, Object object);
 void FreeObjectArray (ObjectArray *objectArray);
 void Render ();
 void PlayerControl ();
+float Tick(double elapsedTime);
+void UpdatePhysics();
