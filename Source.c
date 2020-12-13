@@ -13,6 +13,7 @@ void GameInit (int t) {
     srand((unsigned)time(NULL));
 
     tick = t;
+    updateMenu = 1;
 }
 
 void GameConsoleInit (int *width, int *heigth, HANDLE *handle) {
@@ -57,51 +58,109 @@ void PrintCharOnPosition (char c, int color, int x, int y) {
     putchar(c);
 }
 
-void BuildMainMenu (enum GameState state) {
+void BuildMenu (enum MenuState state) {
 
-    // Mudar o título para inglês
-
+    Clear(consoleWidth, consoleHeigth);
     BuildBorders(consoleWidth, consoleHeigth);
-    PrintStringOnPosition("  ______    ______   _______   _______   ________  __     __  ______  __     __   ______  ",
-                          12,
-                          consoleWidth / 2 - 45,
-                          consoleHeigth / 2 - 10);
-    PrintStringOnPosition(" /      \\  /      \\ |       \\ |       \\ |        \\|  \\   |  \\|      \\|  \\   |  \\ /      \\ ",
-                          12,
-                          consoleWidth / 2 - 45,
-                          consoleHeigth / 2 - 9);
-    PrintStringOnPosition("|  $$$$$$\\|  $$$$$$\\| $$$$$$$\\| $$$$$$$\\| $$$$$$$$| $$   | $$ \\$$$$$$| $$   | $$|  $$$$$$\\",
-                          12,
-                          consoleWidth / 2 - 45,
-                          consoleHeigth / 2 - 8);
-    PrintStringOnPosition("| $$___\\$$| $$  | $$| $$__/ $$| $$__| $$| $$__    | $$   | $$  | $$  | $$   | $$| $$__| $$",
-                          12,
-                          consoleWidth / 2 - 45,
-                          consoleHeigth / 2 - 7);
-    PrintStringOnPosition(" \\$$    \\ | $$  | $$| $$    $$| $$    $$| $$  \\    \\$$\\ /  $$  | $$   \\$$\\ /  $$| $$    $$",
-                          12,
-                          consoleWidth / 2 - 45,
-                          consoleHeigth / 2 - 6);
-    PrintStringOnPosition(" _\\$$$$$$\\| $$  | $$| $$$$$$$\\| $$$$$$$\\| $$$$$     \\$$\\  $$   | $$    \\$$\\  $$ | $$$$$$$$",
-                          12,
-                          consoleWidth / 2 - 45,
-                          consoleHeigth / 2 - 5);
-    PrintStringOnPosition("|  \\__| $$| $$__/ $$| $$__/ $$| $$  | $$| $$_____    \\$$ $$   _| $$_    \\$$ $$  | $$  | $$",
-                          12,
-                          consoleWidth / 2 - 45,
-                          consoleHeigth / 2 - 4);
-    PrintStringOnPosition(" \\$$    $$ \\$$    $$| $$    $$| $$  | $$| $$     \\    \\$$$   |   $$ \\    \\$$$   | $$  | $$",
-                          12,
-                          consoleWidth / 2 - 45,
-                          consoleHeigth / 2 - 3);
-    PrintStringOnPosition("  \\$$$$$$   \\$$$$$$  \\$$$$$$$  \\$$   \\$$ \\$$$$$$$$     \\$     \\$$$$$$     \\$     \\$$   \\$$",
-                          12,
-                          consoleWidth / 2 - 45,
-                          consoleHeigth / 2 - 2);
 
-    PrintStringOnPosition("V 2.4", 10, 1, 1);
-    PrintStringOnPosition("PLAY [Enter]", 7, consoleWidth / 2 - 6, consoleHeigth / 2 + 1);
-    PrintStringOnPosition("INFO [I]", 7, consoleWidth / 2 - 6, consoleHeigth / 2 + 2);
+    if (state == MAIN) {
+
+        int const titleHorizontalAlignment = 37;
+
+        PrintStringOnPosition("  ______   __    __  _______   __     __  ______  __     __  ________ ",
+                            12,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 10);
+        PrintStringOnPosition(" /      \\ |  \\  |  \\|       \\ |  \\   |  \\|      \\|  \\   |  \\|        \\",
+                            12,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 9);
+        PrintStringOnPosition("|  $$$$$$\\| $$  | $$| $$$$$$$\\| $$   | $$ \\$$$$$$| $$   | $$| $$$$$$$$",
+                            12,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 8);
+        PrintStringOnPosition("| $$___\\$$| $$  | $$| $$__| $$| $$   | $$  | $$  | $$   | $$| $$__    ",
+                            12,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 7);
+        PrintStringOnPosition(" \\$$    \\ | $$  | $$| $$    $$ \\$$\\ /  $$  | $$   \\$$\\ /  $$| $$  \\   ",
+                            12,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 6);
+        PrintStringOnPosition(" _\\$$$$$$\\| $$  | $$| $$$$$$$\\  \\$$\\  $$   | $$    \\$$\\  $$ | $$$$$   ",
+                            12,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 5);
+        PrintStringOnPosition("|  \\__| $$| $$__/ $$| $$  | $$   \\$$ $$   _| $$_    \\$$ $$  | $$_____ ",
+                            12,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 4);
+        PrintStringOnPosition(" \\$$    $$ \\$$    $$| $$  | $$    \\$$$   |   $$ \\    \\$$$   | $$     \\",
+                            12,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 3);
+        PrintStringOnPosition("  \\$$$$$$   \\$$$$$$  \\$$   \\$$     \\$     \\$$$$$$     \\$     \\$$$$$$$$",
+                            12,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 2);
+
+        PrintStringOnPosition("V 2.5", 10, 1, 1);
+
+        PrintStringOnPosition("______________", 4, consoleWidth / 2 - 7, consoleHeigth / 2);
+        PrintStringOnPosition("PLAY [Enter]", 7, consoleWidth / 2 - 6, consoleHeigth / 2 + 1);
+        PrintStringOnPosition("______________", 4, consoleWidth / 2 - 7, consoleHeigth / 2 + 2);
+        PrintStringOnPosition("INFO [I]", 7, consoleWidth / 2 - 4, consoleHeigth / 2 + 3);
+        PrintStringOnPosition("______________", 4, consoleWidth / 2 - 7, consoleHeigth / 2 + 4);
+        PrintStringOnPosition("QUIT [ESC]", 7, consoleWidth / 2 - 5, consoleHeigth / 2 + 5);
+    }
+    else {
+
+        int const titleHorizontalAlignment = 20;
+
+        PrintStringOnPosition(" ______  __    __  ________   ______  ",
+                            10,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 10);
+        PrintStringOnPosition("|      \\|  \\  |  \\|        \\ /      \\ ",
+                            10,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 9);
+        PrintStringOnPosition(" \\$$$$$$| $$\\ | $$| $$$$$$$$|  $$$$$$\\",
+                            10,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 8);
+        PrintStringOnPosition("  | $$  | $$$\\| $$| $$__    | $$  | $$",
+                            10,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 7);
+        PrintStringOnPosition("  | $$  | $$$$\\ $$| $$  \\   | $$  | $$",
+                            10,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 6);
+        PrintStringOnPosition("  | $$  | $$\\$$ $$| $$$$$   | $$  | $$",
+                            10,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 5);
+        PrintStringOnPosition(" _| $$_ | $$ \\$$$$| $$      | $$__/ $$",
+                            10,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 4);
+        PrintStringOnPosition("|   $$ \\| $$  \\$$$| $$       \\$$    $$",
+                            10,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 3);
+        PrintStringOnPosition(" \\$$$$$$ \\$$   \\$$ \\$$        \\$$$$$$ ",
+                            10,
+                            consoleWidth / 2 - titleHorizontalAlignment,
+                            consoleHeigth / 2 - 2);
+
+        PrintStringOnPosition("Version 2.5, built in 13/12/2020", 7, consoleWidth / 2 - 15, consoleHeigth / 2 + 1);
+        PrintStringOnPosition("Developed by Eric Fernandes Evaristo (ErFer7)", 7, consoleWidth / 2 - 21, consoleHeigth / 2 + 2);
+        PrintStringOnPosition("Writen in C", 7, consoleWidth / 2 - 6, consoleHeigth / 2 + 3);
+        PrintStringOnPosition("Menu [ESC]", 7, consoleWidth / 2 - 5, consoleHeigth / 2 + 5);
+    }
+
+    updateMenu = 0;
 }
 
 void Clear (int width, int heigth) {
