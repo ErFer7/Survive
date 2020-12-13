@@ -1,4 +1,4 @@
-// Sobreviva - Jogo de Testes - V 2.5 - ErFer7
+// Sobreviva - Jogo de Testes - V 2.6 - ErFer7
 // Use "gcc Source.c Main.c -o Survive" para compilar.
 
 /***
@@ -67,6 +67,7 @@ int main() {
             LARGE_INTEGER frequency;
             LARGE_INTEGER t1, t2;
             double elapsedTime;
+
             QueryPerformanceFrequency(&frequency);
             QueryPerformanceCounter(&t1);
 
@@ -76,7 +77,6 @@ int main() {
             }
 
             PlayerControl();
-
             UpdatePhysics();
             Render();
 
@@ -89,7 +89,6 @@ int main() {
 
             char out[10];
             sprintf(out, "%.3f fps", 1000.0f / frameTime);
-
             PrintStringOnPosition(out, 7, 0, consoleHeigth - 1);
         }
 

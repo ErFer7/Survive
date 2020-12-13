@@ -104,7 +104,7 @@ void BuildMenu (enum MenuState state) {
                             consoleWidth / 2 - titleHorizontalAlignment,
                             consoleHeigth / 2 - 2);
 
-        PrintStringOnPosition("V 2.5", 10, 1, 1);
+        PrintStringOnPosition("V 2.6", 10, 1, 1);
 
         PrintStringOnPosition("______________", 4, consoleWidth / 2 - 7, consoleHeigth / 2);
         PrintStringOnPosition("PLAY [Enter]", 7, consoleWidth / 2 - 6, consoleHeigth / 2 + 1);
@@ -154,7 +154,7 @@ void BuildMenu (enum MenuState state) {
                             consoleWidth / 2 - titleHorizontalAlignment,
                             consoleHeigth / 2 - 2);
 
-        PrintStringOnPosition("Version 2.5, built in 13/12/2020", 7, consoleWidth / 2 - 15, consoleHeigth / 2 + 1);
+        PrintStringOnPosition("Version 2.6, built in 13/12/2020", 7, consoleWidth / 2 - 15, consoleHeigth / 2 + 1);
         PrintStringOnPosition("Developed by Eric Fernandes Evaristo (ErFer7)", 7, consoleWidth / 2 - 21, consoleHeigth / 2 + 2);
         PrintStringOnPosition("Writen in C", 7, consoleWidth / 2 - 6, consoleHeigth / 2 + 3);
         PrintStringOnPosition("Menu [ESC]", 7, consoleWidth / 2 - 5, consoleHeigth / 2 + 5);
@@ -215,7 +215,31 @@ void GenerateWorld (int width, int heigth) {
                      PLAYER,
                      1};
 
+    Object coin = {254,
+                   14,
+                   {RandomInt(1, consoleWidth - 2), RandomInt(1, consoleHeigth - 3)},
+                   {RandomInt(1, consoleWidth - 2), RandomInt(1, consoleHeigth - 3)},
+                   {(float)(RandomInt(1, consoleWidth - 2)), (float)(RandomInt(1, consoleHeigth - 3))},
+                   0.0f,
+                   COIN,
+                   1};
+
     InsertObjectOnArray(&objectArray, player);
+    InsertObjectOnArray(&objectArray, coin);
+
+    for (int i = 0; i < 100; i++) {
+
+        Object testMonster = {254,
+                            12,
+                            {RandomInt(1, consoleWidth - 2), RandomInt(1, consoleHeigth - 3)},
+                            {RandomInt(1, consoleWidth - 2), RandomInt(1, consoleHeigth - 3)},
+                            {(float)(RandomInt(1, consoleWidth - 2)), (float)(RandomInt(1, consoleHeigth - 3))},
+                            0.1f,
+                            ENEMY,
+                            1};
+
+        InsertObjectOnArray(&objectArray, testMonster);
+    }
 
     for (int i = 0; i < width; i++) {
 
@@ -305,42 +329,24 @@ void PlayerControl () {
 
     if (moved) {
 
-        for (int i = 1; i < objectArray.used; i++) {
+        if (movingUp && objectArray.array[0].position[1] == 1) {
 
-            if (movingUp || movingDown || movingRight || movingLeft) {
+            movingUp = 0;
+        }
 
-                if (movingUp &&
-                    objectArray.array[i].position[1] == objectArray.array[0].position[1] - 1 &&
-                    objectArray.array[i].position[0] == objectArray.array[0].position[0]) {
+        if (movingDown && objectArray.array[0].position[1] == consoleHeigth - 3) {
 
-                    movingUp = 0;
-                }
+            movingDown = 0;
+        }
 
-                if (movingDown &&
-                    objectArray.array[i].position[1] == objectArray.array[0].position[1] + 1 &&
-                    objectArray.array[i].position[0] == objectArray.array[0].position[0]) {
+        if (movingRight && objectArray.array[0].position[0] == consoleWidth - 2) {
 
-                    movingDown = 0;
-                }
+            movingRight = 0;
+        }
 
-                if (movingRight &&
-                    objectArray.array[i].position[0] == objectArray.array[0].position[0] + 1 &&
-                    objectArray.array[i].position[1] == objectArray.array[0].position[1]) {
+        if (movingLeft && objectArray.array[0].position[0] == 1) {
 
-                    movingRight = 0;
-                }
-
-                if (movingLeft &&
-                    objectArray.array[i].position[0] == objectArray.array[0].position[0] - 1 &&
-                    objectArray.array[i].position[1] == objectArray.array[0].position[1]) {
-
-                    movingLeft = 0;
-                }
-            }
-            else {
-
-                break;
-            }
+            movingLeft = 0;
         }
     }
 
@@ -369,6 +375,97 @@ void PlayerControl () {
     }
 }
 
+void EnemyBehaviour(int monsterIndex) {
+
+    int movingUp = 0, movingDown = 0, movingRight = 0, movingLeft = 0, moved = 0;
+
+    if (objectArray.array[0].position[1] < objectArray.array[monsterIndex].position[1]) {
+
+        movingUp = 1;
+        moved = 1;
+    }
+    if (objectArray.array[0].position[1] > objectArray.array[monsterIndex].position[1]) {
+
+        movingDown = 1;
+        moved = 1;
+    }
+    if (objectArray.array[0].position[0] > objectArray.array[monsterIndex].position[0]) {
+
+        movingRight = 1;
+        moved = 1;
+    }
+    if (objectArray.array[0].position[0] < objectArray.array[monsterIndex].position[0]) {
+
+        movingLeft = 1;
+        moved = 1;
+    }
+
+    if (moved) {
+
+        for (int i = 0; i < objectArray.used; i++) {
+
+            if ((movingUp || movingDown || movingRight || movingLeft) && i != monsterIndex) {
+
+                if (movingUp &&
+                    objectArray.array[i].position[1] == objectArray.array[monsterIndex].position[1] - 1 &&
+                    objectArray.array[i].position[0] == objectArray.array[monsterIndex].position[0]) {
+
+                    movingUp = 0;
+                }
+
+                if (movingDown &&
+                    objectArray.array[i].position[1] == objectArray.array[monsterIndex].position[1] + 1 &&
+                    objectArray.array[i].position[0] == objectArray.array[monsterIndex].position[0]) {
+
+                    movingDown = 0;
+                }
+
+                if (movingRight &&
+                    objectArray.array[i].position[0] == objectArray.array[monsterIndex].position[0] + 1 &&
+                    objectArray.array[i].position[1] == objectArray.array[monsterIndex].position[1]) {
+
+                    movingRight = 0;
+                }
+
+                if (movingLeft &&
+                    objectArray.array[i].position[0] == objectArray.array[monsterIndex].position[0] - 1 &&
+                    objectArray.array[i].position[1] == objectArray.array[monsterIndex].position[1]) {
+
+                    movingLeft = 0;
+                }
+            }
+            else {
+
+                break;
+            }
+        }
+    }
+
+    if (movingUp) {
+
+        objectArray.array[monsterIndex].interPosition[1] -= objectArray.array[monsterIndex].speed;
+        objectArray.array[monsterIndex].updateRender = 1;
+    }
+
+    if (movingDown) {
+
+        objectArray.array[monsterIndex].interPosition[1] += objectArray.array[monsterIndex].speed;
+        objectArray.array[monsterIndex].updateRender = 1;
+    }
+
+    if (movingRight) {
+
+        objectArray.array[monsterIndex].interPosition[0] += objectArray.array[monsterIndex].speed;
+        objectArray.array[monsterIndex].updateRender = 1;
+    }
+
+    if (movingLeft) {
+
+        objectArray.array[monsterIndex].interPosition[0] -= objectArray.array[monsterIndex].speed;
+        objectArray.array[monsterIndex].updateRender = 1;
+    }
+}
+
 float Tick(double elapsedTime) {
 
     int correctionTime = (int)(1000.0 / (double)tick - elapsedTime);
@@ -376,16 +473,30 @@ float Tick(double elapsedTime) {
     if (correctionTime > 0) {
 
         Sleep(correctionTime);
-    }
 
-    return correctionTime;
+        return (float)tick;
+    }
+    else {
+
+        return (float)elapsedTime;
+    }
 }
 
 void UpdatePhysics() {
 
     for (int i = 0; i < objectArray.used; i++) {
 
-        objectArray.array[0].position[0] = (int)objectArray.array[0].interPosition[0];
-        objectArray.array[0].position[1] = (int)objectArray.array[0].interPosition[1];
+        if (objectArray.array[i].type == ENEMY) {
+
+            EnemyBehaviour(i);
+        }
+
+        objectArray.array[i].position[0] = (int)objectArray.array[i].interPosition[0];
+        objectArray.array[i].position[1] = (int)objectArray.array[i].interPosition[1];
     }
+}
+
+int RandomInt(int min, int max) {
+
+    return rand() % (max + 1 - min) + min;
 }

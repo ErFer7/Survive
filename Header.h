@@ -4,7 +4,7 @@
 
 enum GameState {MENU, INGAME, EXIT};
 enum MenuState {MAIN, INFO};
-enum ObjectType {WALL, PLAYER, ENEMY, COIN};
+enum ObjectType {WALL, PLAYER, COIN, ENEMY};
 
 typedef struct {
 
@@ -33,7 +33,8 @@ enum GameState gameState;
 enum MenuState menuState;
 ObjectArray objectArray;
 int tick;
-unsigned int updateMenu;
+int updateMenu;
+int score;
 
 void GameInit (int t);
 void GameConsoleInit (int *width, int *heigth, HANDLE *handle);
@@ -48,5 +49,7 @@ void InsertObjectOnArray (ObjectArray *objectArray, Object object);
 void FreeObjectArray (ObjectArray *objectArray);
 void Render ();
 void PlayerControl ();
+void EnemyBehaviour(int monsterIndex);
 float Tick(double elapsedTime);
 void UpdatePhysics();
+int RandomInt(int min, int max);
