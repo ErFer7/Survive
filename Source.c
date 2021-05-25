@@ -70,14 +70,14 @@ void GameInit(unsigned int t)
     // Versão
     Text version = {
 
-        .content = "v2.7",
+        .content = "v2.7.1",
         .color = 7,
         .position = {1, 1},
         .update = 0};
 
     CalculateAlignedPosition(&version.position[0],
                              &version.position[1],
-                             4,
+                             6,
                              1,
                              TOP_LEFT);
 
@@ -1182,7 +1182,7 @@ void UpdatePhysics()
                             distanceFromPlayer = sqrtf(powf((enemySpawnX - targetPositionX), 2.0f) +
                                                        powf((enemySpawnY - targetPositionY), 2.0f));
 
-                        } while (objectPtrInEnemyPosition->type != EMPTY && distanceFromPlayer > 20.0f);
+                        } while (objectPtrInEnemyPosition->type != EMPTY || distanceFromPlayer < 20.0f);
 
                         Object enemy = {idCount++,
                                         254,

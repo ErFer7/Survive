@@ -1,4 +1,4 @@
-// Sobreviva - Jogo de Testes - V 2.7 - ErFer7
+// Sobreviva - Jogo de Testes - V 2.7.1 - ErFer7
 // Use "gcc Source.c Main.c -o Survive -O2 -s -DNDEBUG" para compilar.
 
 /***
