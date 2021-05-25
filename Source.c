@@ -4,499 +4,1257 @@
 #include <stdlib.h>
 #include <Windows.h>
 #include <time.h>
+#include <stdint.h>
+#include <math.h>
 
-void GameInit (int t) {
+#define PLAYER_SPEED 23.5f
+#define ENEMY_SPEED 13.0f
+#define SELECTION_SPEED 10.0f
 
-    GameConsoleInit(&consoleWidth, &consoleHeigth, &consoleHandle);
-    ObjectArrayInit(&objectArray, 0);
-
-    srand((unsigned)time(NULL));
-
-    tick = t;
-    updateMenu = 1;
-}
-
-void GameConsoleInit (int *width, int *heigth, HANDLE *handle) {
+void GameInit(unsigned int t)
+{
+    /* Inicializa o jogo.
+    */
 
     CONSOLE_SCREEN_BUFFER_INFO csbi;
 
-    *handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    GetConsoleScreenBufferInfo(*handle, &csbi);
+    // CORRIGIR: Erro em que o input pode ser executado no console após o término do programa
+    consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    GetConsoleScreenBufferInfo(consoleHandle, &csbi);
 
-    *width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-    *heigth = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+    consoleWidth = csbi.srWindow.Right - csbi.srWindow.Left + 1;  // Obtém a largura do console
+    consoleHeight = csbi.srWindow.Bottom - csbi.srWindow.Top + 1; // Obtém a altura do console
+
+    if (consoleWidth > 255) // Limita a largura para 255 caracteres
+    {
+        consoleWidth = 255;
+    }
+
+    if (consoleHeight > 255) // Limita a altura para 255 caracteres
+    {
+        consoleHeight = 255;
+    }
+
+    for (int i = 0; i < MAX_EVENTS; i++) // Inicializa os eventos
+    {
+        events[i] = IDLE;
+    }
+
+    // Inicializa as interfaces
+
+    // Inicializa o menu principal
+
+    // Título
+    Text mainMenuTitle = {
+
+        .content = "  ______   __    __  _______   __     __  ______  __     __  ________  \n"
+                   " /      \\ |  \\  |  \\|       \\ |  \\   |  \\|      \\|  \\   |  \\|   "
+                   "     \\\n|  $$$$$$\\| $$  | $$| $$$$$$$\\| $$   | $$ \\$$$$$$| $$   | $$|"
+                   " $$$$$$$$\n| $$___\\$$| $$  | $$| $$__| $$| $$   | $$  | $$  | $$   | $$|"
+                   " $$__    \n \\$$    \\ | $$  | $$| $$    $$ \\$$\\ /  $$  | $$   \\$$\\ /"
+                   "  $$| $$  \\   \n _\\$$$$$$\\| $$  | $$| $$$$$$$\\  \\$$\\  $$   | $$    "
+                   "\\$$\\  $$ | $$$$$   \n|  \\__| $$| $$__/ $$| $$  | $$   \\$$ $$   _| $$_"
+                   "    \\$$ $$  | $$_____ \n \\$$    $$ \\$$    $$| $$  | $$    \\$$$   |   "
+                   "$$ \\    \\$$$   | $$     \\\n  \\$$$$$$   \\$$$$$$  \\$$   \\$$     \\$ "
+                   "    \\$$$$$$     \\$     \\$$$$$$$$",
+        .color = 12,
+        .position = {0, 4},
+        .update = 0};
+
+    CalculateAlignedPosition(&mainMenuTitle.position[0],
+                             &mainMenuTitle.position[1],
+                             70,
+                             9,
+                             TOP);
+
+    // Versão
+    Text version = {
+
+        .content = "v2.7",
+        .color = 7,
+        .position = {1, 1},
+        .update = 0};
+
+    CalculateAlignedPosition(&version.position[0],
+                             &version.position[1],
+                             4,
+                             1,
+                             TOP_LEFT);
+
+    // Botão de play
+    Button playButton = {
+
+        .content = "*Play",
+        .color = 7,
+        .position = {0, 0},
+        .event = UI_PLAY,
+        .update = 0};
+
+    CalculateAlignedPosition(&playButton.position[0],
+                             &playButton.position[1],
+                             5,
+                             1,
+                             CENTER);
+
+    // Botão de informações
+    Button infoButton = {
+
+        .content = " Info",
+        .color = 7,
+        .position = {0, 2},
+        .event = UI_INFO,
+        .update = 0};
+
+    CalculateAlignedPosition(&infoButton.position[0],
+                             &infoButton.position[1],
+                             5,
+                             1,
+                             CENTER);
+
+    // Botão de saída
+    Button quitButton = {
+
+        .content = " Quit",
+        .color = 7,
+        .position = {0, 4},
+        .event = UI_QUIT,
+        .update = 0};
+
+    CalculateAlignedPosition(&quitButton.position[0],
+                             &quitButton.position[1],
+                             5,
+                             1,
+                             CENTER);
+
+    // Menu principal
+    Interface mainMenuInit = {
+
+        .texts = {mainMenuTitle, version},
+        .buttons = {playButton, infoButton, quitButton},
+        .selectedButton = 0.0f,
+        .selectionSpeed = SELECTION_SPEED,
+        .update = 1};
+
+    mainMenu = mainMenuInit;
+
+    // Inicializa o menu de informações
+
+    // Título
+    Text infoMenuTitle = {
+
+        .content = " ______  __    __  ________   ______  \n|      \\|  \\  |  \\|        \\ /   "
+                   "   \\ \n \\$$$$$$| $$\\ | $$| $$$$$$$$|  $$$$$$\\\n  | $$  | $$$\\| $$| $$__ "
+                   "   | $$  | $$\n  | $$  | $$$$\\ $$| $$  \\   | $$  | $$\n  | $$  | $$\\$$ $$|"
+                   " $$$$$   | $$  | $$\n _| $$_ | $$ \\$$$$| $$      | $$__/ $$\n|   $$ \\| $$"
+                   "  \\$$$| $$       \\$$    $$\n \\$$$$$$ \\$$   \\$$ \\$$        \\$$$$$$ ",
+        .color = 10,
+        .position = {0, 4},
+        .update = 0};
+
+    CalculateAlignedPosition(&infoMenuTitle.position[0],
+                             &infoMenuTitle.position[1],
+                             40,
+                             9,
+                             TOP);
+
+    // Informações da data
+    Text creationDateInfo = {
+
+        .content = "Adaptation of my first game that was created in 19/03/2019",
+        .color = 7,
+        .position = {0, 0},
+        .update = 0};
+
+    CalculateAlignedPosition(&creationDateInfo.position[0],
+                             &creationDateInfo.position[1],
+                             58,
+                             1,
+                             CENTER);
+
+    // Link do github
+    Text githubInfo = {
+
+        .content = "Writen by Eric (ErFer7): https://github.com/ErFer7/Survive-CMD-Game-I",
+        .color = 7,
+        .position = {0, 1},
+        .update = 0};
+
+    CalculateAlignedPosition(&githubInfo.position[0],
+                             &githubInfo.position[1],
+                             69,
+                             1,
+                             CENTER);
+
+    // Botão de retorno
+    Button returnButton = {
+
+        .content = "*Back",
+        .color = 7,
+        .position = {0, 3},
+        .event = UI_RETURN,
+        .update = 0};
+
+    CalculateAlignedPosition(&returnButton.position[0],
+                             &returnButton.position[1],
+                             5,
+                             1,
+                             CENTER);
+
+    // Menu de informações
+    Interface infoMenuInit = {
+
+        .texts = {infoMenuTitle, creationDateInfo, githubInfo},
+        .buttons = {returnButton},
+        .selectedButton = 0.0f,
+        .update = 1};
+
+    infoMenu = infoMenuInit;
+
+    // Inicializa interface do gameplay
+
+    // FPS
+    Text fpsCounter = {
+
+        .content = "000.000 fps   ",
+        .color = 7,
+        .position = {0, 0},
+        .update = 1};
+
+    CalculateAlignedPosition(&fpsCounter.position[0],
+                             &fpsCounter.position[1],
+                             11,
+                             1,
+                             BOTTOM_LEFT);
+
+    // Contador da pontuação
+    Text scoreCounter = {
+
+        .content = "score: 00000",
+        .color = 7,
+        .position = {-18, 0},
+        .update = 1};
+
+    CalculateAlignedPosition(&scoreCounter.position[0],
+                             &scoreCounter.position[1],
+                             12,
+                             1,
+                             BOTTOM_RIGHT);
+
+    // Interface de gameplay
+    Interface gameplayInit = {
+
+        .texts = {fpsCounter, scoreCounter},
+        .update = 0};
+
+    gameplay = gameplayInit;
+
+    // Inicializa a tela de pausa
+
+    // Título
+    Text pauseTitle = {
+
+        .content = "$$$$$$$\\   $$$$$$\\  $$\\   $$\\  $$$$$$\\  $$$$$$$$\\ $$$$$$$\\  \n$$  __"
+                   "$$\\ $$  __$$\\ $$ |  $$ |$$  __$$\\ $$  _____|$$  __$$\\ \n$$ |  $$ |$$ / "
+                   " $$ |$$ |  $$ |$$ /  \\__|$$ |      $$ |  $$ |\n$$$$$$$  |$$$$$$$$ |$$ |  $"
+                   "$ |\\$$$$$$\\  $$$$$\\    $$ |  $$ |\n$$  ____/ $$  __$$ |$$ |  $$ | \\____"
+                   "$$\\ $$  __|   $$ |  $$ |\n$$ |      $$ |  $$ |$$ |  $$ |$$\\   $$ |$$ |   "
+                   "   $$ |  $$ |\n$$ |      $$ |  $$ |\\$$$$$$  |\\$$$$$$  |$$$$$$$$\\ $$$$$$$"
+                   "  |\n\\__|      \\__|  \\__| \\______/  \\______/ \\________|\\_______/ ",
+        .color = 7,
+        .position = {0, 4},
+        .update = 0};
+
+    CalculateAlignedPosition(&pauseTitle.position[0],
+                             &pauseTitle.position[1],
+                             60,
+                             9,
+                             TOP);
+
+    // Botão de continuar
+    Button resumeButton = {
+
+        .content = "*Resume",
+        .color = 7,
+        .position = {0, 0},
+        .event = UI_RESUME,
+        .update = 0};
+
+    CalculateAlignedPosition(&resumeButton.position[0],
+                             &resumeButton.position[1],
+                             7,
+                             1,
+                             CENTER);
+
+    // Botão de reiniciar
+    Button restartButton = {
+
+        .content = " Restart",
+        .color = 7,
+        .position = {0, 2},
+        .event = UI_RESTART,
+        .update = 0};
+
+    CalculateAlignedPosition(&restartButton.position[0],
+                             &restartButton.position[1],
+                             8,
+                             1,
+                             CENTER);
+
+    // Botão de retornar para o menu
+    Button menuButton = {
+
+        .content = " Menu",
+        .color = 7,
+        .position = {0, 4},
+        .event = UI_RETURN,
+        .update = 0};
+
+    CalculateAlignedPosition(&menuButton.position[0],
+                             &menuButton.position[1],
+                             5,
+                             1,
+                             CENTER);
+
+    // Interface de pausa
+    Interface pauseInit = {
+
+        .texts = {pauseTitle},
+        .buttons = {resumeButton, restartButton, menuButton},
+        .selectedButton = 0.0f,
+        .selectionSpeed = SELECTION_SPEED,
+        .update = 1};
+
+    pause = pauseInit;
+
+    // Inicializa a interface de fim de jogo
+
+    // Título
+    Text gameoverTitle = {
+
+        .content = " $$$$$$\\   $$$$$$\\  $$\\      $$\\ $$$$$$$$\\  $$$$$$\\  $$\\    $$\\ $$$$$$"
+                   "$$\\ $$$$$$$\\  \n$$  __$$\\ $$  __$$\\ $$$\\    $$$ |$$  _____|$$  __$$\\ $$ "
+                   "|   $$ |$$  _____|$$  __$$\\ \n$$ /  \\__|$$ /  $$ |$$$$\\  $$$$ |$$ |      $$"
+                   " /  $$ |$$ |   $$ |$$ |      $$ |  $$ |\n$$ |$$$$\\ $$$$$$$$ |$$\\$$\\$$ $$ |$"
+                   "$$$$\\    $$ |  $$ |\\$$\\  $$  |$$$$$\\    $$$$$$$  |\n$$ |\\_$$ |$$  __$$ |$"
+                   "$ \\$$$  $$ |$$  __|   $$ |  $$ | \\$$\\$$  / $$  __|   $$  __$$< \n$$ |  $$ |"
+                   "$$ |  $$ |$$ |\\$  /$$ |$$ |      $$ |  $$ |  \\$$$  /  $$ |      $$ |  $$ |\n"
+                   "\\$$$$$$  |$$ |  $$ |$$ | \\_/ $$ |$$$$$$$$\\  $$$$$$  |   \\$  /   $$$$$$$$\\"
+                   " $$ |  $$ |\n \\______/ \\__|  \\__|\\__|     \\__|\\________| \\______/     "
+                   "\\_/    \\________|\\__|  \\__|",
+        .color = 12,
+        .position = {0, 4},
+        .update = 0};
+
+    CalculateAlignedPosition(&gameoverTitle.position[0],
+                             &gameoverTitle.position[1],
+                             84,
+                             9,
+                             TOP);
+
+    // Pontuação final
+    Text finalScore = {
+
+        .content = "Score: 00000",
+        .color = 7,
+        .position = {0, 0},
+        .update = 0};
+
+    CalculateAlignedPosition(&finalScore.position[0],
+                             &finalScore.position[1],
+                             12,
+                             1,
+                             CENTER);
+
+    // Interface de fim de jogo
+    Interface gameoverInit = {
+
+        .texts = {gameoverTitle, finalScore},
+        .buttons = {restartButton, menuButton},
+        .selectedButton = 0.0f,
+        .selectionSpeed = SELECTION_SPEED,
+        .update = 1};
+
+    gameover = gameoverInit;
+
+    srand((unsigned)time(NULL)); // Inicializa o RNG
+
+    tick = t;
 }
 
-void BuildBorders (int width, int heigth) {
+void PrintCharOnPosition(char c, uint8_t color, uint8_t x, uint8_t y)
+{
+    /* Coloca um caractere na posição (x, y) com a cor especificada (0 a 15).
+    */
 
-    for (int i = 0; i < width; i++) {
-
-        PrintCharOnPosition(219, 7, i, 0);
-        PrintCharOnPosition(219, 7, i, heigth - 2);
-    };
-
-    for (int i = 0; i < heigth - 1; i++) {
-
-        PrintCharOnPosition(219, 7, 0, i);
-        PrintCharOnPosition(219, 7, width - 1, i);
-    };
-}
-
-void PrintStringOnPosition (char* s, int color, int x, int y) {
-    
-	COORD coord = { (SHORT)x, (SHORT)y };
+    COORD coord = {(SHORT)x, (SHORT)y};
     SetConsoleTextAttribute(consoleHandle, color);
-	SetConsoleCursorPosition(consoleHandle, coord);
-    printf("%s", s);
-}
-
-void PrintCharOnPosition (char c, int color, int x, int y) {
-    
-	COORD coord = { (SHORT)x, (SHORT)y };
-    SetConsoleTextAttribute(consoleHandle, color);
-	SetConsoleCursorPosition(consoleHandle, coord);
+    SetConsoleCursorPosition(consoleHandle, coord);
     putchar(c);
 }
 
-void BuildMenu (enum MenuState state) {
+void PrintStringOnPosition(char *s, uint8_t color, uint8_t x, uint8_t y)
+{
+    /* Coloca um string na posição (x, y) com a cor especificada (0 a 15).
+    */
 
-    Clear(consoleWidth, consoleHeigth);
-    BuildBorders(consoleWidth, consoleHeigth);
+    uint8_t calculatedX = x;
+    uint8_t calculatedY = y;
 
-    if (state == MAIN) {
+    for (int i = 0; i < strlen(s); i++)
+    {
 
-        int const titleHorizontalAlignment = 37;
+        if (s[i] == '\n') // Aumenta a altura quando uma nova linha é encontrada
+        {
 
-        PrintStringOnPosition("  ______   __    __  _______   __     __  ______  __     __  ________ ",
-                            12,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 10);
-        PrintStringOnPosition(" /      \\ |  \\  |  \\|       \\ |  \\   |  \\|      \\|  \\   |  \\|        \\",
-                            12,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 9);
-        PrintStringOnPosition("|  $$$$$$\\| $$  | $$| $$$$$$$\\| $$   | $$ \\$$$$$$| $$   | $$| $$$$$$$$",
-                            12,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 8);
-        PrintStringOnPosition("| $$___\\$$| $$  | $$| $$__| $$| $$   | $$  | $$  | $$   | $$| $$__    ",
-                            12,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 7);
-        PrintStringOnPosition(" \\$$    \\ | $$  | $$| $$    $$ \\$$\\ /  $$  | $$   \\$$\\ /  $$| $$  \\   ",
-                            12,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 6);
-        PrintStringOnPosition(" _\\$$$$$$\\| $$  | $$| $$$$$$$\\  \\$$\\  $$   | $$    \\$$\\  $$ | $$$$$   ",
-                            12,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 5);
-        PrintStringOnPosition("|  \\__| $$| $$__/ $$| $$  | $$   \\$$ $$   _| $$_    \\$$ $$  | $$_____ ",
-                            12,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 4);
-        PrintStringOnPosition(" \\$$    $$ \\$$    $$| $$  | $$    \\$$$   |   $$ \\    \\$$$   | $$     \\",
-                            12,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 3);
-        PrintStringOnPosition("  \\$$$$$$   \\$$$$$$  \\$$   \\$$     \\$     \\$$$$$$     \\$     \\$$$$$$$$",
-                            12,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 2);
+            calculatedX = x;
+            calculatedY++;
+        }
+        else if (s[i] != '\0')
+        {
 
-        PrintStringOnPosition("V 2.6", 10, 1, 1);
+            PrintCharOnPosition(s[i], color, calculatedX++, calculatedY);
+        }
+        else
+        {
 
-        PrintStringOnPosition("______________", 4, consoleWidth / 2 - 7, consoleHeigth / 2);
-        PrintStringOnPosition("PLAY [Enter]", 7, consoleWidth / 2 - 6, consoleHeigth / 2 + 1);
-        PrintStringOnPosition("______________", 4, consoleWidth / 2 - 7, consoleHeigth / 2 + 2);
-        PrintStringOnPosition("INFO [I]", 7, consoleWidth / 2 - 4, consoleHeigth / 2 + 3);
-        PrintStringOnPosition("______________", 4, consoleWidth / 2 - 7, consoleHeigth / 2 + 4);
-        PrintStringOnPosition("QUIT [ESC]", 7, consoleWidth / 2 - 5, consoleHeigth / 2 + 5);
+            break;
+        }
     }
-    else {
-
-        int const titleHorizontalAlignment = 20;
-
-        PrintStringOnPosition(" ______  __    __  ________   ______  ",
-                            10,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 10);
-        PrintStringOnPosition("|      \\|  \\  |  \\|        \\ /      \\ ",
-                            10,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 9);
-        PrintStringOnPosition(" \\$$$$$$| $$\\ | $$| $$$$$$$$|  $$$$$$\\",
-                            10,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 8);
-        PrintStringOnPosition("  | $$  | $$$\\| $$| $$__    | $$  | $$",
-                            10,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 7);
-        PrintStringOnPosition("  | $$  | $$$$\\ $$| $$  \\   | $$  | $$",
-                            10,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 6);
-        PrintStringOnPosition("  | $$  | $$\\$$ $$| $$$$$   | $$  | $$",
-                            10,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 5);
-        PrintStringOnPosition(" _| $$_ | $$ \\$$$$| $$      | $$__/ $$",
-                            10,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 4);
-        PrintStringOnPosition("|   $$ \\| $$  \\$$$| $$       \\$$    $$",
-                            10,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 3);
-        PrintStringOnPosition(" \\$$$$$$ \\$$   \\$$ \\$$        \\$$$$$$ ",
-                            10,
-                            consoleWidth / 2 - titleHorizontalAlignment,
-                            consoleHeigth / 2 - 2);
-
-        PrintStringOnPosition("Version 2.6, built in 13/12/2020", 7, consoleWidth / 2 - 15, consoleHeigth / 2 + 1);
-        PrintStringOnPosition("Developed by Eric Fernandes Evaristo (ErFer7)", 7, consoleWidth / 2 - 21, consoleHeigth / 2 + 2);
-        PrintStringOnPosition("Writen in C", 7, consoleWidth / 2 - 6, consoleHeigth / 2 + 3);
-        PrintStringOnPosition("Menu [ESC]", 7, consoleWidth / 2 - 5, consoleHeigth / 2 + 5);
-    }
-
-    updateMenu = 0;
 }
 
-void Clear (int width, int heigth) {
+void BuildBorders()
+{
+    /* Faz as bordas da tela.
+    */
 
-    for (int i = 0; i < width; i++) {
+    for (int i = 0; i < consoleWidth; i++)
+    {
+        PrintCharOnPosition(219, 7, i, 0);
+        PrintCharOnPosition(219, 7, i, consoleHeight - 2);
+    };
 
-        for (int j = 0; j < heigth; j++) {
+    for (int i = 0; i < consoleHeight - 1; i++)
+    {
+        PrintCharOnPosition(219, 7, 0, i);
+        PrintCharOnPosition(219, 7, consoleWidth - 1, i);
+    };
+}
 
+void CalculateAlignedPosition(int16_t *x,
+                              int16_t *y,
+                              uint8_t sizeX,
+                              uint8_t sizeY,
+                              enum Alignment
+                                  alignment)
+{
+    /* Calcula a posição com base no alinhamento e retorna.
+    */
+
+    switch (alignment)
+    {
+    case TOP:
+
+        *x += (int16_t)((consoleWidth - sizeX) / 2);
+        break;
+    case TOP_RIGHT:
+
+        *x += (int16_t)((consoleWidth + sizeX / 2) - 1);
+        break;
+    case LEFT:
+
+        *y += (int16_t)((consoleHeight - sizeY) / 2);
+        break;
+    case CENTER:
+
+        *x += (int16_t)((consoleWidth - sizeX) / 2);
+        *y += (int16_t)((consoleHeight - sizeY) / 2);
+        break;
+    case RIGHT:
+
+        *x += (int16_t)((consoleWidth + sizeX / 2) - 1);
+        *y += (int16_t)((consoleHeight - sizeY) / 2);
+        break;
+    case BOTTOM_LEFT:
+
+        *y += (int16_t)((consoleHeight + sizeY / 2) - 1);
+        break;
+    case BOTTOM:
+
+        *x += (int16_t)((consoleWidth - sizeX) / 2);
+        *y += (int16_t)((consoleHeight + sizeY / 2) - 1);
+        break;
+    case BOTTOM_RIGHT:
+
+        *x += (int16_t)((consoleWidth + sizeX / 2) - 1);
+        *y += (int16_t)((consoleHeight + sizeY / 2) - 1);
+        break;
+    default:
+        break;
+    }
+}
+
+void ObjectMatrixInit(ObjectMatrix *objectMatrix, uint8_t width, uint8_t height)
+{
+    /* Inicializa uma matriz de objetos. A matriz é alocada na memória e possui uma largura e
+       altura. Existem dois ponteiros que são úteis para manter a referência do jogador e
+       moeda.
+    */
+
+    objectMatrix->matrix = (Object *)malloc(width * height * sizeof(Object));
+    objectMatrix->width = width;
+    objectMatrix->height = height;
+
+    // Preenche a matriz com objetos vazios
+    for (uint8_t i = 0; i < width; i++)
+    {
+        for (uint8_t j = 0; j < height; j++)
+        {
+            Object empty = {0, 255, 0, {0.0f, 0.0f}, {(float)i, (float)j}, 0.0f, EMPTY};
+            InsertObjectOnMatrix(objectMatrix, empty, i, j);
+        }
+    }
+}
+
+void InsertObjectOnMatrix(ObjectMatrix *objectMatrix, Object object, uint8_t x, uint8_t y)
+{
+    /* Insere um objeto em uma matriz (sobescreve o objeto caso já exista um na posição).
+    */
+
+    objectMatrix->matrix[objectMatrix->width * y + x] = object;
+
+    if (object.type == PLAYER)
+    {
+        objectMatrix->playerPtr = &objectMatrix->matrix[objectMatrix->width * y + x];
+    }
+    else if (object.type == COIN)
+    {
+        objectMatrix->coinPtr = &objectMatrix->matrix[objectMatrix->width * y + x];
+    }
+}
+
+void MoveObjectOnMatrix(ObjectMatrix *objectMatrix, uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1)
+{
+    /* Move um objeto na matriz caso as posições fornecidas sejam válidas. Sobescreve o objeto em
+       (x1, y1).
+    */
+
+    if (x0 != x1 || y0 != y1)
+    {
+        Object empty = {0, 255, 0, {0.0f, 0.0f}, {(float)x0, (float)y0}, 0.0f, EMPTY};
+        Object object = objectMatrix->matrix[objectMatrix->width * y0 + x0];
+
+        objectMatrix->matrix[objectMatrix->width * y1 + x1] = object;
+        objectMatrix->matrix[objectMatrix->width * y0 + x0] = empty;
+
+        if (object.type == PLAYER)
+        {
+            objectMatrix->playerPtr = &objectMatrix->matrix[objectMatrix->width * y1 + x1];
+        }
+        else if (object.type == COIN)
+        {
+            objectMatrix->coinPtr = &objectMatrix->matrix[objectMatrix->width * y1 + x1];
+        }
+    }
+}
+
+Object *GetObjectPtrFromMatrix(ObjectMatrix *objectMatrix, uint8_t x, uint8_t y)
+{
+    /* Retorna um ponteiro para o objeto na posição especificada.
+    */
+
+    return &objectMatrix->matrix[objectMatrix->width * y + x];
+}
+
+void FreeObjectMatrix(ObjectMatrix *objectMatrix)
+{
+    /* Libera a memória da matriz.
+    */
+
+    free(objectMatrix->matrix);
+    objectMatrix->matrix = NULL;
+    objectMatrix->width = 0;
+    objectMatrix->height = 0;
+}
+
+void InterfaceBehaviour(Interface *interfaceIn)
+{
+    /* Define o comportamento de uma interface.
+    */
+
+    if (GetKeyState(VK_RETURN) & 0x8000) // Enter
+    {
+        // Adiciona o evento do botão na lista de eventos caso o botão seja válido
+        if (interfaceIn->buttons[(int)interfaceIn->selectedButton].event != IDLE)
+        {
+            events[1] = interfaceIn->buttons[(int)interfaceIn->selectedButton].event;
+            interfaceIn->update = 1;
+        }
+    }
+    else if (GetKeyState(VK_UP) & 0x8000) // Seta para cima
+    {
+        // Seleciona o botão superior caso possível
+        if ((int)interfaceIn->selectedButton > 0)
+        {
+            interfaceIn->selectedButton -= interfaceIn->selectionSpeed / (float)tick;
+            interfaceIn->buttons[(int)interfaceIn->selectedButton].content[0] = '*';
+            interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].content[0] = ' ';
+            interfaceIn->buttons[(int)interfaceIn->selectedButton].update = 1;
+            interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].update = 1;
+        }
+    }
+    else if (GetKeyState(VK_DOWN) & 0x8000) // Seta para baixo
+    {
+        // Seleciona o botão inferior caso possível
+        if ((int)interfaceIn->selectedButton < MAX_BUTTONS - 1 &&
+            interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].event != IDLE)
+        {
+            interfaceIn->selectedButton += interfaceIn->selectionSpeed / (float)tick;
+            interfaceIn->buttons[(int)interfaceIn->selectedButton].content[0] = '*';
+            interfaceIn->buttons[(int)interfaceIn->selectedButton - 1].content[0] = ' ';
+            interfaceIn->buttons[(int)interfaceIn->selectedButton].update = 1;
+            interfaceIn->buttons[(int)interfaceIn->selectedButton - 1].update = 1;
+        }
+    }
+    else if (GetKeyState(VK_ESCAPE) & 0x8000) // Esc
+    {
+        // Adiciona o evento correspondente ao estado na lista de eventos
+        switch (state)
+        {
+        case MAIN_MENU:
+
+            events[1] = UI_QUIT; // Evento de saída
+            break;
+        case INFO_MENU:
+
+            events[1] = UI_RETURN; // Evento de retorno ao menu
+            interfaceIn->update = 1;
+            break;
+        case GAMEPLAY:
+
+            events[1] = UI_PAUSE; // Evento de pausa
+            break;
+        case PAUSE:
+
+            events[1] = UI_RESUME; // Evento de continuar o jogo
+            interfaceIn->update = 1;
+            break;
+        case GAMEOVER:
+
+            events[1] = UI_RETURN; // Evento de retornar ao menu
+            interfaceIn->update = 1;
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+void RenderInterface(Interface *interfaceIn)
+{
+    /* Renderiza a interface.
+    */
+
+    // Limpa a tela caso toda a interface deva ser atualizada
+    if (interfaceIn->update)
+    {
+        Clear();
+        BuildBorders();
+    }
+
+    // Renderiza cada texto
+    for (int i = 0; i < MAX_TEXTS; i++)
+    {
+        if (interfaceIn->update || interfaceIn->texts[i].update)
+        {
+            PrintStringOnPosition(interfaceIn->texts[i].content,
+                                  interfaceIn->texts[i].color,
+                                  interfaceIn->texts[i].position[0],
+                                  interfaceIn->texts[i].position[1]);
+
+            interfaceIn->texts[i].update = 0;
+        }
+    }
+
+    // Renderiza cada botão
+    for (int i = 0; i < MAX_BUTTONS; i++)
+    {
+        if (interfaceIn->update || interfaceIn->buttons[i].update)
+        {
+            PrintStringOnPosition(interfaceIn->buttons[i].content,
+                                  interfaceIn->buttons[i].color,
+                                  interfaceIn->buttons[i].position[0],
+                                  interfaceIn->buttons[i].position[1]);
+
+            interfaceIn->buttons[i].update = 0;
+        }
+    }
+
+    // Move o cursor para o canto da tela
+    SetConsoleCursorPosition(consoleHandle,
+                             (COORD){(SHORT)(consoleWidth - 1), (SHORT)(consoleHeight - 1)});
+
+    interfaceIn->update = 0; // Reseta o estado de atualização da interface
+}
+
+void UpdateInterfaces()
+{
+    /* Atualiza todas as interfaces com base no estado.
+    */
+
+    switch (state)
+    {
+    case MAIN_MENU:
+
+        RenderInterface(&mainMenu);
+        InterfaceBehaviour(&mainMenu);
+        break;
+    case INFO_MENU:
+
+        RenderInterface(&infoMenu);
+        InterfaceBehaviour(&infoMenu);
+        break;
+    case GAMEPLAY:
+
+        RenderInterface(&gameplay);
+        InterfaceBehaviour(&gameplay);
+        break;
+    case PAUSE:
+
+        RenderInterface(&pause);
+        InterfaceBehaviour(&pause);
+        break;
+    case GAMEOVER:
+
+        RenderInterface(&gameover);
+        InterfaceBehaviour(&gameover);
+        break;
+    default:
+        break;
+    }
+}
+
+void Clear()
+{
+    /* Limpa a tela.
+    */
+
+    for (int i = 0; i < consoleWidth; i++)
+    {
+        for (int j = 0; j < consoleHeight; j++)
+        {
             PrintCharOnPosition(255, 7, i, j);
         }
     }
 }
 
-void Render () {
+void GenerateWorld()
+{
+    /* Gera o mundo do jogo.
+    */
 
-    for (int i = 0; i < objectArray.used; i++) {
+    score = 0;
+    idCount = 0;
 
-        if (objectArray.array[i].updateRender) {
+    // Inicializa as matrizes
+    ObjectMatrixInit(&objectMatrix, consoleWidth, consoleHeight - 1);
+    ObjectMatrixInit(&oldObjectMatrix, consoleWidth, consoleHeight - 1);
 
-            PrintCharOnPosition(objectArray.array[i].c,
-                                objectArray.array[i].color,
-                                objectArray.array[i].position[0],
-                                objectArray.array[i].position[1]);
-
-            if (objectArray.array[i].oldPosition[0] != objectArray.array[i].position[0] ||
-                objectArray.array[i].oldPosition[1] != objectArray.array[i].position[1]) {
-
-                PrintCharOnPosition(255,
-                                    0,
-                                    objectArray.array[i].oldPosition[0],
-                                    objectArray.array[i].oldPosition[1]);
-            }
-
-            objectArray.array[i].oldPosition[0] = objectArray.array[i].position[0];
-            objectArray.array[i].oldPosition[1] = objectArray.array[i].position[1];
-
-            objectArray.array[i].updateRender = 0;
-        }
-    }
-
-    PrintCharOnPosition(255, 0, consoleWidth - 2, consoleHeigth - 1);
-}
-
-void GenerateWorld (int width, int heigth) {
-
-    Object player = {254,
+    Object player = {idCount++,
+                     254,
                      15,
-                     {width / 2, heigth / 2},
-                     {width / 2, heigth / 2},
-                     {(float)(width / 2), (float)(heigth / 2)},
-                     0.5f,
-                     PLAYER,
-                     1};
+                     {0.0f, 0.0f},
+                     {(float)(consoleWidth / 2), (float)(consoleHeight / 2)},
+                     PLAYER_SPEED,
+                     PLAYER};
 
-    Object coin = {254,
+    float coinPositionX = 0.0f;
+    float coinPositionY = 0.0f;
+
+    // Não é a maneira ideal de evitar a sobreposição da moeda no jogador
+    do
+    {
+        coinPositionX = Randomf(1, consoleWidth - 2);
+        coinPositionY = Randomf(1, consoleHeight - 3);
+    } while (coinPositionX == player.position[0] && coinPositionY == player.position[1]);
+
+    Object coin = {idCount++,
+                   254,
                    14,
-                   {RandomInt(1, consoleWidth - 2), RandomInt(1, consoleHeigth - 3)},
-                   {RandomInt(1, consoleWidth - 2), RandomInt(1, consoleHeigth - 3)},
-                   {(float)(RandomInt(1, consoleWidth - 2)), (float)(RandomInt(1, consoleHeigth - 3))},
+                   {0.0f, 0.0f},
+                   {coinPositionX, coinPositionY},
                    0.0f,
-                   COIN,
-                   1};
+                   COIN};
 
-    InsertObjectOnArray(&objectArray, player);
-    InsertObjectOnArray(&objectArray, coin);
+    // Insere o jogador e moeda na matriz
 
-    for (int i = 0; i < 100; i++) {
+    InsertObjectOnMatrix(&objectMatrix,
+                         player,
+                         (uint8_t)player.position[0],
+                         (uint8_t)player.position[1]);
 
-        Object testMonster = {254,
-                            12,
-                            {RandomInt(1, consoleWidth - 2), RandomInt(1, consoleHeigth - 3)},
-                            {RandomInt(1, consoleWidth - 2), RandomInt(1, consoleHeigth - 3)},
-                            {(float)(RandomInt(1, consoleWidth - 2)), (float)(RandomInt(1, consoleHeigth - 3))},
-                            0.1f,
-                            ENEMY,
-                            1};
+    InsertObjectOnMatrix(&objectMatrix,
+                         coin,
+                         (uint8_t)coin.position[0],
+                         (uint8_t)coin.position[1]);
 
-        InsertObjectOnArray(&objectArray, testMonster);
-    }
+    // Constroi as paredes de cima e de baixo
+    for (int i = 0; i < consoleWidth; i++)
+    {
+        Object topWall = {idCount++, 219, 7, {0.0f, 0.0f}, {(float)i, 0.0f}, 0.0f, WALL};
 
-    for (int i = 0; i < width; i++) {
-
-        Object topWall = {219, 7, {i, 0}, {i, 0}, {(float)i, 0.0f}, 0.0f, WALL, 1};
-
-        Object bottonWall = {219,
+        Object bottonWall = {idCount++,
+                             219,
                              7,
-                             {i, heigth - 2},
-                             {i, heigth - 2},
-                             {(float)i, (float)(heigth - 2)},
+                             {0.0f, 0.0f},
+                             {(float)i, (float)(consoleHeight - 2)},
                              0.0f,
-                             WALL,
-                             1};
+                             WALL};
 
-        InsertObjectOnArray(&objectArray, topWall);
-        InsertObjectOnArray(&objectArray, bottonWall);
+        InsertObjectOnMatrix(&objectMatrix,
+                             topWall,
+                             (uint8_t)topWall.position[0],
+                             (uint8_t)topWall.position[1]);
+
+        InsertObjectOnMatrix(&objectMatrix,
+                             bottonWall,
+                             (uint8_t)bottonWall.position[0],
+                             (uint8_t)bottonWall.position[1]);
     }
 
-    for (int i = 0; i < heigth - 2; i++) {
+    // Constroi as paredes da esquerda e direita
+    for (int i = 0; i < consoleHeight - 2; i++)
+    {
+        Object leftWall = {idCount++, 219, 7, {0.0f, 0.0f}, {0.0f, (float)i}, 0.0f, WALL};
 
-        Object leftWall = {219, 7, {0, i}, {0, i}, {0.0f, (float)i}, 0.0f, WALL, 1};
-        Object rightWall = {219,
+        Object rightWall = {idCount++,
+                            219,
                             7,
-                            {width - 1, i},
-                            {width - 1, i},
-                            {(float)(width - 1), (float)i},
+                            {0.0f, 0.0f},
+                            {(float)(consoleWidth - 1), (float)i},
                             0.0f,
-                            WALL,
-                            1};
+                            WALL};
 
-        InsertObjectOnArray(&objectArray, leftWall);
-        InsertObjectOnArray(&objectArray, rightWall);
+        InsertObjectOnMatrix(&objectMatrix,
+                             leftWall,
+                             (uint8_t)leftWall.position[0],
+                             (uint8_t)leftWall.position[1]);
+
+        InsertObjectOnMatrix(&objectMatrix,
+                             rightWall,
+                             (uint8_t)rightWall.position[0],
+                             (uint8_t)rightWall.position[1]);
     }
+
+    UpdateMatrices(); // Atualiza as matrizes
 }
 
-void ObjectArrayInit (ObjectArray *objectArray, size_t initialSize) {
+void UpdateObjectBehaviour()
+{
+    /* Atualiza cada objeto com base no seu comportamento.
+    */
 
-    objectArray -> array = (Object*)malloc(initialSize * sizeof(Object));
-    objectArray -> used = 0;
-    objectArray -> size = initialSize;
-}
+    if (state == GAMEPLAY)
+    {
+        PlayerBehaviour();
 
-void InsertObjectOnArray (ObjectArray *objectArray, Object object) {
-
-    if (objectArray -> used == objectArray -> size) {
-
-        objectArray -> size++;
-        objectArray -> array = (Object*)realloc(objectArray -> array, objectArray -> size * sizeof(Object));
-    }
-
-    objectArray -> array[objectArray -> used++] = object;
-}
-
-void FreeObjectArray (ObjectArray *objectArray) {
-
-
-    free(objectArray -> array);
-    objectArray -> array = NULL;
-    objectArray -> used = 0;
-    objectArray -> size = 0;
-}
-
-void PlayerControl () {
-
-    int movingUp = 0, movingDown = 0, movingRight = 0, movingLeft = 0, moved = 0;
-
-    if (GetKeyState(VK_UP) & 0x8000) {
-
-        movingUp = 1;
-        moved = 1;
-    }
-    if (GetKeyState(VK_DOWN) & 0x8000) {
-
-        movingDown = 1;
-        moved = 1;
-    }
-    if (GetKeyState(VK_RIGHT) & 0x8000) {
-
-        movingRight = 1;
-        moved = 1;
-    }
-    if (GetKeyState(VK_LEFT) & 0x8000) {
-
-        movingLeft = 1;
-        moved = 1;
-    }
-
-    if (moved) {
-
-        if (movingUp && objectArray.array[0].position[1] == 1) {
-
-            movingUp = 0;
-        }
-
-        if (movingDown && objectArray.array[0].position[1] == consoleHeigth - 3) {
-
-            movingDown = 0;
-        }
-
-        if (movingRight && objectArray.array[0].position[0] == consoleWidth - 2) {
-
-            movingRight = 0;
-        }
-
-        if (movingLeft && objectArray.array[0].position[0] == 1) {
-
-            movingLeft = 0;
-        }
-    }
-
-    if (movingUp) {
-
-        objectArray.array[0].interPosition[1] -= objectArray.array[0].speed;
-        objectArray.array[0].updateRender = 1;
-    }
-
-    if (movingDown) {
-
-        objectArray.array[0].interPosition[1] += objectArray.array[0].speed;
-        objectArray.array[0].updateRender = 1;
-    }
-
-    if (movingRight) {
-
-        objectArray.array[0].interPosition[0] += objectArray.array[0].speed;
-        objectArray.array[0].updateRender = 1;
-    }
-
-    if (movingLeft) {
-
-        objectArray.array[0].interPosition[0] -= objectArray.array[0].speed;
-        objectArray.array[0].updateRender = 1;
-    }
-}
-
-void EnemyBehaviour(int monsterIndex) {
-
-    int movingUp = 0, movingDown = 0, movingRight = 0, movingLeft = 0, moved = 0;
-
-    if (objectArray.array[0].position[1] < objectArray.array[monsterIndex].position[1]) {
-
-        movingUp = 1;
-        moved = 1;
-    }
-    if (objectArray.array[0].position[1] > objectArray.array[monsterIndex].position[1]) {
-
-        movingDown = 1;
-        moved = 1;
-    }
-    if (objectArray.array[0].position[0] > objectArray.array[monsterIndex].position[0]) {
-
-        movingRight = 1;
-        moved = 1;
-    }
-    if (objectArray.array[0].position[0] < objectArray.array[monsterIndex].position[0]) {
-
-        movingLeft = 1;
-        moved = 1;
-    }
-
-    if (moved) {
-
-        for (int i = 0; i < objectArray.used; i++) {
-
-            if ((movingUp || movingDown || movingRight || movingLeft) && i != monsterIndex) {
-
-                if (movingUp &&
-                    objectArray.array[i].position[1] == objectArray.array[monsterIndex].position[1] - 1 &&
-                    objectArray.array[i].position[0] == objectArray.array[monsterIndex].position[0]) {
-
-                    movingUp = 0;
-                }
-
-                if (movingDown &&
-                    objectArray.array[i].position[1] == objectArray.array[monsterIndex].position[1] + 1 &&
-                    objectArray.array[i].position[0] == objectArray.array[monsterIndex].position[0]) {
-
-                    movingDown = 0;
-                }
-
-                if (movingRight &&
-                    objectArray.array[i].position[0] == objectArray.array[monsterIndex].position[0] + 1 &&
-                    objectArray.array[i].position[1] == objectArray.array[monsterIndex].position[1]) {
-
-                    movingRight = 0;
-                }
-
-                if (movingLeft &&
-                    objectArray.array[i].position[0] == objectArray.array[monsterIndex].position[0] - 1 &&
-                    objectArray.array[i].position[1] == objectArray.array[monsterIndex].position[1]) {
-
-                    movingLeft = 0;
+        for (uint8_t i = 0; i < objectMatrix.width; i++)
+        {
+            for (uint8_t j = 0; j < objectMatrix.height; j++)
+            {
+                if (GetObjectPtrFromMatrix(&objectMatrix, i, j)->type == ENEMY)
+                {
+                    EnemyBehaviour(i, j);
                 }
             }
-            else {
-
-                break;
-            }
         }
-    }
-
-    if (movingUp) {
-
-        objectArray.array[monsterIndex].interPosition[1] -= objectArray.array[monsterIndex].speed;
-        objectArray.array[monsterIndex].updateRender = 1;
-    }
-
-    if (movingDown) {
-
-        objectArray.array[monsterIndex].interPosition[1] += objectArray.array[monsterIndex].speed;
-        objectArray.array[monsterIndex].updateRender = 1;
-    }
-
-    if (movingRight) {
-
-        objectArray.array[monsterIndex].interPosition[0] += objectArray.array[monsterIndex].speed;
-        objectArray.array[monsterIndex].updateRender = 1;
-    }
-
-    if (movingLeft) {
-
-        objectArray.array[monsterIndex].interPosition[0] -= objectArray.array[monsterIndex].speed;
-        objectArray.array[monsterIndex].updateRender = 1;
     }
 }
 
-float Tick(double elapsedTime) {
+void PlayerBehaviour()
+{
+    /* Comportamento do jogador.
+    */
 
+    float runCoefficient = 1.0f; // Coeficiente de corrida
+
+    if (GetKeyState(VK_SPACE) & 0x8000) // Espaço
+    {
+        runCoefficient = 2.0f; // Dobra a velocidade na corrida
+    }
+
+    if (GetKeyState(VK_UP) & 0x8000) // Seta para cima
+    {
+        // Adiciona velocidade para cima
+        objectMatrix.playerPtr->velocity[1] = -objectMatrix.playerPtr->speed * runCoefficient;
+    }
+    else if (GetKeyState(VK_DOWN) & 0x8000) // Seta para baixo
+    {
+        // Adiciona velocidade para baixo
+        objectMatrix.playerPtr->velocity[1] = objectMatrix.playerPtr->speed * runCoefficient;
+    }
+
+    if (GetKeyState(VK_RIGHT) & 0x8000) // Seta para a direita
+    {
+        // Adiciona velocidade para direita
+        objectMatrix.playerPtr->velocity[0] = objectMatrix.playerPtr->speed * runCoefficient;
+    }
+    else if (GetKeyState(VK_LEFT) & 0x8000) // Seta para a esquerda
+    {
+        // Adiciona velocidade para esquerda
+        objectMatrix.playerPtr->velocity[0] = -objectMatrix.playerPtr->speed * runCoefficient;
+    }
+
+    /* Corrige a dessincronização diagonal (Fenômeno em que a posição horizontal e vertical
+       avançam em passos diferentes.
+
+       Este bloco é executado apenas quando o movimento é na diagonal.
+    */
+    if (objectMatrix.playerPtr->velocity[0] != 0.0f && objectMatrix.playerPtr->velocity[1] != 0.0f)
+    {
+        // Obtém a posição esperada
+        uint8_t expectedPositionX = (uint8_t)(objectMatrix.playerPtr->position[0] +
+                                              objectMatrix.playerPtr->velocity[0] / (float)tick);
+
+        uint8_t expectedPositionY = (uint8_t)(objectMatrix.playerPtr->position[1] +
+                                              objectMatrix.playerPtr->velocity[1] / (float)tick);
+
+        // Corrige a velocidade vertical
+        if (expectedPositionX == (uint8_t)objectMatrix.playerPtr->position[0] &&
+            expectedPositionY != (uint8_t)objectMatrix.playerPtr->position[1])
+        {
+            objectMatrix.playerPtr->velocity[1] = 0.0f;
+        }
+
+        // Corrige a velocidade horizontal
+        if (expectedPositionX != (uint8_t)objectMatrix.playerPtr->position[0] &&
+            expectedPositionY == (uint8_t)objectMatrix.playerPtr->position[1])
+        {
+            objectMatrix.playerPtr->velocity[0] = 0.0f;
+        }
+    }
+}
+
+void EnemyBehaviour(uint8_t x, uint8_t y)
+{
+    /* Comportamento do inimigo.
+    */
+
+    Object *enemyPtr = GetObjectPtrFromMatrix(&objectMatrix, x, y); // Ponteiro do inimigo
+
+    if ((uint8_t)objectMatrix.playerPtr->position[0] > x) // Caso o jogador esteja na direita
+    {
+        // Adiciona velocidade para cima
+        enemyPtr->velocity[0] = enemyPtr->speed;
+    }
+    else if ((uint8_t)objectMatrix.playerPtr->position[0] < x) // Caso o jogador esteja na esquerda
+    {
+        // Adiciona velocidade para baixo
+        enemyPtr->velocity[0] = -enemyPtr->speed;
+    }
+
+    if ((uint8_t)objectMatrix.playerPtr->position[1] > y) // Caso o jogador esteja em cima
+    {
+        // Adiciona velocidade para direita
+        enemyPtr->velocity[1] = enemyPtr->speed;
+    }
+    else if ((uint8_t)objectMatrix.playerPtr->position[1] < y) // Caso o jogador esteja em baixo
+    {
+        // Adiciona velocidade para esquerda
+        enemyPtr->velocity[1] = -enemyPtr->speed;
+    }
+
+    /* Corrige a dessincronização diagonal (Fenômeno em que a posição horizontal e vertical
+       avançam em passos diferentes.
+
+       Este bloco é executado apenas quando o movimento é na diagonal.
+    */
+    if (enemyPtr->velocity[0] != 0.0f && enemyPtr->velocity[1] != 0.0f)
+    {
+        // Obtém a posição esperada
+        uint8_t expectedPositionX = (uint8_t)(enemyPtr->position[0] +
+                                              enemyPtr->velocity[0] / (float)tick);
+        uint8_t expectedPositionY = (uint8_t)(enemyPtr->position[1] +
+                                              enemyPtr->velocity[1] / (float)tick);
+
+        // Corrige a velocidade vertical
+        if (expectedPositionX == (uint8_t)enemyPtr->position[0] &&
+            expectedPositionY != (uint8_t)enemyPtr->position[1])
+        {
+            enemyPtr->velocity[1] = 0.0f;
+        }
+
+        // Corrige a velocidade horizontal
+        if (expectedPositionX != (uint8_t)enemyPtr->position[0] &&
+            expectedPositionY == (uint8_t)enemyPtr->position[1])
+        {
+            enemyPtr->velocity[0] = 0.0f;
+        }
+    }
+}
+
+void Render()
+{
+    /* Rederiza os objetos no gameplay.
+    */
+
+    if (state == GAMEPLAY)
+    {
+        for (uint8_t i = 0; i < objectMatrix.width; i++)
+        {
+            for (uint8_t j = 0; j < objectMatrix.height; j++)
+            {
+                char oldChar = GetObjectPtrFromMatrix(&oldObjectMatrix, i, j)->c;
+                char newChar = GetObjectPtrFromMatrix(&objectMatrix, i, j)->c;
+
+                uint8_t oldColor = GetObjectPtrFromMatrix(&oldObjectMatrix, i, j)->color;
+                uint8_t newColor = GetObjectPtrFromMatrix(&objectMatrix, i, j)->color;
+
+                /* Renderiza se o caractere ou cor mudaram na posição ou se for necessário
+                   atualizar tudo
+                */
+                if (oldChar != newChar || oldColor != newColor || renderAll)
+                {
+                    // Limpa o caractere caso ela esteja vazio na matriz
+                    if (GetObjectPtrFromMatrix(&objectMatrix, i, j)->type == EMPTY)
+                    {
+                        PrintCharOnPosition(255,
+                                            0,
+                                            i,
+                                            j);
+                    }
+                    else // Coloca o caractere
+                    {
+                        PrintCharOnPosition(newChar,
+                                            newColor,
+                                            i,
+                                            j);
+                    }
+
+                    // Move o cursor para o canto da tela
+                    SetConsoleCursorPosition(consoleHandle,
+                                             (COORD){(SHORT)(consoleWidth - 1),
+                                                     (SHORT)(consoleHeight - 1)});
+                }
+            }
+        }
+
+        renderAll = 0; // Reseta o estado de renderização
+    }
+}
+
+float Tick(double elapsedTime)
+{
+    /* Controla o tempo de espera entre frames e o retorna.
+    */
+
+    // Tempo necessário de espera em milisegundos
     int correctionTime = (int)(1000.0 / (double)tick - elapsedTime);
 
-    if (correctionTime > 0) {
+    if (correctionTime > 0) // Caso seja necessário esperar
+    {
+        Sleep(correctionTime); // Espera
 
-        Sleep(correctionTime);
-
-        return (float)tick;
+        return 1000.0f / (float)tick;
     }
-    else {
-
+    else
+    {
         return (float)elapsedTime;
     }
 }
 
-void UpdatePhysics() {
+void UpdatePhysics()
+{
+    /* Atualiza a física e verifica os eventos do gameplay.
+    */
 
-    for (int i = 0; i < objectArray.used; i++) {
+    Object *objectPtr;
+    Object *objectPtrInTargetPosition;
+    Object *objectPtrInCoinPosition;
+    Object *objectPtrInEnemyPosition;
+    uint8_t oldPositionX;
+    uint8_t oldPositionY;
+    float targetPositionX;
+    float targetPositionY;
+    uint8_t oldCoinPositionX;
+    uint8_t oldCoinPositionY;
+    float coinSpawnX;
+    float coinSpawnY;
+    float enemySpawnX;
+    float enemySpawnY;
+    float distanceFromPlayer;
 
-        if (objectArray.array[i].type == ENEMY) {
+    if (state == GAMEPLAY)
+    {
+        for (uint8_t i = 0; i < objectMatrix.width; i++)
+        {
+            for (uint8_t j = 0; j < objectMatrix.height; j++)
+            {
+                // Obtém o ponteiro para o objeto
+                objectPtr = GetObjectPtrFromMatrix(&objectMatrix, i, j);
 
-            EnemyBehaviour(i);
+                // Obtém a posição
+                oldPositionX = (uint8_t)objectPtr->position[0];
+                oldPositionY = (uint8_t)objectPtr->position[1];
+
+                // Obtém a posição alvo
+                targetPositionX = objectPtr->position[0] + objectPtr->velocity[0] / (float)tick;
+                targetPositionY = objectPtr->position[1] + objectPtr->velocity[1] / (float)tick;
+
+                // Redefine a velocidade
+                objectPtr->velocity[0] = 0.0f;
+                objectPtr->velocity[1] = 0.0f;
+
+                // Ponteiro do objeto na posição alvo
+                objectPtrInTargetPosition = GetObjectPtrFromMatrix(&objectMatrix,
+                                                                   (uint8_t)targetPositionX,
+                                                                   (uint8_t)targetPositionY);
+                if (objectPtr->type == PLAYER) // Se for o jogador
+                {
+                    /* Move o jogador caso o objeto na posição alvo esteja vazio ou seja o próprio
+                       jogador
+                    */
+                    if (objectPtrInTargetPosition->type == EMPTY ||
+                        objectPtrInTargetPosition->id == objectPtr->id)
+                    {
+                        // Define a nova posição
+                        objectPtr->position[0] = targetPositionX;
+                        objectPtr->position[1] = targetPositionY;
+
+                        // Move o jogador na matriz
+                        MoveObjectOnMatrix(&objectMatrix,
+                                           oldPositionX,
+                                           oldPositionY,
+                                           (uint8_t)objectPtr->position[0],
+                                           (uint8_t)objectPtr->position[1]);
+                    }
+                    // Caso o jogador esteja pegando a moeda
+                    else if (objectPtrInTargetPosition->type == COIN)
+                    {
+                        score++;
+
+                        // Atualiza o texto da pontuação
+                        sprintf(gameplay.texts[1].content, "score: %05d", score);
+                        gameplay.texts[1].update = 1;
+
+                        // Obtém a posição da moeda
+                        oldCoinPositionX = (uint8_t)objectMatrix.coinPtr->position[0];
+                        oldCoinPositionY = (uint8_t)objectMatrix.coinPtr->position[1];
+
+                        /* Não é a maneira ideal de evitar a sobreposição da moeda em outros
+                           objetos
+                        */
+                        do
+                        {
+                            /* Gera uma nova posição e repete o processo caso tenha algo na posição
+                               gerada
+                            */
+
+                            coinSpawnX = Randomf(1, objectMatrix.width - 2);
+                            coinSpawnY = Randomf(1, objectMatrix.height - 3);
+
+                            objectPtrInCoinPosition = GetObjectPtrFromMatrix(&objectMatrix,
+                                                                             (uint8_t)coinSpawnX,
+                                                                             (uint8_t)coinSpawnY);
+                        } while (objectPtrInCoinPosition->type != EMPTY);
+
+                        objectMatrix.coinPtr->position[0] = coinSpawnX;
+                        objectMatrix.coinPtr->position[1] = coinSpawnY;
+
+                        // Move a moeda na matriz
+                        MoveObjectOnMatrix(&objectMatrix,
+                                           oldCoinPositionX,
+                                           oldCoinPositionY,
+                                           (uint8_t)objectMatrix.coinPtr->position[0],
+                                           (uint8_t)objectMatrix.coinPtr->position[1]);
+
+                        /* Gera a posição do novo inimigo. A posição não pode sobrepor nenhum
+                           objeto e deve manter uma distância do jogador.
+                        */
+                        do
+                        {
+                            enemySpawnX = Randomf(1, objectMatrix.width - 2);
+                            enemySpawnY = Randomf(1, objectMatrix.height - 3);
+
+                            objectPtrInEnemyPosition = GetObjectPtrFromMatrix(&objectMatrix,
+                                                                              (uint8_t)enemySpawnX,
+                                                                              (uint8_t)enemySpawnY);
+
+                            distanceFromPlayer = sqrtf(powf((enemySpawnX - targetPositionX), 2.0f) +
+                                                       powf((enemySpawnY - targetPositionY), 2.0f));
+
+                        } while (objectPtrInEnemyPosition->type != EMPTY && distanceFromPlayer > 20.0f);
+
+                        Object enemy = {idCount++,
+                                        254,
+                                        12,
+                                        {0.0f, 0.0f},
+                                        {enemySpawnX, enemySpawnY},
+                                        ENEMY_SPEED,
+                                        ENEMY};
+
+                        // Insere o inimigo na matriz
+                        InsertObjectOnMatrix(&objectMatrix, enemy, enemySpawnX, enemySpawnY);
+
+                        // Move o jogador
+                        objectPtr->position[0] = targetPositionX;
+                        objectPtr->position[1] = targetPositionY;
+
+                        MoveObjectOnMatrix(&objectMatrix,
+                                           oldPositionX,
+                                           oldPositionY,
+                                           (uint8_t)objectPtr->position[0],
+                                           (uint8_t)objectPtr->position[1]);
+                    }
+                }
+                else if (objectPtr->type == ENEMY) // Se for o inimigo
+                {
+                    // Se move caso o a posição alvo não tenha um objeto ou tenha o próprio inimigo
+                    if (objectPtrInTargetPosition->type == EMPTY ||
+                        objectPtrInTargetPosition->id == objectPtr->id)
+                    {
+                        objectPtr->position[0] = targetPositionX;
+                        objectPtr->position[1] = targetPositionY;
+
+                        MoveObjectOnMatrix(&objectMatrix,
+                                           oldPositionX,
+                                           oldPositionY,
+                                           (uint8_t)targetPositionX,
+                                           (uint8_t)targetPositionY);
+                    }
+                    // Caso a posição tenha o jogador
+                    else if (objectPtrInTargetPosition->type == PLAYER)
+                    {
+                        events[0] = GM_GAMEOVER; // Adiciona o evento de fim de jogo
+                        sprintf(gameover.texts[1].content, "score: %05d", score);
+                    }
+                }
+            }
         }
-
-        objectArray.array[i].position[0] = (int)objectArray.array[i].interPosition[0];
-        objectArray.array[i].position[1] = (int)objectArray.array[i].interPosition[1];
     }
 }
 
-int RandomInt(int min, int max) {
+void UpdateMatrices()
+{
+    /* Atualiza cada elemento da matriz
+    */
+    if (state == GAMEPLAY)
+    {
+        for (uint8_t i = 0; i < objectMatrix.width; i++)
+        {
+            for (uint8_t j = 0; j < objectMatrix.height; j++)
+            {
+                Object object = *GetObjectPtrFromMatrix(&objectMatrix, i, j);
+                InsertObjectOnMatrix(&oldObjectMatrix, object, i, j);
+            }
+        }
+    }
+}
 
-    return rand() % (max + 1 - min) + min;
+float Randomf(int min, int max)
+{
+    /* Gera um número aleatório no intervalo especificado. O número é um float porém é gerado como
+       inteiro.
+    */
+
+    return (float)((rand() % (max - min + 1)) + min);
 }
