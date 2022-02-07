@@ -6,6 +6,7 @@
 #include <time.h>
 #include <stdint.h>
 #include <math.h>
+#include <omp.h>
 
 #define PLAYER_SPEED 23.5f
 #define ENEMY_SPEED 13.0f
@@ -14,7 +15,7 @@
 void GameInit(unsigned int t)
 {
     /* Inicializa o jogo.
-    */
+     */
 
     CONSOLE_SCREEN_BUFFER_INFO csbi;
 
@@ -70,7 +71,7 @@ void GameInit(unsigned int t)
     // Versão
     Text version = {
 
-        .content = "v2.7.1",
+        .content = "v2.8",
         .color = 7,
         .position = {1, 1},
         .update = 0};
@@ -384,22 +385,23 @@ void GameInit(unsigned int t)
 void PrintCharOnPosition(char c, uint8_t color, uint8_t x, uint8_t y)
 {
     /* Coloca um caractere na posição (x, y) com a cor especificada (0 a 15).
-    */
+     */
 
     COORD coord = {(SHORT)x, (SHORT)y};
     SetConsoleTextAttribute(consoleHandle, color);
     SetConsoleCursorPosition(consoleHandle, coord);
-    putchar(c);
+    _putchar_nolock(c);  // putchar não seguro que não usa locks
 }
 
 void PrintStringOnPosition(char *s, uint8_t color, uint8_t x, uint8_t y)
 {
     /* Coloca um string na posição (x, y) com a cor especificada (0 a 15).
-    */
+     */
 
     uint8_t calculatedX = x;
     uint8_t calculatedY = y;
 
+    #pragma omp parallel for
     for (int i = 0; i < strlen(s); i++)
     {
 
@@ -425,14 +427,16 @@ void PrintStringOnPosition(char *s, uint8_t color, uint8_t x, uint8_t y)
 void BuildBorders()
 {
     /* Faz as bordas da tela.
-    */
+     */
 
+    #pragma omp parallel for
     for (int i = 0; i < consoleWidth; i++)
     {
         PrintCharOnPosition(219, 7, i, 0);
         PrintCharOnPosition(219, 7, i, consoleHeight - 2);
     };
 
+    #pragma omp parallel for
     for (int i = 0; i < consoleHeight - 1; i++)
     {
         PrintCharOnPosition(219, 7, 0, i);
@@ -448,7 +452,7 @@ void CalculateAlignedPosition(int16_t *x,
                                   alignment)
 {
     /* Calcula a posição com base no alinhamento e retorna.
-    */
+     */
 
     switch (alignment)
     {
@@ -505,6 +509,7 @@ void ObjectMatrixInit(ObjectMatrix *objectMatrix, uint8_t width, uint8_t height)
     objectMatrix->height = height;
 
     // Preenche a matriz com objetos vazios
+    #pragma omp parallel for collapse(2)
     for (uint8_t i = 0; i < width; i++)
     {
         for (uint8_t j = 0; j < height; j++)
@@ -518,7 +523,7 @@ void ObjectMatrixInit(ObjectMatrix *objectMatrix, uint8_t width, uint8_t height)
 void InsertObjectOnMatrix(ObjectMatrix *objectMatrix, Object object, uint8_t x, uint8_t y)
 {
     /* Insere um objeto em uma matriz (sobescreve o objeto caso já exista um na posição).
-    */
+     */
 
     objectMatrix->matrix[objectMatrix->width * y + x] = object;
 
@@ -560,7 +565,7 @@ void MoveObjectOnMatrix(ObjectMatrix *objectMatrix, uint8_t x0, uint8_t y0, uint
 Object *GetObjectPtrFromMatrix(ObjectMatrix *objectMatrix, uint8_t x, uint8_t y)
 {
     /* Retorna um ponteiro para o objeto na posição especificada.
-    */
+     */
 
     return &objectMatrix->matrix[objectMatrix->width * y + x];
 }
@@ -568,7 +573,7 @@ Object *GetObjectPtrFromMatrix(ObjectMatrix *objectMatrix, uint8_t x, uint8_t y)
 void FreeObjectMatrix(ObjectMatrix *objectMatrix)
 {
     /* Libera a memória da matriz.
-    */
+     */
 
     free(objectMatrix->matrix);
     objectMatrix->matrix = NULL;
@@ -579,7 +584,7 @@ void FreeObjectMatrix(ObjectMatrix *objectMatrix)
 void InterfaceBehaviour(Interface *interfaceIn)
 {
     /* Define o comportamento de uma interface.
-    */
+     */
 
     if (GetKeyState(VK_RETURN) & 0x8000) // Enter
     {
@@ -652,7 +657,7 @@ void InterfaceBehaviour(Interface *interfaceIn)
 void RenderInterface(Interface *interfaceIn)
 {
     /* Renderiza a interface.
-    */
+     */
 
     // Limpa a tela caso toda a interface deva ser atualizada
     if (interfaceIn->update)
@@ -662,6 +667,7 @@ void RenderInterface(Interface *interfaceIn)
     }
 
     // Renderiza cada texto
+    #pragma omp parallel for
     for (int i = 0; i < MAX_TEXTS; i++)
     {
         if (interfaceIn->update || interfaceIn->texts[i].update)
@@ -676,6 +682,7 @@ void RenderInterface(Interface *interfaceIn)
     }
 
     // Renderiza cada botão
+    #pragma omp parallel for
     for (int i = 0; i < MAX_BUTTONS; i++)
     {
         if (interfaceIn->update || interfaceIn->buttons[i].update)
@@ -699,7 +706,7 @@ void RenderInterface(Interface *interfaceIn)
 void UpdateInterfaces()
 {
     /* Atualiza todas as interfaces com base no estado.
-    */
+     */
 
     switch (state)
     {
@@ -736,8 +743,9 @@ void UpdateInterfaces()
 void Clear()
 {
     /* Limpa a tela.
-    */
+     */
 
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i < consoleWidth; i++)
     {
         for (int j = 0; j < consoleHeight; j++)
@@ -750,7 +758,7 @@ void Clear()
 void GenerateWorld()
 {
     /* Gera o mundo do jogo.
-    */
+     */
 
     score = 0;
     idCount = 0;
@@ -798,6 +806,7 @@ void GenerateWorld()
                          (uint8_t)coin.position[1]);
 
     // Constroi as paredes de cima e de baixo
+    #pragma omp parallel for
     for (int i = 0; i < consoleWidth; i++)
     {
         Object topWall = {idCount++, 219, 7, {0.0f, 0.0f}, {(float)i, 0.0f}, 0.0f, WALL};
@@ -822,6 +831,7 @@ void GenerateWorld()
     }
 
     // Constroi as paredes da esquerda e direita
+    #pragma omp parallel
     for (int i = 0; i < consoleHeight - 2; i++)
     {
         Object leftWall = {idCount++, 219, 7, {0.0f, 0.0f}, {0.0f, (float)i}, 0.0f, WALL};
@@ -851,12 +861,13 @@ void GenerateWorld()
 void UpdateObjectBehaviour()
 {
     /* Atualiza cada objeto com base no seu comportamento.
-    */
+     */
 
     if (state == GAMEPLAY)
     {
         PlayerBehaviour();
 
+        #pragma omp parallel for collapse(2)
         for (uint8_t i = 0; i < objectMatrix.width; i++)
         {
             for (uint8_t j = 0; j < objectMatrix.height; j++)
@@ -873,7 +884,7 @@ void UpdateObjectBehaviour()
 void PlayerBehaviour()
 {
     /* Comportamento do jogador.
-    */
+     */
 
     float runCoefficient = 1.0f; // Coeficiente de corrida
 
@@ -937,7 +948,7 @@ void PlayerBehaviour()
 void EnemyBehaviour(uint8_t x, uint8_t y)
 {
     /* Comportamento do inimigo.
-    */
+     */
 
     Object *enemyPtr = GetObjectPtrFromMatrix(&objectMatrix, x, y); // Ponteiro do inimigo
 
@@ -995,10 +1006,11 @@ void EnemyBehaviour(uint8_t x, uint8_t y)
 void Render()
 {
     /* Rederiza os objetos no gameplay.
-    */
+     */
 
     if (state == GAMEPLAY)
     {
+        #pragma omp parallel for collapse(2)
         for (uint8_t i = 0; i < objectMatrix.width; i++)
         {
             for (uint8_t j = 0; j < objectMatrix.height; j++)
@@ -1045,7 +1057,7 @@ void Render()
 float Tick(double elapsedTime)
 {
     /* Controla o tempo de espera entre frames e o retorna.
-    */
+     */
 
     // Tempo necessário de espera em milisegundos
     int correctionTime = (int)(1000.0 / (double)tick - elapsedTime);
@@ -1065,7 +1077,7 @@ float Tick(double elapsedTime)
 void UpdatePhysics()
 {
     /* Atualiza a física e verifica os eventos do gameplay.
-    */
+     */
 
     Object *objectPtr;
     Object *objectPtrInTargetPosition;
@@ -1085,6 +1097,7 @@ void UpdatePhysics()
 
     if (state == GAMEPLAY)
     {
+        #pragma omp parallel for collapse(2)
         for (uint8_t i = 0; i < objectMatrix.width; i++)
         {
             for (uint8_t j = 0; j < objectMatrix.height; j++)
@@ -1236,9 +1249,10 @@ void UpdatePhysics()
 void UpdateMatrices()
 {
     /* Atualiza cada elemento da matriz
-    */
+     */
     if (state == GAMEPLAY)
     {
+        #pragma omp parallel for collapse(2)
         for (uint8_t i = 0; i < objectMatrix.width; i++)
         {
             for (uint8_t j = 0; j < objectMatrix.height; j++)
