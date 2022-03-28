@@ -1,5 +1,4 @@
-// Sobreviva - Jogo de Testes - V 2.8 - ErFer7
-// Use "gcc Source.c Main.c -o Survive -O2 -s -DNDEBUG" para compilar.
+// Sobreviva - Jogo de Testes - V 2.8.1 - ErFer7
 
 /***
  *     $$$$$$\   $$$$$$\  $$$$$$$\  $$$$$$$\  $$$$$$$$\ $$\    $$\ $$$$$$\ $$\    $$\  $$$$$$\  
@@ -12,7 +11,7 @@
  *     \______/  \______/ \_______/ \__|  \__|\________|    \_/    \______|    \_/    \__|  \__|                                                                                         
  */
 
-#include "Header.h"
+#include "include/Header.h"
 
 #include <stdio.h>
 #include <Windows.h>

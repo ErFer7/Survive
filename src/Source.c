@@ -1,4 +1,4 @@
-#include "Header.h"
+#include "../include/Header.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,7 +6,6 @@
 #include <time.h>
 #include <stdint.h>
 #include <math.h>
-#include <omp.h>
 
 #define PLAYER_SPEED 23.5f
 #define ENEMY_SPEED 13.0f
@@ -71,7 +70,7 @@ void GameInit(unsigned int t)
     // Versão
     Text version = {
 
-        .content = "v2.8",
+        .content = "v2.8.1",
         .color = 7,
         .position = {1, 1},
         .update = 0};
@@ -401,7 +400,6 @@ void PrintStringOnPosition(char *s, uint8_t color, uint8_t x, uint8_t y)
     uint8_t calculatedX = x;
     uint8_t calculatedY = y;
 
-    #pragma omp parallel for
     for (int i = 0; i < strlen(s); i++)
     {
 
@@ -429,14 +427,12 @@ void BuildBorders()
     /* Faz as bordas da tela.
      */
 
-    #pragma omp parallel for
     for (int i = 0; i < consoleWidth; i++)
     {
         PrintCharOnPosition(219, 7, i, 0);
         PrintCharOnPosition(219, 7, i, consoleHeight - 2);
     };
 
-    #pragma omp parallel for
     for (int i = 0; i < consoleHeight - 1; i++)
     {
         PrintCharOnPosition(219, 7, 0, i);
@@ -509,7 +505,6 @@ void ObjectMatrixInit(ObjectMatrix *objectMatrix, uint8_t width, uint8_t height)
     objectMatrix->height = height;
 
     // Preenche a matriz com objetos vazios
-    #pragma omp parallel for collapse(2)
     for (uint8_t i = 0; i < width; i++)
     {
         for (uint8_t j = 0; j < height; j++)
@@ -667,7 +662,6 @@ void RenderInterface(Interface *interfaceIn)
     }
 
     // Renderiza cada texto
-    #pragma omp parallel for
     for (int i = 0; i < MAX_TEXTS; i++)
     {
         if (interfaceIn->update || interfaceIn->texts[i].update)
@@ -682,7 +676,6 @@ void RenderInterface(Interface *interfaceIn)
     }
 
     // Renderiza cada botão
-    #pragma omp parallel for
     for (int i = 0; i < MAX_BUTTONS; i++)
     {
         if (interfaceIn->update || interfaceIn->buttons[i].update)
@@ -745,7 +738,6 @@ void Clear()
     /* Limpa a tela.
      */
 
-    #pragma omp parallel for collapse(2)
     for (int i = 0; i < consoleWidth; i++)
     {
         for (int j = 0; j < consoleHeight; j++)
@@ -806,7 +798,6 @@ void GenerateWorld()
                          (uint8_t)coin.position[1]);
 
     // Constroi as paredes de cima e de baixo
-    #pragma omp parallel for
     for (int i = 0; i < consoleWidth; i++)
     {
         Object topWall = {idCount++, 219, 7, {0.0f, 0.0f}, {(float)i, 0.0f}, 0.0f, WALL};
@@ -831,7 +822,6 @@ void GenerateWorld()
     }
 
     // Constroi as paredes da esquerda e direita
-    #pragma omp parallel
     for (int i = 0; i < consoleHeight - 2; i++)
     {
         Object leftWall = {idCount++, 219, 7, {0.0f, 0.0f}, {0.0f, (float)i}, 0.0f, WALL};
@@ -867,7 +857,6 @@ void UpdateObjectBehaviour()
     {
         PlayerBehaviour();
 
-        #pragma omp parallel for collapse(2)
         for (uint8_t i = 0; i < objectMatrix.width; i++)
         {
             for (uint8_t j = 0; j < objectMatrix.height; j++)
@@ -1010,7 +999,6 @@ void Render()
 
     if (state == GAMEPLAY)
     {
-        #pragma omp parallel for collapse(2)
         for (uint8_t i = 0; i < objectMatrix.width; i++)
         {
             for (uint8_t j = 0; j < objectMatrix.height; j++)
@@ -1097,7 +1085,6 @@ void UpdatePhysics()
 
     if (state == GAMEPLAY)
     {
-        #pragma omp parallel for collapse(2)
         for (uint8_t i = 0; i < objectMatrix.width; i++)
         {
             for (uint8_t j = 0; j < objectMatrix.height; j++)
@@ -1252,7 +1239,6 @@ void UpdateMatrices()
      */
     if (state == GAMEPLAY)
     {
-        #pragma omp parallel for collapse(2)
         for (uint8_t i = 0; i < objectMatrix.width; i++)
         {
             for (uint8_t j = 0; j < objectMatrix.height; j++)
