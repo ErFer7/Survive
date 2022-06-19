@@ -1,17 +1,17 @@
-all: src/Source.c Main.c
+all: src/survive.c main.c
 	@echo Building the game with release options.
-	gcc src/Source.c Main.c -o Survive -O2 -s -DNDEBUG
+	gcc src/survive.c main.c -o Survive -O2 -s -DNDEBUG
 
-debug: src/Source.c Main.c
+debug: src/survive.c main.c
 	@echo Building the game with debug options.
-	gcc src/Source.c Main.c -o Survive -O2 -g -Wall
+	gcc src/survive.c main.c -o Survive -O2 -g -Wall
 
-dis_release: src/Source.c Main.c
+dis_release: src/survive.c main.c
 	@echo Building the game with assembly output.
-	gcc src/Source.c Main.c -o Survive -O2 -s -DNDEBUG
+	gcc src/survive.c main.c -o Survive -O2 -s -DNDEBUG
 	objdump -drwC -Mintel Survive.exe > Survive.s
 
-dis_debug: src/Source.c Main.c
+dis_debug: src/survive.c main.c
 	@echo Building the game with assembly output.
-	gcc src/Source.c Main.c -o Survive -O2 -g -Wall
+	gcc src/survive.c main.c -o Survive -O2 -g -Wall
 	objdump -drwC -Mintel Survive.exe > Survive.s

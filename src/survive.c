@@ -1,39 +1,28 @@
-#include "../include/Header.h"
+#include "../include/survive.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <Windows.h>
 #include <time.h>
 #include <stdint.h>
 #include <math.h>
+#include <string.h>
+#include <Windows.h>
 
+#define VERSION "v2.8.2"
 #define PLAYER_SPEED 23.5f
 #define ENEMY_SPEED 13.0f
 #define SELECTION_SPEED 10.0f
 
-void GameInit(unsigned int t)
+void GameInit(unsigned int t, uint8_t width, uint8_t height)
 {
     /* Inicializa o jogo.
      */
 
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-
     // CORRIGIR: Erro em que o input pode ser executado no console após o término do programa
     consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-    GetConsoleScreenBufferInfo(consoleHandle, &csbi);
 
-    consoleWidth = csbi.srWindow.Right - csbi.srWindow.Left + 1;  // Obtém a largura do console
-    consoleHeight = csbi.srWindow.Bottom - csbi.srWindow.Top + 1; // Obtém a altura do console
-
-    if (consoleWidth > 255) // Limita a largura para 255 caracteres
-    {
-        consoleWidth = 255;
-    }
-
-    if (consoleHeight > 255) // Limita a altura para 255 caracteres
-    {
-        consoleHeight = 255;
-    }
+    consoleWidth = width > 255 ? 255 : width;
+    consoleHeight = height > 255 ? 255 : height;
 
     for (int i = 0; i < MAX_EVENTS; i++) // Inicializa os eventos
     {
@@ -70,7 +59,7 @@ void GameInit(unsigned int t)
     // Versão
     Text version = {
 
-        .content = "v2.8.1",
+        .content = VERSION,
         .color = 7,
         .position = {1, 1},
         .update = 0};
@@ -174,7 +163,7 @@ void GameInit(unsigned int t)
     // Link do github
     Text githubInfo = {
 
-        .content = "Writen by Eric (ErFer7): https://github.com/ErFer7/Survive-CMD-Game-I",
+        .content = "Writen by Eric (ErFer7): https://github.com/ErFer7/Survive-CMD-Game",
         .color = 7,
         .position = {0, 1},
         .update = 0};
@@ -381,15 +370,20 @@ void GameInit(unsigned int t)
     tick = t;
 }
 
+void SetCursorPosition(uint8_t x, uint8_t y)
+{
+    COORD coord = {(SHORT)x, (SHORT)y};
+    SetConsoleCursorPosition(consoleHandle, coord);
+}
+
 void PrintCharOnPosition(char c, uint8_t color, uint8_t x, uint8_t y)
 {
     /* Coloca um caractere na posição (x, y) com a cor especificada (0 a 15).
      */
 
-    COORD coord = {(SHORT)x, (SHORT)y};
     SetConsoleTextAttribute(consoleHandle, color);
-    SetConsoleCursorPosition(consoleHandle, coord);
-    _putchar_nolock(c);  // putchar não seguro que não usa locks
+    SetCursorPosition(x, y);
+    putchar(c);
 }
 
 void PrintStringOnPosition(char *s, uint8_t color, uint8_t x, uint8_t y)
@@ -405,18 +399,15 @@ void PrintStringOnPosition(char *s, uint8_t color, uint8_t x, uint8_t y)
 
         if (s[i] == '\n') // Aumenta a altura quando uma nova linha é encontrada
         {
-
             calculatedX = x;
             calculatedY++;
         }
         else if (s[i] != '\0')
         {
-
             PrintCharOnPosition(s[i], color, calculatedX++, calculatedY);
         }
         else
         {
-
             break;
         }
     }
@@ -690,8 +681,7 @@ void RenderInterface(Interface *interfaceIn)
     }
 
     // Move o cursor para o canto da tela
-    SetConsoleCursorPosition(consoleHandle,
-                             (COORD){(SHORT)(consoleWidth - 1), (SHORT)(consoleHeight - 1)});
+    SetCursorPosition(consoleWidth - 1, consoleHeight - 1);
 
     interfaceIn->update = 0; // Reseta o estado de atualização da interface
 }
@@ -742,7 +732,7 @@ void Clear()
     {
         for (int j = 0; j < consoleHeight; j++)
         {
-            PrintCharOnPosition(255, 7, i, j);
+            PrintCharOnPosition(32, 7, i, j);
         }
     }
 }
@@ -1017,7 +1007,7 @@ void Render()
                     // Limpa o caractere caso ela esteja vazio na matriz
                     if (GetObjectPtrFromMatrix(&objectMatrix, i, j)->type == EMPTY)
                     {
-                        PrintCharOnPosition(255,
+                        PrintCharOnPosition(32,
                                             0,
                                             i,
                                             j);
@@ -1031,9 +1021,7 @@ void Render()
                     }
 
                     // Move o cursor para o canto da tela
-                    SetConsoleCursorPosition(consoleHandle,
-                                             (COORD){(SHORT)(consoleWidth - 1),
-                                                     (SHORT)(consoleHeight - 1)});
+                    SetCursorPosition(consoleWidth - 1, consoleHeight - 1);
                 }
             }
         }

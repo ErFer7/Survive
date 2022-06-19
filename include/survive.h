@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Windows.h>
 #include <stdint.h>
+#include <Windows.h>
 
 #define MAX_TEXT_STRLEN 720
 #define MAX_BUTTON_STRLEN 9
@@ -110,8 +110,8 @@ typedef struct
 
 } ObjectMatrix;
 
-uint8_t consoleWidth, consoleHeight;
 HANDLE consoleHandle;
+uint8_t consoleWidth, consoleHeight;
 enum State state;
 enum Event events[MAX_EVENTS];
 
@@ -128,7 +128,8 @@ uint16_t score;
 uint16_t idCount;
 uint8_t renderAll;
 
-void GameInit(unsigned int t);
+void GameInit(unsigned int t, uint8_t width, uint8_t height);
+void SetCursorPosition(uint8_t x, uint8_t y);
 void PrintCharOnPosition(char c, uint8_t color, uint8_t x, uint8_t y);
 void PrintStringOnPosition(char *s, uint8_t color, uint8_t x, uint8_t y);
 void BuildBorders();

@@ -1,4 +1,4 @@
-// Sobreviva - Jogo de Testes - V 2.8.1 - ErFer7
+// Sobreviva - Jogo de Testes - V 2.8.2 - ErFer7
 
 /***
  *     $$$$$$\   $$$$$$\  $$$$$$$\  $$$$$$$\  $$$$$$$$\ $$\    $$\ $$$$$$\ $$\    $$\  $$$$$$\  
@@ -11,14 +11,13 @@
  *     \______/  \______/ \_______/ \__|  \__|\________|    \_/    \______|    \_/    \__|  \__|                                                                                         
  */
 
-#include "include/Header.h"
-
 #include <stdio.h>
-#include <Windows.h>
+
+#include "include/survive.h"
 
 int main()
 {
-    GameInit(120); // O argumento é a taxa de ticks e fps
+    GameInit(120, 120, 30); // O argumento é a taxa de ticks e fps
 
     while (state != EXIT)
     {
