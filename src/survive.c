@@ -7,19 +7,22 @@
 #include <math.h>
 #include <string.h>
 #include <Windows.h>
+#include <omp.h>
 
-#define VERSION "v2.8.2"
+#include "../include/renderer.h"
+
+#define VERSION "v2.9"
 #define PLAYER_SPEED 23.5f
 #define ENEMY_SPEED 13.0f
 #define SELECTION_SPEED 10.0f
+#define ANIMATION_SPEED 16.0f
 
 void GameInit(unsigned int t, uint8_t width, uint8_t height)
 {
     /* Inicializa o jogo.
      */
 
-    // CORRIGIR: Erro em que o input pode ser executado no console após o término do programa
-    consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    InitConsoleRenderer((unsigned int)width, (unsigned int)height);
 
     consoleWidth = width > 255 ? 255 : width;
     consoleHeight = height > 255 ? 255 : height;
@@ -363,27 +366,18 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
         .selectionSpeed = SELECTION_SPEED,
         .update = 1};
 
+    interfaceKeyLock = 0;
+
     gameover = gameoverInit;
+    tick = t;
 
     srand((unsigned)time(NULL)); // Inicializa o RNG
-
-    tick = t;
 }
 
 void SetCursorPosition(uint8_t x, uint8_t y)
 {
     COORD coord = {(SHORT)x, (SHORT)y};
-    SetConsoleCursorPosition(consoleHandle, coord);
-}
-
-void PrintCharOnPosition(char c, uint8_t color, uint8_t x, uint8_t y)
-{
-    /* Coloca um caractere na posição (x, y) com a cor especificada (0 a 15).
-     */
-
-    SetConsoleTextAttribute(consoleHandle, color);
-    SetCursorPosition(x, y);
-    putchar(c);
+    // SetConsoleCursorPosition(consoleHandle, coord);
 }
 
 void PrintStringOnPosition(char *s, uint8_t color, uint8_t x, uint8_t y)
@@ -396,7 +390,6 @@ void PrintStringOnPosition(char *s, uint8_t color, uint8_t x, uint8_t y)
 
     for (int i = 0; i < strlen(s); i++)
     {
-
         if (s[i] == '\n') // Aumenta a altura quando uma nova linha é encontrada
         {
             calculatedX = x;
@@ -404,11 +397,7 @@ void PrintStringOnPosition(char *s, uint8_t color, uint8_t x, uint8_t y)
         }
         else if (s[i] != '\0')
         {
-            PrintCharOnPosition(s[i], color, calculatedX++, calculatedY);
-        }
-        else
-        {
-            break;
+            SetCharOnPosition(calculatedX++, calculatedY, s[i], color);
         }
     }
 }
@@ -420,15 +409,15 @@ void BuildBorders()
 
     for (int i = 0; i < consoleWidth; i++)
     {
-        PrintCharOnPosition(219, 7, i, 0);
-        PrintCharOnPosition(219, 7, i, consoleHeight - 2);
-    };
+        SetCharOnPosition(i, 0, 219, 7);
+        SetCharOnPosition(i, consoleHeight - 2, 219, 7);
+    }
 
     for (int i = 0; i < consoleHeight - 1; i++)
     {
-        PrintCharOnPosition(219, 7, 0, i);
-        PrintCharOnPosition(219, 7, consoleWidth - 1, i);
-    };
+        SetCharOnPosition(0, i, 219, 7);
+        SetCharOnPosition(consoleWidth - 1, i, 219, 7);
+    }
 }
 
 void CalculateAlignedPosition(int16_t *x,
@@ -500,7 +489,17 @@ void ObjectMatrixInit(ObjectMatrix *objectMatrix, uint8_t width, uint8_t height)
     {
         for (uint8_t j = 0; j < height; j++)
         {
-            Object empty = {0, 255, 0, {0.0f, 0.0f}, {(float)i, (float)j}, 0.0f, EMPTY};
+            Object empty = {0,
+                            {255},
+                            0.0f,
+                            ANIMATION_SPEED,
+                            0,
+                            0,
+                            {0.0f, 0.0f},
+                            {(float)i, (float)j},
+                            0.0f,
+                            EMPTY};
+
             InsertObjectOnMatrix(objectMatrix, empty, i, j);
         }
     }
@@ -531,7 +530,7 @@ void MoveObjectOnMatrix(ObjectMatrix *objectMatrix, uint8_t x0, uint8_t y0, uint
 
     if (x0 != x1 || y0 != y1)
     {
-        Object empty = {0, 255, 0, {0.0f, 0.0f}, {(float)x0, (float)y0}, 0.0f, EMPTY};
+        Object empty = {0, {255}, 0.0F, ANIMATION_SPEED, 0, 0, {0.0f, 0.0f}, {(float)x0, (float)y0}, 0.0f, EMPTY};
         Object object = objectMatrix->matrix[objectMatrix->width * y0 + x0];
 
         objectMatrix->matrix[objectMatrix->width * y1 + x1] = object;
@@ -571,8 +570,7 @@ void InterfaceBehaviour(Interface *interfaceIn)
 {
     /* Define o comportamento de uma interface.
      */
-
-    if (GetKeyState(VK_RETURN) & 0x8000) // Enter
+    if (GetKeyState(VK_RETURN) & 0x8000 && !interfaceKeyLock) // Enter
     {
         // Adiciona o evento do botão na lista de eventos caso o botão seja válido
         if (interfaceIn->buttons[(int)interfaceIn->selectedButton].event != IDLE)
@@ -580,6 +578,8 @@ void InterfaceBehaviour(Interface *interfaceIn)
             events[1] = interfaceIn->buttons[(int)interfaceIn->selectedButton].event;
             interfaceIn->update = 1;
         }
+
+        interfaceKeyLock = 1;
     }
     else if (GetKeyState(VK_UP) & 0x8000) // Seta para cima
     {
@@ -606,7 +606,7 @@ void InterfaceBehaviour(Interface *interfaceIn)
             interfaceIn->buttons[(int)interfaceIn->selectedButton - 1].update = 1;
         }
     }
-    else if (GetKeyState(VK_ESCAPE) & 0x8000) // Esc
+    else if (GetKeyState(VK_ESCAPE) & 0x8000 && !interfaceKeyLock) // Esc
     {
         // Adiciona o evento correspondente ao estado na lista de eventos
         switch (state)
@@ -637,6 +637,13 @@ void InterfaceBehaviour(Interface *interfaceIn)
         default:
             break;
         }
+
+        interfaceKeyLock = 1;
+    }
+
+    if (interfaceKeyLock && !(GetKeyState(VK_RETURN) & 0x8000 || GetKeyState(VK_ESCAPE) & 0x8000))
+    {
+        interfaceKeyLock = 0;
     }
 }
 
@@ -684,6 +691,8 @@ void RenderInterface(Interface *interfaceIn)
     SetCursorPosition(consoleWidth - 1, consoleHeight - 1);
 
     interfaceIn->update = 0; // Reseta o estado de atualização da interface
+
+    WriteOutput();
 }
 
 void UpdateInterfaces()
@@ -732,9 +741,11 @@ void Clear()
     {
         for (int j = 0; j < consoleHeight; j++)
         {
-            PrintCharOnPosition(32, 7, i, j);
+            SetCharOnPosition(i, j, 32, 7);
         }
     }
+
+    WriteOutput();
 }
 
 void GenerateWorld()
@@ -747,10 +758,12 @@ void GenerateWorld()
 
     // Inicializa as matrizes
     ObjectMatrixInit(&objectMatrix, consoleWidth, consoleHeight - 1);
-    ObjectMatrixInit(&oldObjectMatrix, consoleWidth, consoleHeight - 1);
 
     Object player = {idCount++,
-                     254,
+                     {254, 254, 254, 254},
+                     0.0f,
+                     ANIMATION_SPEED,
+                     0,
                      15,
                      {0.0f, 0.0f},
                      {(float)(consoleWidth / 2), (float)(consoleHeight / 2)},
@@ -768,7 +781,10 @@ void GenerateWorld()
     } while (coinPositionX == player.position[0] && coinPositionY == player.position[1]);
 
     Object coin = {idCount++,
-                   254,
+                   {45, 92, 124, 47},
+                   0.0f,
+                   ANIMATION_SPEED,
+                   1,
                    14,
                    {0.0f, 0.0f},
                    {coinPositionX, coinPositionY},
@@ -790,10 +806,22 @@ void GenerateWorld()
     // Constroi as paredes de cima e de baixo
     for (int i = 0; i < consoleWidth; i++)
     {
-        Object topWall = {idCount++, 219, 7, {0.0f, 0.0f}, {(float)i, 0.0f}, 0.0f, WALL};
+        Object topWall = {idCount++,
+                          {219, 223, 219, 220},
+                          (float)(i % MAX_ANIM_FRAMES),
+                          ANIMATION_SPEED,
+                          1,
+                          7,
+                          {0.0f, 0.0f},
+                          {(float)i, 0.0f},
+                          0.0f,
+                          WALL};
 
         Object bottonWall = {idCount++,
-                             219,
+                             {219, 223, 219, 220},
+                             (float)(i % MAX_ANIM_FRAMES),
+                             ANIMATION_SPEED,
+                             1,
                              7,
                              {0.0f, 0.0f},
                              {(float)i, (float)(consoleHeight - 2)},
@@ -814,10 +842,22 @@ void GenerateWorld()
     // Constroi as paredes da esquerda e direita
     for (int i = 0; i < consoleHeight - 2; i++)
     {
-        Object leftWall = {idCount++, 219, 7, {0.0f, 0.0f}, {0.0f, (float)i}, 0.0f, WALL};
+        Object leftWall = {idCount++,
+                           {219, 178, 219, 178},
+                           (float)(i % MAX_ANIM_FRAMES),
+                           ANIMATION_SPEED,
+                           1,
+                           7,
+                           {0.0f, 0.0f},
+                           {0.0f, (float)i},
+                           0.0f,
+                           WALL};
 
         Object rightWall = {idCount++,
-                            219,
+                            {219, 178, 219, 178},
+                            (float)(i % MAX_ANIM_FRAMES),
+                            ANIMATION_SPEED,
+                            1,
                             7,
                             {0.0f, 0.0f},
                             {(float)(consoleWidth - 1), (float)i},
@@ -834,8 +874,6 @@ void GenerateWorld()
                              (uint8_t)rightWall.position[0],
                              (uint8_t)rightWall.position[1]);
     }
-
-    UpdateMatrices(); // Atualiza as matrizes
 }
 
 void UpdateObjectBehaviour()
@@ -985,7 +1023,7 @@ void EnemyBehaviour(uint8_t x, uint8_t y)
 void Render()
 {
     /* Rederiza os objetos no gameplay.
-     */
+    */
 
     if (state == GAMEPLAY)
     {
@@ -993,40 +1031,36 @@ void Render()
         {
             for (uint8_t j = 0; j < objectMatrix.height; j++)
             {
-                char oldChar = GetObjectPtrFromMatrix(&oldObjectMatrix, i, j)->c;
-                char newChar = GetObjectPtrFromMatrix(&objectMatrix, i, j)->c;
+                uint8_t newAnimationFrame;
+                uint8_t isAnimated = GetObjectPtrFromMatrix(&objectMatrix, i, j)->isAnimated;
 
-                uint8_t oldColor = GetObjectPtrFromMatrix(&oldObjectMatrix, i, j)->color;
-                uint8_t newColor = GetObjectPtrFromMatrix(&objectMatrix, i, j)->color;
-
-                /* Renderiza se o caractere ou cor mudaram na posição ou se for necessário
-                   atualizar tudo
-                */
-                if (oldChar != newChar || oldColor != newColor || renderAll)
+                if (isAnimated)
                 {
-                    // Limpa o caractere caso ela esteja vazio na matriz
-                    if (GetObjectPtrFromMatrix(&objectMatrix, i, j)->type == EMPTY)
-                    {
-                        PrintCharOnPosition(32,
-                                            0,
-                                            i,
-                                            j);
-                    }
-                    else // Coloca o caractere
-                    {
-                        PrintCharOnPosition(newChar,
-                                            newColor,
-                                            i,
-                                            j);
-                    }
+                    GetObjectPtrFromMatrix(&objectMatrix, i, j)->animationFrame += ANIMATION_SPEED / (float)tick;
 
-                    // Move o cursor para o canto da tela
-                    SetCursorPosition(consoleWidth - 1, consoleHeight - 1);
+                    if ((uint8_t)GetObjectPtrFromMatrix(&objectMatrix, i, j)->animationFrame > MAX_ANIM_FRAMES - 1)
+                    {
+                        GetObjectPtrFromMatrix(&objectMatrix, i, j)->animationFrame = 0.0f;
+                    }
+                }
+
+                newAnimationFrame = (uint8_t)GetObjectPtrFromMatrix(&objectMatrix, i, j)->animationFrame;
+
+                char newChar = GetObjectPtrFromMatrix(&objectMatrix, i, j)->c[newAnimationFrame];
+
+                // Limpa o caractere caso ela esteja vazio na matriz
+                if (GetObjectPtrFromMatrix(&objectMatrix, i, j)->type == EMPTY)
+                {
+                    SetCharOnPosition(i, j, 32, 0);
+                }
+                else // Coloca o caractere
+                {
+                    SetCharOnPosition(i, j, newChar, GetObjectPtrFromMatrix(&objectMatrix, i, j)->color);
                 }
             }
         }
 
-        renderAll = 0; // Reseta o estado de renderização
+        WriteOutput();
     }
 }
 
@@ -1173,7 +1207,10 @@ void UpdatePhysics()
                         } while (objectPtrInEnemyPosition->type != EMPTY || distanceFromPlayer < 20.0f);
 
                         Object enemy = {idCount++,
-                                        254,
+                                        {178, 177, 176, 178},
+                                        0.0f,
+                                        ANIMATION_SPEED,
+                                        1,
                                         12,
                                         {0.0f, 0.0f},
                                         {enemySpawnX, enemySpawnY},
@@ -1216,23 +1253,6 @@ void UpdatePhysics()
                         sprintf(gameover.texts[1].content, "score: %05d", score);
                     }
                 }
-            }
-        }
-    }
-}
-
-void UpdateMatrices()
-{
-    /* Atualiza cada elemento da matriz
-     */
-    if (state == GAMEPLAY)
-    {
-        for (uint8_t i = 0; i < objectMatrix.width; i++)
-        {
-            for (uint8_t j = 0; j < objectMatrix.height; j++)
-            {
-                Object object = *GetObjectPtrFromMatrix(&objectMatrix, i, j);
-                InsertObjectOnMatrix(&oldObjectMatrix, object, i, j);
             }
         }
     }

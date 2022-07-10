@@ -8,6 +8,7 @@
 #define MAX_TEXTS 3
 #define MAX_BUTTONS 3
 #define MAX_EVENTS 2
+#define MAX_ANIM_FRAMES 4
 
 enum Event
 {
@@ -54,7 +55,7 @@ enum ObjectType
     ENEMY
 };
 
-// Texto: ~726 B
+// Texto
 typedef struct
 {
     char content[MAX_TEXT_STRLEN]; // 720 B
@@ -64,7 +65,7 @@ typedef struct
 
 } Text;
 
-// Botão: ~16 a ~19 B
+// Botão
 typedef struct
 {
     char content[MAX_BUTTON_STRLEN]; // 9 B
@@ -75,7 +76,7 @@ typedef struct
 
 } Button;
 
-// Interface: ~2235 B a ~2244 B
+// Interface
 typedef struct
 {
     Text texts[MAX_TEXTS];       // 2178 B
@@ -86,20 +87,30 @@ typedef struct
 
 } Interface;
 
-// Objeto: ~25 B a ~28 B
+// Objeto
 typedef struct
 {
-    uint16_t id;          // 2 B
-    char c;               // 1 B
-    uint8_t color;        // 1 B
-    float velocity[2];    // 8 B
-    float position[2];    // 8 B
-    float speed;          // 4 B
-    enum ObjectType type; // (1 a 4) B
+    uint16_t id;             // 2 B
+    char c[MAX_ANIM_FRAMES]; // 4 B
+    float animationFrame;    // 4 B
+    float animationSpeed;    // 4 B
+    uint8_t isAnimated;      // 1 B
+    uint8_t color;           // 1 B
+    float velocity[2];       // 8 B
+    float position[2];       // 8 B
+    float speed;             // 4 B
+    enum ObjectType type;    // (1 a 4) B
 
 } Object;
 
-// Matriz: Esperado: 90.05 kB, Máximo: 1.82 MB
+// Definição de um caractede a ser exibido no console
+typedef struct
+{
+    char c;
+    uint8_t color;
+} ConsolePrint;
+
+// Matriz
 typedef struct
 {
     Object *matrix;    // Max: (1.625 a 1.82) MB (Alocado na posição)
@@ -110,8 +121,6 @@ typedef struct
 
 } ObjectMatrix;
 
-HANDLE consoleHandle;
-uint8_t consoleWidth, consoleHeight;
 enum State state;
 enum Event events[MAX_EVENTS];
 
@@ -122,15 +131,13 @@ Interface pause;
 Interface gameover;
 
 ObjectMatrix objectMatrix;
-ObjectMatrix oldObjectMatrix;
 unsigned int tick;
 uint16_t score;
 uint16_t idCount;
-uint8_t renderAll;
+uint8_t interfaceKeyLock;
 
 void GameInit(unsigned int t, uint8_t width, uint8_t height);
 void SetCursorPosition(uint8_t x, uint8_t y);
-void PrintCharOnPosition(char c, uint8_t color, uint8_t x, uint8_t y);
 void PrintStringOnPosition(char *s, uint8_t color, uint8_t x, uint8_t y);
 void BuildBorders();
 void CalculateAlignedPosition(int16_t *x, int16_t *y, uint8_t sizeX, uint8_t sizeY, enum Alignment alignment);
@@ -150,5 +157,4 @@ void EnemyBehaviour(uint8_t x, uint8_t y);
 void Render();
 float Tick(double elapsedTime);
 void UpdatePhysics();
-void UpdateMatrices();
 float Randomf(int min, int max);
