@@ -1,4 +1,4 @@
-// Sobreviva - Jogo de Testes - V 2.8.2 - ErFer7
+// Sobreviva - Jogo de Testes - V 2.9 - ErFer7
 
 /***
  *     $$$$$$\   $$$$$$\  $$$$$$$\  $$$$$$$\  $$$$$$$$\ $$\    $$\ $$$$$$\ $$\    $$\  $$$$$$\  
@@ -12,8 +12,10 @@
  */
 
 #include <stdio.h>
+#include <Windows.h>
 
 #include "include/survive.h"
+#include "include/renderer.h"
 
 int main()
 {
@@ -33,7 +35,6 @@ int main()
         UpdateObjectBehaviour();
         UpdatePhysics();
         Render();
-        UpdateMatrices();
         UpdateInterfaces();
 
         // Máquina de estados com base em eventos
@@ -45,7 +46,6 @@ int main()
                 {
                 case UI_PLAY:
 
-                    renderAll = 1;
                     GenerateWorld(consoleWidth, consoleHeight);
                     state = GAMEPLAY;
                     break;
@@ -56,7 +56,6 @@ int main()
                 case UI_QUIT:
 
                     FreeObjectMatrix(&objectMatrix);
-                    FreeObjectMatrix(&oldObjectMatrix);
                     state = EXIT;
                     break;
                 case UI_PAUSE:
@@ -65,14 +64,11 @@ int main()
                     break;
                 case UI_RESUME:
 
-                    renderAll = 1;
                     state = GAMEPLAY;
                     break;
                 case UI_RESTART:
 
-                    renderAll = 1;
                     FreeObjectMatrix(&objectMatrix);
-                    FreeObjectMatrix(&oldObjectMatrix);
                     GenerateWorld(consoleWidth, consoleHeight);
                     state = GAMEPLAY;
                     break;
@@ -83,7 +79,6 @@ int main()
                 case GM_GAMEOVER:
 
                     FreeObjectMatrix(&objectMatrix);
-                    FreeObjectMatrix(&oldObjectMatrix);
                     state = GAMEOVER;
                     break;
                 default:
@@ -116,8 +111,7 @@ int main()
     }
 
     // Libera o console
-    CloseHandle(consoleHandle);
-    FreeConsole();
+    FreeConsoleRenderer();
 
     return 0;
 }

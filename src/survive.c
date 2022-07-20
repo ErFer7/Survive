@@ -1,25 +1,25 @@
 #include "../include/survive.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <time.h>
 #include <math.h>
-#include <string.h>
 #include <Windows.h>
 
-#define VERSION "v2.8.2"
+#include "../include/renderer.h"
+
+#define VERSION "v2.9"
 #define PLAYER_SPEED 23.5f
 #define ENEMY_SPEED 13.0f
 #define SELECTION_SPEED 10.0f
+#define ANIMATION_SPEED 16.0f
 
 void GameInit(unsigned int t, uint8_t width, uint8_t height)
 {
     /* Inicializa o jogo.
      */
 
-    // CORRIGIR: Erro em que o input pode ser executado no console após o término do programa
-    consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    InitConsoleRenderer((unsigned int)width, (unsigned int)height);
 
     consoleWidth = width > 255 ? 255 : width;
     consoleHeight = height > 255 ? 255 : height;
@@ -46,7 +46,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
                    "    \\$$ $$  | $$_____ \n \\$$    $$ \\$$    $$| $$  | $$    \\$$$   |   "
                    "$$ \\    \\$$$   | $$     \\\n  \\$$$$$$   \\$$$$$$  \\$$   \\$$     \\$ "
                    "    \\$$$$$$     \\$     \\$$$$$$$$",
-        .color = 12,
+        .color = 0x0C,
         .position = {0, 4},
         .update = 0};
 
@@ -60,7 +60,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     Text version = {
 
         .content = VERSION,
-        .color = 7,
+        .color = 0x07,
         .position = {1, 1},
         .update = 0};
 
@@ -73,45 +73,45 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     // Botão de play
     Button playButton = {
 
-        .content = "*Play",
-        .color = 7,
+        .content = "Play",
+        .color = 0x0C,
         .position = {0, 0},
         .event = UI_PLAY,
         .update = 0};
 
     CalculateAlignedPosition(&playButton.position[0],
                              &playButton.position[1],
-                             5,
+                             4,
                              1,
                              CENTER);
 
     // Botão de informações
     Button infoButton = {
 
-        .content = " Info",
-        .color = 7,
+        .content = "Info",
+        .color = 0x07,
         .position = {0, 2},
         .event = UI_INFO,
         .update = 0};
 
     CalculateAlignedPosition(&infoButton.position[0],
                              &infoButton.position[1],
-                             5,
+                             4,
                              1,
                              CENTER);
 
     // Botão de saída
     Button quitButton = {
 
-        .content = " Quit",
-        .color = 7,
+        .content = "Quit",
+        .color = 0x07,
         .position = {0, 4},
         .event = UI_QUIT,
         .update = 0};
 
     CalculateAlignedPosition(&quitButton.position[0],
                              &quitButton.position[1],
-                             5,
+                             4,
                              1,
                              CENTER);
 
@@ -136,7 +136,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
                    "   | $$  | $$\n  | $$  | $$$$\\ $$| $$  \\   | $$  | $$\n  | $$  | $$\\$$ $$|"
                    " $$$$$   | $$  | $$\n _| $$_ | $$ \\$$$$| $$      | $$__/ $$\n|   $$ \\| $$"
                    "  \\$$$| $$       \\$$    $$\n \\$$$$$$ \\$$   \\$$ \\$$        \\$$$$$$ ",
-        .color = 10,
+        .color = 0x0A,
         .position = {0, 4},
         .update = 0};
 
@@ -150,7 +150,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     Text creationDateInfo = {
 
         .content = "Adaptation of my first game that was created in 19/03/2019",
-        .color = 7,
+        .color = 0x07,
         .position = {0, 0},
         .update = 0};
 
@@ -164,7 +164,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     Text githubInfo = {
 
         .content = "Writen by Eric (ErFer7): https://github.com/ErFer7/Survive-CMD-Game",
-        .color = 7,
+        .color = 0x07,
         .position = {0, 1},
         .update = 0};
 
@@ -177,15 +177,15 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     // Botão de retorno
     Button returnButton = {
 
-        .content = "*Back",
-        .color = 7,
+        .content = "Back",
+        .color = 0x0C,
         .position = {0, 3},
         .event = UI_RETURN,
         .update = 0};
 
     CalculateAlignedPosition(&returnButton.position[0],
                              &returnButton.position[1],
-                             5,
+                             4,
                              1,
                              CENTER);
 
@@ -205,7 +205,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     Text fpsCounter = {
 
         .content = "000.000 fps   ",
-        .color = 7,
+        .color = 0x07,
         .position = {0, 0},
         .update = 1};
 
@@ -219,7 +219,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     Text scoreCounter = {
 
         .content = "score: 00000",
-        .color = 7,
+        .color = 0x07,
         .position = {-18, 0},
         .update = 1};
 
@@ -249,7 +249,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
                    "$$\\ $$  __|   $$ |  $$ |\n$$ |      $$ |  $$ |$$ |  $$ |$$\\   $$ |$$ |   "
                    "   $$ |  $$ |\n$$ |      $$ |  $$ |\\$$$$$$  |\\$$$$$$  |$$$$$$$$\\ $$$$$$$"
                    "  |\n\\__|      \\__|  \\__| \\______/  \\______/ \\________|\\_______/ ",
-        .color = 7,
+        .color = 0x07,
         .position = {0, 4},
         .update = 0};
 
@@ -262,45 +262,45 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     // Botão de continuar
     Button resumeButton = {
 
-        .content = "*Resume",
-        .color = 7,
+        .content = "Resume",
+        .color = 0x0C,
         .position = {0, 0},
         .event = UI_RESUME,
         .update = 0};
 
     CalculateAlignedPosition(&resumeButton.position[0],
                              &resumeButton.position[1],
-                             7,
+                             6,
                              1,
                              CENTER);
 
     // Botão de reiniciar
     Button restartButton = {
 
-        .content = " Restart",
-        .color = 7,
+        .content = "Restart",
+        .color = 0x07,
         .position = {0, 2},
         .event = UI_RESTART,
         .update = 0};
 
     CalculateAlignedPosition(&restartButton.position[0],
                              &restartButton.position[1],
-                             8,
+                             7,
                              1,
                              CENTER);
 
     // Botão de retornar para o menu
     Button menuButton = {
 
-        .content = " Menu",
-        .color = 7,
+        .content = "Menu",
+        .color = 0x07,
         .position = {0, 4},
         .event = UI_RETURN,
         .update = 0};
 
     CalculateAlignedPosition(&menuButton.position[0],
                              &menuButton.position[1],
-                             5,
+                             4,
                              1,
                              CENTER);
 
@@ -330,7 +330,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
                    "\\$$$$$$  |$$ |  $$ |$$ | \\_/ $$ |$$$$$$$$\\  $$$$$$  |   \\$  /   $$$$$$$$\\"
                    " $$ |  $$ |\n \\______/ \\__|  \\__|\\__|     \\__|\\________| \\______/     "
                    "\\_/    \\________|\\__|  \\__|",
-        .color = 12,
+        .color = 0x0C,
         .position = {0, 4},
         .update = 0};
 
@@ -344,7 +344,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     Text finalScore = {
 
         .content = "Score: 00000",
-        .color = 7,
+        .color = 0x07,
         .position = {0, 0},
         .update = 0};
 
@@ -363,54 +363,12 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
         .selectionSpeed = SELECTION_SPEED,
         .update = 1};
 
+    interfaceKeyLock = 0;
+
     gameover = gameoverInit;
+    tick = t;
 
     srand((unsigned)time(NULL)); // Inicializa o RNG
-
-    tick = t;
-}
-
-void SetCursorPosition(uint8_t x, uint8_t y)
-{
-    COORD coord = {(SHORT)x, (SHORT)y};
-    SetConsoleCursorPosition(consoleHandle, coord);
-}
-
-void PrintCharOnPosition(char c, uint8_t color, uint8_t x, uint8_t y)
-{
-    /* Coloca um caractere na posição (x, y) com a cor especificada (0 a 15).
-     */
-
-    SetConsoleTextAttribute(consoleHandle, color);
-    SetCursorPosition(x, y);
-    putchar(c);
-}
-
-void PrintStringOnPosition(char *s, uint8_t color, uint8_t x, uint8_t y)
-{
-    /* Coloca um string na posição (x, y) com a cor especificada (0 a 15).
-     */
-
-    uint8_t calculatedX = x;
-    uint8_t calculatedY = y;
-
-    for (int i = 0; i < strlen(s); i++)
-    {
-
-        if (s[i] == '\n') // Aumenta a altura quando uma nova linha é encontrada
-        {
-            calculatedX = x;
-            calculatedY++;
-        }
-        else if (s[i] != '\0')
-        {
-            PrintCharOnPosition(s[i], color, calculatedX++, calculatedY);
-        }
-        else
-        {
-            break;
-        }
-    }
 }
 
 void BuildBorders()
@@ -420,15 +378,15 @@ void BuildBorders()
 
     for (int i = 0; i < consoleWidth; i++)
     {
-        PrintCharOnPosition(219, 7, i, 0);
-        PrintCharOnPosition(219, 7, i, consoleHeight - 2);
-    };
+        SetCharOnPosition(i, 0, 219, 7);
+        SetCharOnPosition(i, consoleHeight - 2, 219, 7);
+    }
 
     for (int i = 0; i < consoleHeight - 1; i++)
     {
-        PrintCharOnPosition(219, 7, 0, i);
-        PrintCharOnPosition(219, 7, consoleWidth - 1, i);
-    };
+        SetCharOnPosition(0, i, 219, 7);
+        SetCharOnPosition(consoleWidth - 1, i, 219, 7);
+    }
 }
 
 void CalculateAlignedPosition(int16_t *x,
@@ -500,7 +458,17 @@ void ObjectMatrixInit(ObjectMatrix *objectMatrix, uint8_t width, uint8_t height)
     {
         for (uint8_t j = 0; j < height; j++)
         {
-            Object empty = {0, 255, 0, {0.0f, 0.0f}, {(float)i, (float)j}, 0.0f, EMPTY};
+            Object empty = {0,
+                            {255},
+                            0.0f,
+                            ANIMATION_SPEED,
+                            0,
+                            0x00,
+                            {0.0f, 0.0f},
+                            {(float)i, (float)j},
+                            0.0f,
+                            EMPTY};
+
             InsertObjectOnMatrix(objectMatrix, empty, i, j);
         }
     }
@@ -531,7 +499,7 @@ void MoveObjectOnMatrix(ObjectMatrix *objectMatrix, uint8_t x0, uint8_t y0, uint
 
     if (x0 != x1 || y0 != y1)
     {
-        Object empty = {0, 255, 0, {0.0f, 0.0f}, {(float)x0, (float)y0}, 0.0f, EMPTY};
+        Object empty = {0, {255}, 0.0F, ANIMATION_SPEED, 0, 0, {0.0f, 0.0f}, {(float)x0, (float)y0}, 0.0f, EMPTY};
         Object object = objectMatrix->matrix[objectMatrix->width * y0 + x0];
 
         objectMatrix->matrix[objectMatrix->width * y1 + x1] = object;
@@ -571,8 +539,7 @@ void InterfaceBehaviour(Interface *interfaceIn)
 {
     /* Define o comportamento de uma interface.
      */
-
-    if (GetKeyState(VK_RETURN) & 0x8000) // Enter
+    if (GetKeyState(VK_RETURN) & 0x8000 && !interfaceKeyLock) // Enter
     {
         // Adiciona o evento do botão na lista de eventos caso o botão seja válido
         if (interfaceIn->buttons[(int)interfaceIn->selectedButton].event != IDLE)
@@ -580,6 +547,8 @@ void InterfaceBehaviour(Interface *interfaceIn)
             events[1] = interfaceIn->buttons[(int)interfaceIn->selectedButton].event;
             interfaceIn->update = 1;
         }
+
+        interfaceKeyLock = 1;
     }
     else if (GetKeyState(VK_UP) & 0x8000) // Seta para cima
     {
@@ -587,8 +556,8 @@ void InterfaceBehaviour(Interface *interfaceIn)
         if ((int)interfaceIn->selectedButton > 0)
         {
             interfaceIn->selectedButton -= interfaceIn->selectionSpeed / (float)tick;
-            interfaceIn->buttons[(int)interfaceIn->selectedButton].content[0] = '*';
-            interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].content[0] = ' ';
+            interfaceIn->buttons[(int)interfaceIn->selectedButton].color = 0x0C;
+            interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].color = 0x07;
             interfaceIn->buttons[(int)interfaceIn->selectedButton].update = 1;
             interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].update = 1;
         }
@@ -600,13 +569,13 @@ void InterfaceBehaviour(Interface *interfaceIn)
             interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].event != IDLE)
         {
             interfaceIn->selectedButton += interfaceIn->selectionSpeed / (float)tick;
-            interfaceIn->buttons[(int)interfaceIn->selectedButton].content[0] = '*';
-            interfaceIn->buttons[(int)interfaceIn->selectedButton - 1].content[0] = ' ';
+            interfaceIn->buttons[(int)interfaceIn->selectedButton].color = 0x0C;
+            interfaceIn->buttons[(int)interfaceIn->selectedButton - 1].color = 0x07;
             interfaceIn->buttons[(int)interfaceIn->selectedButton].update = 1;
             interfaceIn->buttons[(int)interfaceIn->selectedButton - 1].update = 1;
         }
     }
-    else if (GetKeyState(VK_ESCAPE) & 0x8000) // Esc
+    else if (GetKeyState(VK_ESCAPE) & 0x8000 && !interfaceKeyLock) // Esc
     {
         // Adiciona o evento correspondente ao estado na lista de eventos
         switch (state)
@@ -637,6 +606,13 @@ void InterfaceBehaviour(Interface *interfaceIn)
         default:
             break;
         }
+
+        interfaceKeyLock = 1;
+    }
+
+    if (interfaceKeyLock && !(GetKeyState(VK_RETURN) & 0x8000 || GetKeyState(VK_ESCAPE) & 0x8000))
+    {
+        interfaceKeyLock = 0;
     }
 }
 
@@ -684,6 +660,8 @@ void RenderInterface(Interface *interfaceIn)
     SetCursorPosition(consoleWidth - 1, consoleHeight - 1);
 
     interfaceIn->update = 0; // Reseta o estado de atualização da interface
+
+    WriteOutput();
 }
 
 void UpdateInterfaces()
@@ -732,9 +710,11 @@ void Clear()
     {
         for (int j = 0; j < consoleHeight; j++)
         {
-            PrintCharOnPosition(32, 7, i, j);
+            SetCharOnPosition(i, j, 32, 0x00);
         }
     }
+
+    WriteOutput();
 }
 
 void GenerateWorld()
@@ -747,11 +727,13 @@ void GenerateWorld()
 
     // Inicializa as matrizes
     ObjectMatrixInit(&objectMatrix, consoleWidth, consoleHeight - 1);
-    ObjectMatrixInit(&oldObjectMatrix, consoleWidth, consoleHeight - 1);
 
     Object player = {idCount++,
-                     254,
-                     15,
+                     {254, 254, 254, 254},
+                     0.0f,
+                     ANIMATION_SPEED,
+                     0,
+                     0x0F,
                      {0.0f, 0.0f},
                      {(float)(consoleWidth / 2), (float)(consoleHeight / 2)},
                      PLAYER_SPEED,
@@ -768,8 +750,11 @@ void GenerateWorld()
     } while (coinPositionX == player.position[0] && coinPositionY == player.position[1]);
 
     Object coin = {idCount++,
-                   254,
-                   14,
+                   {45, 92, 124, 47},
+                   0.0f,
+                   ANIMATION_SPEED,
+                   1,
+                   0x0E,
                    {0.0f, 0.0f},
                    {coinPositionX, coinPositionY},
                    0.0f,
@@ -790,11 +775,23 @@ void GenerateWorld()
     // Constroi as paredes de cima e de baixo
     for (int i = 0; i < consoleWidth; i++)
     {
-        Object topWall = {idCount++, 219, 7, {0.0f, 0.0f}, {(float)i, 0.0f}, 0.0f, WALL};
+        Object topWall = {idCount++,
+                          {219, 223, 219, 220},
+                          (float)(i % MAX_ANIM_FRAMES),
+                          ANIMATION_SPEED,
+                          1,
+                          0x87,
+                          {0.0f, 0.0f},
+                          {(float)i, 0.0f},
+                          0.0f,
+                          WALL};
 
         Object bottonWall = {idCount++,
-                             219,
-                             7,
+                             {219, 223, 219, 220},
+                             (float)(i % MAX_ANIM_FRAMES),
+                             ANIMATION_SPEED,
+                             1,
+                             0x87,
                              {0.0f, 0.0f},
                              {(float)i, (float)(consoleHeight - 2)},
                              0.0f,
@@ -814,11 +811,23 @@ void GenerateWorld()
     // Constroi as paredes da esquerda e direita
     for (int i = 0; i < consoleHeight - 2; i++)
     {
-        Object leftWall = {idCount++, 219, 7, {0.0f, 0.0f}, {0.0f, (float)i}, 0.0f, WALL};
+        Object leftWall = {idCount++,
+                           {219, 178, 219, 178},
+                           (float)(i % MAX_ANIM_FRAMES),
+                           ANIMATION_SPEED,
+                           1,
+                           0x87,
+                           {0.0f, 0.0f},
+                           {0.0f, (float)i},
+                           0.0f,
+                           WALL};
 
         Object rightWall = {idCount++,
-                            219,
-                            7,
+                            {219, 178, 219, 178},
+                            (float)(i % MAX_ANIM_FRAMES),
+                            ANIMATION_SPEED,
+                            1,
+                            0x87,
                             {0.0f, 0.0f},
                             {(float)(consoleWidth - 1), (float)i},
                             0.0f,
@@ -834,8 +843,6 @@ void GenerateWorld()
                              (uint8_t)rightWall.position[0],
                              (uint8_t)rightWall.position[1]);
     }
-
-    UpdateMatrices(); // Atualiza as matrizes
 }
 
 void UpdateObjectBehaviour()
@@ -985,7 +992,7 @@ void EnemyBehaviour(uint8_t x, uint8_t y)
 void Render()
 {
     /* Rederiza os objetos no gameplay.
-     */
+    */
 
     if (state == GAMEPLAY)
     {
@@ -993,40 +1000,36 @@ void Render()
         {
             for (uint8_t j = 0; j < objectMatrix.height; j++)
             {
-                char oldChar = GetObjectPtrFromMatrix(&oldObjectMatrix, i, j)->c;
-                char newChar = GetObjectPtrFromMatrix(&objectMatrix, i, j)->c;
+                uint8_t newAnimationFrame;
+                uint8_t isAnimated = GetObjectPtrFromMatrix(&objectMatrix, i, j)->isAnimated;
 
-                uint8_t oldColor = GetObjectPtrFromMatrix(&oldObjectMatrix, i, j)->color;
-                uint8_t newColor = GetObjectPtrFromMatrix(&objectMatrix, i, j)->color;
-
-                /* Renderiza se o caractere ou cor mudaram na posição ou se for necessário
-                   atualizar tudo
-                */
-                if (oldChar != newChar || oldColor != newColor || renderAll)
+                if (isAnimated)
                 {
-                    // Limpa o caractere caso ela esteja vazio na matriz
-                    if (GetObjectPtrFromMatrix(&objectMatrix, i, j)->type == EMPTY)
-                    {
-                        PrintCharOnPosition(32,
-                                            0,
-                                            i,
-                                            j);
-                    }
-                    else // Coloca o caractere
-                    {
-                        PrintCharOnPosition(newChar,
-                                            newColor,
-                                            i,
-                                            j);
-                    }
+                    GetObjectPtrFromMatrix(&objectMatrix, i, j)->animationFrame += ANIMATION_SPEED / (float)tick;
 
-                    // Move o cursor para o canto da tela
-                    SetCursorPosition(consoleWidth - 1, consoleHeight - 1);
+                    if ((uint8_t)GetObjectPtrFromMatrix(&objectMatrix, i, j)->animationFrame > MAX_ANIM_FRAMES - 1)
+                    {
+                        GetObjectPtrFromMatrix(&objectMatrix, i, j)->animationFrame = 0.0f;
+                    }
+                }
+
+                newAnimationFrame = (uint8_t)GetObjectPtrFromMatrix(&objectMatrix, i, j)->animationFrame;
+
+                char newChar = GetObjectPtrFromMatrix(&objectMatrix, i, j)->c[newAnimationFrame];
+
+                // Limpa o caractere caso ela esteja vazio na matriz
+                if (GetObjectPtrFromMatrix(&objectMatrix, i, j)->type == EMPTY)
+                {
+                    SetCharOnPosition(i, j, 32, 0x00);
+                }
+                else // Coloca o caractere
+                {
+                    SetCharOnPosition(i, j, newChar, GetObjectPtrFromMatrix(&objectMatrix, i, j)->color);
                 }
             }
         }
 
-        renderAll = 0; // Reseta o estado de renderização
+        WriteOutput();
     }
 }
 
@@ -1173,8 +1176,11 @@ void UpdatePhysics()
                         } while (objectPtrInEnemyPosition->type != EMPTY || distanceFromPlayer < 20.0f);
 
                         Object enemy = {idCount++,
-                                        254,
-                                        12,
+                                        {178, 177, 176, 178},
+                                        0.0f,
+                                        ANIMATION_SPEED,
+                                        1,
+                                        0x0C,
                                         {0.0f, 0.0f},
                                         {enemySpawnX, enemySpawnY},
                                         ENEMY_SPEED,
@@ -1216,23 +1222,6 @@ void UpdatePhysics()
                         sprintf(gameover.texts[1].content, "score: %05d", score);
                     }
                 }
-            }
-        }
-    }
-}
-
-void UpdateMatrices()
-{
-    /* Atualiza cada elemento da matriz
-     */
-    if (state == GAMEPLAY)
-    {
-        for (uint8_t i = 0; i < objectMatrix.width; i++)
-        {
-            for (uint8_t j = 0; j < objectMatrix.height; j++)
-            {
-                Object object = *GetObjectPtrFromMatrix(&objectMatrix, i, j);
-                InsertObjectOnMatrix(&oldObjectMatrix, object, i, j);
             }
         }
     }
