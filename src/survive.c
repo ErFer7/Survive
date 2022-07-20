@@ -8,7 +8,7 @@
 
 #include "../include/renderer.h"
 
-#define VERSION "v2.9"
+#define VERSION "v2.9.1"
 #define PLAYER_SPEED 23.5f
 #define ENEMY_SPEED 13.0f
 #define SELECTION_SPEED 10.0f

@@ -2,12 +2,6 @@
 
 #include <Windows.h>
 
-unsigned int consoleWidth, consoleHeight;
-HANDLE consoleOutputHandle;
-SMALL_RECT consoleRect;
-SMALL_RECT windowRect;
-CHAR_INFO *consoleBuffer;
-
 void InitConsoleRenderer(unsigned int width, unsigned int height)
 {
     consoleWidth = width;
@@ -33,7 +27,6 @@ void InitConsoleRenderer(unsigned int width, unsigned int height)
 
 void FreeConsoleRenderer()
 {
-    CloseHandle(consoleInputHandle);
     CloseHandle(consoleOutputHandle);
     FreeConsole();
 }

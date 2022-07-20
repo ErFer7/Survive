@@ -3,7 +3,7 @@
 #include <Windows.h>
 
 unsigned int consoleWidth, consoleHeight;
-HANDLE consoleInputHandle, consoleOutputHandle;
+HANDLE consoleOutputHandle;
 SMALL_RECT consoleRect;
 SMALL_RECT windowRect;
 CHAR_INFO *consoleBuffer;
