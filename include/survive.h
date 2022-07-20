@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <Windows.h>
 
 #define MAX_TEXT_STRLEN 720
 #define MAX_BUTTON_STRLEN 9
@@ -137,8 +136,6 @@ uint16_t idCount;
 uint8_t interfaceKeyLock;
 
 void GameInit(unsigned int t, uint8_t width, uint8_t height);
-void SetCursorPosition(uint8_t x, uint8_t y);
-void PrintStringOnPosition(char *s, uint8_t color, uint8_t x, uint8_t y);
 void BuildBorders();
 void CalculateAlignedPosition(int16_t *x, int16_t *y, uint8_t sizeX, uint8_t sizeY, enum Alignment alignment);
 void ObjectMatrixInit(ObjectMatrix *objectMatrix, uint8_t width, uint8_t height);

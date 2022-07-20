@@ -1,13 +1,10 @@
 #include "../include/survive.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <time.h>
 #include <math.h>
-#include <string.h>
 #include <Windows.h>
-#include <omp.h>
 
 #include "../include/renderer.h"
 
@@ -49,7 +46,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
                    "    \\$$ $$  | $$_____ \n \\$$    $$ \\$$    $$| $$  | $$    \\$$$   |   "
                    "$$ \\    \\$$$   | $$     \\\n  \\$$$$$$   \\$$$$$$  \\$$   \\$$     \\$ "
                    "    \\$$$$$$     \\$     \\$$$$$$$$",
-        .color = 12,
+        .color = 0x0C,
         .position = {0, 4},
         .update = 0};
 
@@ -63,7 +60,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     Text version = {
 
         .content = VERSION,
-        .color = 7,
+        .color = 0x07,
         .position = {1, 1},
         .update = 0};
 
@@ -76,45 +73,45 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     // Botão de play
     Button playButton = {
 
-        .content = "*Play",
-        .color = 7,
+        .content = "Play",
+        .color = 0x0C,
         .position = {0, 0},
         .event = UI_PLAY,
         .update = 0};
 
     CalculateAlignedPosition(&playButton.position[0],
                              &playButton.position[1],
-                             5,
+                             4,
                              1,
                              CENTER);
 
     // Botão de informações
     Button infoButton = {
 
-        .content = " Info",
-        .color = 7,
+        .content = "Info",
+        .color = 0x07,
         .position = {0, 2},
         .event = UI_INFO,
         .update = 0};
 
     CalculateAlignedPosition(&infoButton.position[0],
                              &infoButton.position[1],
-                             5,
+                             4,
                              1,
                              CENTER);
 
     // Botão de saída
     Button quitButton = {
 
-        .content = " Quit",
-        .color = 7,
+        .content = "Quit",
+        .color = 0x07,
         .position = {0, 4},
         .event = UI_QUIT,
         .update = 0};
 
     CalculateAlignedPosition(&quitButton.position[0],
                              &quitButton.position[1],
-                             5,
+                             4,
                              1,
                              CENTER);
 
@@ -139,7 +136,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
                    "   | $$  | $$\n  | $$  | $$$$\\ $$| $$  \\   | $$  | $$\n  | $$  | $$\\$$ $$|"
                    " $$$$$   | $$  | $$\n _| $$_ | $$ \\$$$$| $$      | $$__/ $$\n|   $$ \\| $$"
                    "  \\$$$| $$       \\$$    $$\n \\$$$$$$ \\$$   \\$$ \\$$        \\$$$$$$ ",
-        .color = 10,
+        .color = 0x0A,
         .position = {0, 4},
         .update = 0};
 
@@ -153,7 +150,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     Text creationDateInfo = {
 
         .content = "Adaptation of my first game that was created in 19/03/2019",
-        .color = 7,
+        .color = 0x07,
         .position = {0, 0},
         .update = 0};
 
@@ -167,7 +164,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     Text githubInfo = {
 
         .content = "Writen by Eric (ErFer7): https://github.com/ErFer7/Survive-CMD-Game",
-        .color = 7,
+        .color = 0x07,
         .position = {0, 1},
         .update = 0};
 
@@ -180,15 +177,15 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     // Botão de retorno
     Button returnButton = {
 
-        .content = "*Back",
-        .color = 7,
+        .content = "Back",
+        .color = 0x0C,
         .position = {0, 3},
         .event = UI_RETURN,
         .update = 0};
 
     CalculateAlignedPosition(&returnButton.position[0],
                              &returnButton.position[1],
-                             5,
+                             4,
                              1,
                              CENTER);
 
@@ -208,7 +205,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     Text fpsCounter = {
 
         .content = "000.000 fps   ",
-        .color = 7,
+        .color = 0x07,
         .position = {0, 0},
         .update = 1};
 
@@ -222,7 +219,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     Text scoreCounter = {
 
         .content = "score: 00000",
-        .color = 7,
+        .color = 0x07,
         .position = {-18, 0},
         .update = 1};
 
@@ -252,7 +249,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
                    "$$\\ $$  __|   $$ |  $$ |\n$$ |      $$ |  $$ |$$ |  $$ |$$\\   $$ |$$ |   "
                    "   $$ |  $$ |\n$$ |      $$ |  $$ |\\$$$$$$  |\\$$$$$$  |$$$$$$$$\\ $$$$$$$"
                    "  |\n\\__|      \\__|  \\__| \\______/  \\______/ \\________|\\_______/ ",
-        .color = 7,
+        .color = 0x07,
         .position = {0, 4},
         .update = 0};
 
@@ -265,45 +262,45 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     // Botão de continuar
     Button resumeButton = {
 
-        .content = "*Resume",
-        .color = 7,
+        .content = "Resume",
+        .color = 0x0C,
         .position = {0, 0},
         .event = UI_RESUME,
         .update = 0};
 
     CalculateAlignedPosition(&resumeButton.position[0],
                              &resumeButton.position[1],
-                             7,
+                             6,
                              1,
                              CENTER);
 
     // Botão de reiniciar
     Button restartButton = {
 
-        .content = " Restart",
-        .color = 7,
+        .content = "Restart",
+        .color = 0x07,
         .position = {0, 2},
         .event = UI_RESTART,
         .update = 0};
 
     CalculateAlignedPosition(&restartButton.position[0],
                              &restartButton.position[1],
-                             8,
+                             7,
                              1,
                              CENTER);
 
     // Botão de retornar para o menu
     Button menuButton = {
 
-        .content = " Menu",
-        .color = 7,
+        .content = "Menu",
+        .color = 0x07,
         .position = {0, 4},
         .event = UI_RETURN,
         .update = 0};
 
     CalculateAlignedPosition(&menuButton.position[0],
                              &menuButton.position[1],
-                             5,
+                             4,
                              1,
                              CENTER);
 
@@ -333,7 +330,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
                    "\\$$$$$$  |$$ |  $$ |$$ | \\_/ $$ |$$$$$$$$\\  $$$$$$  |   \\$  /   $$$$$$$$\\"
                    " $$ |  $$ |\n \\______/ \\__|  \\__|\\__|     \\__|\\________| \\______/     "
                    "\\_/    \\________|\\__|  \\__|",
-        .color = 12,
+        .color = 0x0C,
         .position = {0, 4},
         .update = 0};
 
@@ -347,7 +344,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     Text finalScore = {
 
         .content = "Score: 00000",
-        .color = 7,
+        .color = 0x07,
         .position = {0, 0},
         .update = 0};
 
@@ -372,34 +369,6 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     tick = t;
 
     srand((unsigned)time(NULL)); // Inicializa o RNG
-}
-
-void SetCursorPosition(uint8_t x, uint8_t y)
-{
-    COORD coord = {(SHORT)x, (SHORT)y};
-    // SetConsoleCursorPosition(consoleHandle, coord);
-}
-
-void PrintStringOnPosition(char *s, uint8_t color, uint8_t x, uint8_t y)
-{
-    /* Coloca um string na posição (x, y) com a cor especificada (0 a 15).
-     */
-
-    uint8_t calculatedX = x;
-    uint8_t calculatedY = y;
-
-    for (int i = 0; i < strlen(s); i++)
-    {
-        if (s[i] == '\n') // Aumenta a altura quando uma nova linha é encontrada
-        {
-            calculatedX = x;
-            calculatedY++;
-        }
-        else if (s[i] != '\0')
-        {
-            SetCharOnPosition(calculatedX++, calculatedY, s[i], color);
-        }
-    }
 }
 
 void BuildBorders()
@@ -494,7 +463,7 @@ void ObjectMatrixInit(ObjectMatrix *objectMatrix, uint8_t width, uint8_t height)
                             0.0f,
                             ANIMATION_SPEED,
                             0,
-                            0,
+                            0x00,
                             {0.0f, 0.0f},
                             {(float)i, (float)j},
                             0.0f,
@@ -587,8 +556,8 @@ void InterfaceBehaviour(Interface *interfaceIn)
         if ((int)interfaceIn->selectedButton > 0)
         {
             interfaceIn->selectedButton -= interfaceIn->selectionSpeed / (float)tick;
-            interfaceIn->buttons[(int)interfaceIn->selectedButton].content[0] = '*';
-            interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].content[0] = ' ';
+            interfaceIn->buttons[(int)interfaceIn->selectedButton].color = 0x0C;
+            interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].color = 0x07;
             interfaceIn->buttons[(int)interfaceIn->selectedButton].update = 1;
             interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].update = 1;
         }
@@ -600,8 +569,8 @@ void InterfaceBehaviour(Interface *interfaceIn)
             interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].event != IDLE)
         {
             interfaceIn->selectedButton += interfaceIn->selectionSpeed / (float)tick;
-            interfaceIn->buttons[(int)interfaceIn->selectedButton].content[0] = '*';
-            interfaceIn->buttons[(int)interfaceIn->selectedButton - 1].content[0] = ' ';
+            interfaceIn->buttons[(int)interfaceIn->selectedButton].color = 0x0C;
+            interfaceIn->buttons[(int)interfaceIn->selectedButton - 1].color = 0x07;
             interfaceIn->buttons[(int)interfaceIn->selectedButton].update = 1;
             interfaceIn->buttons[(int)interfaceIn->selectedButton - 1].update = 1;
         }
@@ -741,7 +710,7 @@ void Clear()
     {
         for (int j = 0; j < consoleHeight; j++)
         {
-            SetCharOnPosition(i, j, 32, 7);
+            SetCharOnPosition(i, j, 32, 0x00);
         }
     }
 
@@ -764,7 +733,7 @@ void GenerateWorld()
                      0.0f,
                      ANIMATION_SPEED,
                      0,
-                     15,
+                     0x0F,
                      {0.0f, 0.0f},
                      {(float)(consoleWidth / 2), (float)(consoleHeight / 2)},
                      PLAYER_SPEED,
@@ -785,7 +754,7 @@ void GenerateWorld()
                    0.0f,
                    ANIMATION_SPEED,
                    1,
-                   14,
+                   0x0E,
                    {0.0f, 0.0f},
                    {coinPositionX, coinPositionY},
                    0.0f,
@@ -811,7 +780,7 @@ void GenerateWorld()
                           (float)(i % MAX_ANIM_FRAMES),
                           ANIMATION_SPEED,
                           1,
-                          7,
+                          0x87,
                           {0.0f, 0.0f},
                           {(float)i, 0.0f},
                           0.0f,
@@ -822,7 +791,7 @@ void GenerateWorld()
                              (float)(i % MAX_ANIM_FRAMES),
                              ANIMATION_SPEED,
                              1,
-                             7,
+                             0x87,
                              {0.0f, 0.0f},
                              {(float)i, (float)(consoleHeight - 2)},
                              0.0f,
@@ -847,7 +816,7 @@ void GenerateWorld()
                            (float)(i % MAX_ANIM_FRAMES),
                            ANIMATION_SPEED,
                            1,
-                           7,
+                           0x87,
                            {0.0f, 0.0f},
                            {0.0f, (float)i},
                            0.0f,
@@ -858,7 +827,7 @@ void GenerateWorld()
                             (float)(i % MAX_ANIM_FRAMES),
                             ANIMATION_SPEED,
                             1,
-                            7,
+                            0x87,
                             {0.0f, 0.0f},
                             {(float)(consoleWidth - 1), (float)i},
                             0.0f,
@@ -1051,7 +1020,7 @@ void Render()
                 // Limpa o caractere caso ela esteja vazio na matriz
                 if (GetObjectPtrFromMatrix(&objectMatrix, i, j)->type == EMPTY)
                 {
-                    SetCharOnPosition(i, j, 32, 0);
+                    SetCharOnPosition(i, j, 32, 0x00);
                 }
                 else // Coloca o caractere
                 {
@@ -1211,7 +1180,7 @@ void UpdatePhysics()
                                         0.0f,
                                         ANIMATION_SPEED,
                                         1,
-                                        12,
+                                        0x0C,
                                         {0.0f, 0.0f},
                                         {enemySpawnX, enemySpawnY},
                                         ENEMY_SPEED,

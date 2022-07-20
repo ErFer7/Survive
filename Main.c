@@ -12,6 +12,7 @@
  */
 
 #include <stdio.h>
+#include <Windows.h>
 
 #include "include/survive.h"
 #include "include/renderer.h"

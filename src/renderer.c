@@ -47,6 +47,34 @@ void SetCharOnPosition(unsigned int x, unsigned int y, char c, unsigned short co
     }
 }
 
+void SetCursorPosition(unsigned int x, unsigned int y)
+{
+    COORD coord = {(SHORT)x, (SHORT)y};
+    SetConsoleCursorPosition(consoleOutputHandle, coord);
+}
+
+void PrintStringOnPosition(char *s, unsigned int color, unsigned int x, unsigned int y)
+{
+    /* Coloca um string na posição (x, y) com a cor especificada (0 a 15).
+     */
+
+    unsigned int calculatedX = x;
+    unsigned int calculatedY = y;
+
+    for (int i = 0; i < strlen(s); i++)
+    {
+        if (s[i] == '\n') // Aumenta a altura quando uma nova linha é encontrada
+        {
+            calculatedX = x;
+            calculatedY++;
+        }
+        else if (s[i] != '\0')
+        {
+            SetCharOnPosition(calculatedX++, calculatedY, s[i], color);
+        }
+    }
+}
+
 void WriteOutput()
 {
     COORD bufferSize = {(SHORT)consoleWidth, (SHORT)consoleHeight};
