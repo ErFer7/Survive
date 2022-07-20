@@ -1,4 +1,4 @@
-# Survive-CMD-Game-I
+# Survive
 
 Este é um jogo extremamente simples feito como um experimento em C.
 Atualmente o jogo só funciona em Windows e é executado no console.

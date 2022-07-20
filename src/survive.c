@@ -8,7 +8,7 @@
 
 #include "../include/renderer.h"
 
-#define VERSION "v2.9.1"
+#define VERSION "v2.9.2"
 #define PLAYER_SPEED 23.5f
 #define ENEMY_SPEED 13.0f
 #define SELECTION_SPEED 10.0f
@@ -149,7 +149,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     // Informações da data
     Text creationDateInfo = {
 
-        .content = "Adaptation of my first game that was created in 19/03/2019",
+        .content = "Adaptation of my first game that was created in 2019-03-19",
         .color = 0x07,
         .position = {0, 0},
         .update = 0};
@@ -163,14 +163,14 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     // Link do github
     Text githubInfo = {
 
-        .content = "Writen by Eric (ErFer7): https://github.com/ErFer7/Survive-CMD-Game",
+        .content = "Writen by Eric (ErFer7): https://github.com/ErFer7/Survive",
         .color = 0x07,
         .position = {0, 1},
         .update = 0};
 
     CalculateAlignedPosition(&githubInfo.position[0],
                              &githubInfo.position[1],
-                             69,
+                             58,
                              1,
                              CENTER);
 
