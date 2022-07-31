@@ -14,8 +14,9 @@
 #include <stdio.h>
 #include <Windows.h>
 
-#include "include/survive.h"
+#include "include/entity.h"
 #include "include/renderer.h"
+#include "include/survive.h"
 
 int main()
 {
@@ -32,9 +33,13 @@ int main()
         QueryPerformanceCounter(&t1);
 
         // Atualiza sistemas e renderiza
-        UpdateObjectBehaviour();
-        UpdatePhysics();
-        Render();
+        if (state == GAMEPLAY)
+        {
+            UpdateObjectBehaviour();
+            UpdatePhysics();
+            Render(tick);
+        }
+
         UpdateInterfaces();
 
         // Máquina de estados com base em eventos
@@ -55,7 +60,7 @@ int main()
                     break;
                 case UI_QUIT:
 
-                    FreeObjectMatrix(&objectMatrix);
+                    FreeEntityMatrix(&entityMatrix);
                     state = EXIT;
                     break;
                 case UI_PAUSE:
@@ -68,7 +73,7 @@ int main()
                     break;
                 case UI_RESTART:
 
-                    FreeObjectMatrix(&objectMatrix);
+                    FreeEntityMatrix(&entityMatrix);
                     GenerateWorld(consoleWidth, consoleHeight);
                     state = GAMEPLAY;
                     break;
@@ -78,7 +83,7 @@ int main()
                     break;
                 case GM_GAMEOVER:
 
-                    FreeObjectMatrix(&objectMatrix);
+                    FreeEntityMatrix(&entityMatrix);
                     state = GAMEOVER;
                     break;
                 default:
@@ -93,9 +98,7 @@ int main()
            quebra quando encontra um evento.
         */
         for (int i = 0; i < MAX_EVENTS; i++)
-        {
             events[i] = IDLE;
-        }
 
         // Marca o tempo
         QueryPerformanceCounter(&t2);

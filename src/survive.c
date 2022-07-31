@@ -6,9 +6,10 @@
 #include <math.h>
 #include <Windows.h>
 
+#include "../include/entity.h"
 #include "../include/renderer.h"
 
-#define VERSION "v2.9.2"
+#define VERSION "v2.9.3"
 #define PLAYER_SPEED 23.5f
 #define ENEMY_SPEED 13.0f
 #define SELECTION_SPEED 10.0f
@@ -25,9 +26,7 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     consoleHeight = height > 255 ? 255 : height;
 
     for (int i = 0; i < MAX_EVENTS; i++) // Inicializa os eventos
-    {
         events[i] = IDLE;
-    }
 
     // Inicializa as interfaces
 
@@ -163,14 +162,14 @@ void GameInit(unsigned int t, uint8_t width, uint8_t height)
     // Link do github
     Text githubInfo = {
 
-        .content = "Writen by Eric (ErFer7): https://github.com/ErFer7/Survive",
+        .content = "Written by Eric (ErFer7): https://github.com/ErFer7/Survive",
         .color = 0x07,
         .position = {0, 1},
         .update = 0};
 
     CalculateAlignedPosition(&githubInfo.position[0],
                              &githubInfo.position[1],
-                             58,
+                             59,
                              1,
                              CENTER);
 
@@ -442,99 +441,6 @@ void CalculateAlignedPosition(int16_t *x,
     }
 }
 
-void ObjectMatrixInit(ObjectMatrix *objectMatrix, uint8_t width, uint8_t height)
-{
-    /* Inicializa uma matriz de objetos. A matriz é alocada na memória e possui uma largura e
-       altura. Existem dois ponteiros que são úteis para manter a referência do jogador e
-       moeda.
-    */
-
-    objectMatrix->matrix = (Object *)malloc(width * height * sizeof(Object));
-    objectMatrix->width = width;
-    objectMatrix->height = height;
-
-    // Preenche a matriz com objetos vazios
-    for (uint8_t i = 0; i < width; i++)
-    {
-        for (uint8_t j = 0; j < height; j++)
-        {
-            Object empty = {0,
-                            {255},
-                            0.0f,
-                            ANIMATION_SPEED,
-                            0,
-                            0x00,
-                            {0.0f, 0.0f},
-                            {(float)i, (float)j},
-                            0.0f,
-                            EMPTY};
-
-            InsertObjectOnMatrix(objectMatrix, empty, i, j);
-        }
-    }
-}
-
-void InsertObjectOnMatrix(ObjectMatrix *objectMatrix, Object object, uint8_t x, uint8_t y)
-{
-    /* Insere um objeto em uma matriz (sobescreve o objeto caso já exista um na posição).
-     */
-
-    objectMatrix->matrix[objectMatrix->width * y + x] = object;
-
-    if (object.type == PLAYER)
-    {
-        objectMatrix->playerPtr = &objectMatrix->matrix[objectMatrix->width * y + x];
-    }
-    else if (object.type == COIN)
-    {
-        objectMatrix->coinPtr = &objectMatrix->matrix[objectMatrix->width * y + x];
-    }
-}
-
-void MoveObjectOnMatrix(ObjectMatrix *objectMatrix, uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1)
-{
-    /* Move um objeto na matriz caso as posições fornecidas sejam válidas. Sobescreve o objeto em
-       (x1, y1).
-    */
-
-    if (x0 != x1 || y0 != y1)
-    {
-        Object empty = {0, {255}, 0.0F, ANIMATION_SPEED, 0, 0, {0.0f, 0.0f}, {(float)x0, (float)y0}, 0.0f, EMPTY};
-        Object object = objectMatrix->matrix[objectMatrix->width * y0 + x0];
-
-        objectMatrix->matrix[objectMatrix->width * y1 + x1] = object;
-        objectMatrix->matrix[objectMatrix->width * y0 + x0] = empty;
-
-        if (object.type == PLAYER)
-        {
-            objectMatrix->playerPtr = &objectMatrix->matrix[objectMatrix->width * y1 + x1];
-        }
-        else if (object.type == COIN)
-        {
-            objectMatrix->coinPtr = &objectMatrix->matrix[objectMatrix->width * y1 + x1];
-        }
-    }
-}
-
-Object *GetObjectPtrFromMatrix(ObjectMatrix *objectMatrix, uint8_t x, uint8_t y)
-{
-    /* Retorna um ponteiro para o objeto na posição especificada.
-     */
-
-    return &objectMatrix->matrix[objectMatrix->width * y + x];
-}
-
-void FreeObjectMatrix(ObjectMatrix *objectMatrix)
-{
-    /* Libera a memória da matriz.
-     */
-
-    free(objectMatrix->matrix);
-    objectMatrix->matrix = NULL;
-    objectMatrix->width = 0;
-    objectMatrix->height = 0;
-}
-
 void InterfaceBehaviour(Interface *interfaceIn)
 {
     /* Define o comportamento de uma interface.
@@ -611,9 +517,7 @@ void InterfaceBehaviour(Interface *interfaceIn)
     }
 
     if (interfaceKeyLock && !(GetKeyState(VK_RETURN) & 0x8000 || GetKeyState(VK_ESCAPE) & 0x8000))
-    {
         interfaceKeyLock = 0;
-    }
 }
 
 void RenderInterface(Interface *interfaceIn)
@@ -624,7 +528,7 @@ void RenderInterface(Interface *interfaceIn)
     // Limpa a tela caso toda a interface deva ser atualizada
     if (interfaceIn->update)
     {
-        Clear();
+        ClearOutput();
         BuildBorders();
     }
 
@@ -701,22 +605,6 @@ void UpdateInterfaces()
     }
 }
 
-void Clear()
-{
-    /* Limpa a tela.
-     */
-
-    for (int i = 0; i < consoleWidth; i++)
-    {
-        for (int j = 0; j < consoleHeight; j++)
-        {
-            SetCharOnPosition(i, j, 32, 0x00);
-        }
-    }
-
-    WriteOutput();
-}
-
 void GenerateWorld()
 {
     /* Gera o mundo do jogo.
@@ -726,9 +614,9 @@ void GenerateWorld()
     idCount = 0;
 
     // Inicializa as matrizes
-    ObjectMatrixInit(&objectMatrix, consoleWidth, consoleHeight - 1);
+    EntityMatrixInit(&entityMatrix, consoleWidth, consoleHeight - 1);
 
-    Object player = {idCount++,
+    Entity player = {idCount++,
                      {254, 254, 254, 254},
                      0.0f,
                      ANIMATION_SPEED,
@@ -749,7 +637,7 @@ void GenerateWorld()
         coinPositionY = Randomf(1, consoleHeight - 3);
     } while (coinPositionX == player.position[0] && coinPositionY == player.position[1]);
 
-    Object coin = {idCount++,
+    Entity coin = {idCount++,
                    {45, 92, 124, 47},
                    0.0f,
                    ANIMATION_SPEED,
@@ -762,12 +650,12 @@ void GenerateWorld()
 
     // Insere o jogador e moeda na matriz
 
-    InsertObjectOnMatrix(&objectMatrix,
+    InsertEntityOnMatrix(&entityMatrix,
                          player,
                          (uint8_t)player.position[0],
                          (uint8_t)player.position[1]);
 
-    InsertObjectOnMatrix(&objectMatrix,
+    InsertEntityOnMatrix(&entityMatrix,
                          coin,
                          (uint8_t)coin.position[0],
                          (uint8_t)coin.position[1]);
@@ -775,7 +663,7 @@ void GenerateWorld()
     // Constroi as paredes de cima e de baixo
     for (int i = 0; i < consoleWidth; i++)
     {
-        Object topWall = {idCount++,
+        Entity topWall = {idCount++,
                           {219, 223, 219, 220},
                           (float)(i % MAX_ANIM_FRAMES),
                           ANIMATION_SPEED,
@@ -786,7 +674,7 @@ void GenerateWorld()
                           0.0f,
                           WALL};
 
-        Object bottonWall = {idCount++,
+        Entity bottonWall = {idCount++,
                              {219, 223, 219, 220},
                              (float)(i % MAX_ANIM_FRAMES),
                              ANIMATION_SPEED,
@@ -797,12 +685,12 @@ void GenerateWorld()
                              0.0f,
                              WALL};
 
-        InsertObjectOnMatrix(&objectMatrix,
+        InsertEntityOnMatrix(&entityMatrix,
                              topWall,
                              (uint8_t)topWall.position[0],
                              (uint8_t)topWall.position[1]);
 
-        InsertObjectOnMatrix(&objectMatrix,
+        InsertEntityOnMatrix(&entityMatrix,
                              bottonWall,
                              (uint8_t)bottonWall.position[0],
                              (uint8_t)bottonWall.position[1]);
@@ -811,7 +699,7 @@ void GenerateWorld()
     // Constroi as paredes da esquerda e direita
     for (int i = 0; i < consoleHeight - 2; i++)
     {
-        Object leftWall = {idCount++,
+        Entity leftWall = {idCount++,
                            {219, 178, 219, 178},
                            (float)(i % MAX_ANIM_FRAMES),
                            ANIMATION_SPEED,
@@ -822,7 +710,7 @@ void GenerateWorld()
                            0.0f,
                            WALL};
 
-        Object rightWall = {idCount++,
+        Entity rightWall = {idCount++,
                             {219, 178, 219, 178},
                             (float)(i % MAX_ANIM_FRAMES),
                             ANIMATION_SPEED,
@@ -833,12 +721,12 @@ void GenerateWorld()
                             0.0f,
                             WALL};
 
-        InsertObjectOnMatrix(&objectMatrix,
+        InsertEntityOnMatrix(&entityMatrix,
                              leftWall,
                              (uint8_t)leftWall.position[0],
                              (uint8_t)leftWall.position[1]);
 
-        InsertObjectOnMatrix(&objectMatrix,
+        InsertEntityOnMatrix(&entityMatrix,
                              rightWall,
                              (uint8_t)rightWall.position[0],
                              (uint8_t)rightWall.position[1]);
@@ -850,21 +738,12 @@ void UpdateObjectBehaviour()
     /* Atualiza cada objeto com base no seu comportamento.
      */
 
-    if (state == GAMEPLAY)
-    {
-        PlayerBehaviour();
+    PlayerBehaviour();
 
-        for (uint8_t i = 0; i < objectMatrix.width; i++)
-        {
-            for (uint8_t j = 0; j < objectMatrix.height; j++)
-            {
-                if (GetObjectPtrFromMatrix(&objectMatrix, i, j)->type == ENEMY)
-                {
-                    EnemyBehaviour(i, j);
-                }
-            }
-        }
-    }
+    for (uint8_t i = 0; i < entityMatrix.height; i++)
+        for (uint8_t j = 0; j < entityMatrix.width; j++)
+            if (GetEntityPtrFromMatrix(&entityMatrix, j, i)->type == ENEMY)
+                EnemyBehaviour(j, i);
 }
 
 void PlayerBehaviour()
@@ -875,59 +754,45 @@ void PlayerBehaviour()
     float runCoefficient = 1.0f; // Coeficiente de corrida
 
     if (GetKeyState(VK_SPACE) & 0x8000) // Espaço
-    {
         runCoefficient = 2.0f; // Dobra a velocidade na corrida
-    }
 
     if (GetKeyState(VK_UP) & 0x8000) // Seta para cima
-    {
         // Adiciona velocidade para cima
-        objectMatrix.playerPtr->velocity[1] = -objectMatrix.playerPtr->speed * runCoefficient;
-    }
+        entityMatrix.playerPtr->velocity[1] = -entityMatrix.playerPtr->speed * runCoefficient;
     else if (GetKeyState(VK_DOWN) & 0x8000) // Seta para baixo
-    {
         // Adiciona velocidade para baixo
-        objectMatrix.playerPtr->velocity[1] = objectMatrix.playerPtr->speed * runCoefficient;
-    }
+        entityMatrix.playerPtr->velocity[1] = entityMatrix.playerPtr->speed * runCoefficient;
 
     if (GetKeyState(VK_RIGHT) & 0x8000) // Seta para a direita
-    {
         // Adiciona velocidade para direita
-        objectMatrix.playerPtr->velocity[0] = objectMatrix.playerPtr->speed * runCoefficient;
-    }
+        entityMatrix.playerPtr->velocity[0] = entityMatrix.playerPtr->speed * runCoefficient;
     else if (GetKeyState(VK_LEFT) & 0x8000) // Seta para a esquerda
-    {
         // Adiciona velocidade para esquerda
-        objectMatrix.playerPtr->velocity[0] = -objectMatrix.playerPtr->speed * runCoefficient;
-    }
+        entityMatrix.playerPtr->velocity[0] = -entityMatrix.playerPtr->speed * runCoefficient;
 
     /* Corrige a dessincronização diagonal (Fenômeno em que a posição horizontal e vertical
        avançam em passos diferentes.
 
        Este bloco é executado apenas quando o movimento é na diagonal.
     */
-    if (objectMatrix.playerPtr->velocity[0] != 0.0f && objectMatrix.playerPtr->velocity[1] != 0.0f)
+    if (entityMatrix.playerPtr->velocity[0] != 0.0f && entityMatrix.playerPtr->velocity[1] != 0.0f)
     {
         // Obtém a posição esperada
-        uint8_t expectedPositionX = (uint8_t)(objectMatrix.playerPtr->position[0] +
-                                              objectMatrix.playerPtr->velocity[0] / (float)tick);
+        uint8_t expectedPositionX = (uint8_t)(entityMatrix.playerPtr->position[0] +
+                                              entityMatrix.playerPtr->velocity[0] / (float)tick);
 
-        uint8_t expectedPositionY = (uint8_t)(objectMatrix.playerPtr->position[1] +
-                                              objectMatrix.playerPtr->velocity[1] / (float)tick);
+        uint8_t expectedPositionY = (uint8_t)(entityMatrix.playerPtr->position[1] +
+                                              entityMatrix.playerPtr->velocity[1] / (float)tick);
 
         // Corrige a velocidade vertical
-        if (expectedPositionX == (uint8_t)objectMatrix.playerPtr->position[0] &&
-            expectedPositionY != (uint8_t)objectMatrix.playerPtr->position[1])
-        {
-            objectMatrix.playerPtr->velocity[1] = 0.0f;
-        }
+        if (expectedPositionX == (uint8_t)entityMatrix.playerPtr->position[0] &&
+            expectedPositionY != (uint8_t)entityMatrix.playerPtr->position[1])
+            entityMatrix.playerPtr->velocity[1] = 0.0f;
 
         // Corrige a velocidade horizontal
-        if (expectedPositionX != (uint8_t)objectMatrix.playerPtr->position[0] &&
-            expectedPositionY == (uint8_t)objectMatrix.playerPtr->position[1])
-        {
-            objectMatrix.playerPtr->velocity[0] = 0.0f;
-        }
+        if (expectedPositionX != (uint8_t)entityMatrix.playerPtr->position[0] &&
+            expectedPositionY == (uint8_t)entityMatrix.playerPtr->position[1])
+            entityMatrix.playerPtr->velocity[0] = 0.0f;
     }
 }
 
@@ -936,29 +801,21 @@ void EnemyBehaviour(uint8_t x, uint8_t y)
     /* Comportamento do inimigo.
      */
 
-    Object *enemyPtr = GetObjectPtrFromMatrix(&objectMatrix, x, y); // Ponteiro do inimigo
+    Entity *enemyPtr = GetEntityPtrFromMatrix(&entityMatrix, x, y); // Ponteiro do inimigo
 
-    if ((uint8_t)objectMatrix.playerPtr->position[0] > x) // Caso o jogador esteja na direita
-    {
+    if ((uint8_t)entityMatrix.playerPtr->position[0] > x) // Caso o jogador esteja na direita
         // Adiciona velocidade para cima
         enemyPtr->velocity[0] = enemyPtr->speed;
-    }
-    else if ((uint8_t)objectMatrix.playerPtr->position[0] < x) // Caso o jogador esteja na esquerda
-    {
+    else if ((uint8_t)entityMatrix.playerPtr->position[0] < x) // Caso o jogador esteja na esquerda
         // Adiciona velocidade para baixo
         enemyPtr->velocity[0] = -enemyPtr->speed;
-    }
 
-    if ((uint8_t)objectMatrix.playerPtr->position[1] > y) // Caso o jogador esteja em cima
-    {
+    if ((uint8_t)entityMatrix.playerPtr->position[1] > y) // Caso o jogador esteja em cima
         // Adiciona velocidade para direita
         enemyPtr->velocity[1] = enemyPtr->speed;
-    }
-    else if ((uint8_t)objectMatrix.playerPtr->position[1] < y) // Caso o jogador esteja em baixo
-    {
+    else if ((uint8_t)entityMatrix.playerPtr->position[1] < y) // Caso o jogador esteja em baixo
         // Adiciona velocidade para esquerda
         enemyPtr->velocity[1] = -enemyPtr->speed;
-    }
 
     /* Corrige a dessincronização diagonal (Fenômeno em que a posição horizontal e vertical
        avançam em passos diferentes.
@@ -976,61 +833,224 @@ void EnemyBehaviour(uint8_t x, uint8_t y)
         // Corrige a velocidade vertical
         if (expectedPositionX == (uint8_t)enemyPtr->position[0] &&
             expectedPositionY != (uint8_t)enemyPtr->position[1])
-        {
             enemyPtr->velocity[1] = 0.0f;
-        }
+
 
         // Corrige a velocidade horizontal
         if (expectedPositionX != (uint8_t)enemyPtr->position[0] &&
             expectedPositionY == (uint8_t)enemyPtr->position[1])
-        {
             enemyPtr->velocity[0] = 0.0f;
+    }
+}
+
+void UpdatePhysics()
+{
+    /* Atualiza a física e verifica os eventos do gameplay.
+     */
+
+    Entity *objectPtr;
+    Entity *objectPtrInTargetPosition;
+    Entity *objectPtrInCoinPosition;
+    Entity *objectPtrInEnemyPosition;
+    uint8_t oldPositionX;
+    uint8_t oldPositionY;
+    float targetPositionX;
+    float targetPositionY;
+    uint8_t oldCoinPositionX;
+    uint8_t oldCoinPositionY;
+    float coinSpawnX;
+    float coinSpawnY;
+    float enemySpawnX;
+    float enemySpawnY;
+    float distanceFromPlayer;
+
+    for (uint8_t i = 0; i < entityMatrix.height; i++)
+    {
+        for (uint8_t j = 0; j < entityMatrix.width; j++)
+        {
+            // Obtém o ponteiro para o objeto
+            objectPtr = GetEntityPtrFromMatrix(&entityMatrix, j, i);
+
+            // Obtém a posição
+            oldPositionX = (uint8_t)objectPtr->position[0];
+            oldPositionY = (uint8_t)objectPtr->position[1];
+
+            // Obtém a posição alvo
+            targetPositionX = objectPtr->position[0] + objectPtr->velocity[0] / (float)tick;
+            targetPositionY = objectPtr->position[1] + objectPtr->velocity[1] / (float)tick;
+
+            // Redefine a velocidade
+            objectPtr->velocity[0] = 0.0f;
+            objectPtr->velocity[1] = 0.0f;
+
+            // Ponteiro do objeto na posição alvo
+            objectPtrInTargetPosition = GetEntityPtrFromMatrix(&entityMatrix,
+                                                                (uint8_t)targetPositionX,
+                                                                (uint8_t)targetPositionY);
+            if (objectPtr->type == PLAYER) // Se for o jogador
+            {
+                /* Move o jogador caso o objeto na posição alvo esteja vazio ou seja o próprio
+                    jogador
+                */
+                if (objectPtrInTargetPosition->type == EMPTY ||
+                    objectPtrInTargetPosition->id == objectPtr->id)
+                {
+                    // Define a nova posição
+                    objectPtr->position[0] = targetPositionX;
+                    objectPtr->position[1] = targetPositionY;
+
+                    // Move o jogador na matriz
+                    MoveEntityOnMatrix(&entityMatrix,
+                                        oldPositionX,
+                                        oldPositionY,
+                                        (uint8_t)objectPtr->position[0],
+                                        (uint8_t)objectPtr->position[1]);
+                }
+                // Caso o jogador esteja pegando a moeda
+                else if (objectPtrInTargetPosition->type == COIN)
+                {
+                    score++;
+
+                    // Atualiza o texto da pontuação
+                    sprintf(gameplay.texts[1].content, "score: %05d", score);
+                    gameplay.texts[1].update = 1;
+
+                    // Obtém a posição da moeda
+                    oldCoinPositionX = (uint8_t)entityMatrix.coinPtr->position[0];
+                    oldCoinPositionY = (uint8_t)entityMatrix.coinPtr->position[1];
+
+                    /* Não é a maneira ideal de evitar a sobreposição da moeda em outros
+                        objetos
+                    */
+                    do
+                    {
+                        /* Gera uma nova posição e repete o processo caso tenha algo na posição
+                            gerada
+                        */
+
+                        coinSpawnX = Randomf(1, entityMatrix.width - 2);
+                        coinSpawnY = Randomf(1, entityMatrix.height - 3);
+
+                        objectPtrInCoinPosition = GetEntityPtrFromMatrix(&entityMatrix,
+                                                                            (uint8_t)coinSpawnX,
+                                                                            (uint8_t)coinSpawnY);
+                    } while (objectPtrInCoinPosition->type != EMPTY);
+
+                    entityMatrix.coinPtr->position[0] = coinSpawnX;
+                    entityMatrix.coinPtr->position[1] = coinSpawnY;
+
+                    // Move a moeda na matriz
+                    MoveEntityOnMatrix(&entityMatrix,
+                                        oldCoinPositionX,
+                                        oldCoinPositionY,
+                                        (uint8_t)entityMatrix.coinPtr->position[0],
+                                        (uint8_t)entityMatrix.coinPtr->position[1]);
+
+                    /* Gera a posição do novo inimigo. A posição não pode sobrepor nenhum
+                        objeto e deve manter uma distância do jogador.
+                    */
+                    do
+                    {
+                        enemySpawnX = Randomf(1, entityMatrix.width - 2);
+                        enemySpawnY = Randomf(1, entityMatrix.height - 3);
+
+                        objectPtrInEnemyPosition = GetEntityPtrFromMatrix(&entityMatrix,
+                                                                            (uint8_t)enemySpawnX,
+                                                                            (uint8_t)enemySpawnY);
+
+                        distanceFromPlayer = sqrtf(powf((enemySpawnX - targetPositionX), 2.0f) +
+                                                    powf((enemySpawnY - targetPositionY), 2.0f));
+
+                    } while (objectPtrInEnemyPosition->type != EMPTY || distanceFromPlayer < 20.0f);
+
+                    Entity enemy = {idCount++,
+                                    {178, 177, 176, 178},
+                                    0.0f,
+                                    ANIMATION_SPEED,
+                                    1,
+                                    0x0C,
+                                    {0.0f, 0.0f},
+                                    {enemySpawnX, enemySpawnY},
+                                    ENEMY_SPEED,
+                                    ENEMY};
+
+                    // Insere o inimigo na matriz
+                    InsertEntityOnMatrix(&entityMatrix, enemy, enemySpawnX, enemySpawnY);
+
+                    // Move o jogador
+                    objectPtr->position[0] = targetPositionX;
+                    objectPtr->position[1] = targetPositionY;
+
+                    MoveEntityOnMatrix(&entityMatrix,
+                                        oldPositionX,
+                                        oldPositionY,
+                                        (uint8_t)objectPtr->position[0],
+                                        (uint8_t)objectPtr->position[1]);
+                }
+            }
+            else if (objectPtr->type == ENEMY) // Se for o inimigo
+            {
+                // Se move caso o a posição alvo não tenha um objeto ou tenha o próprio inimigo
+                if (objectPtrInTargetPosition->type == EMPTY ||
+                    objectPtrInTargetPosition->id == objectPtr->id)
+                {
+                    objectPtr->position[0] = targetPositionX;
+                    objectPtr->position[1] = targetPositionY;
+
+                    MoveEntityOnMatrix(&entityMatrix,
+                                        oldPositionX,
+                                        oldPositionY,
+                                        (uint8_t)targetPositionX,
+                                        (uint8_t)targetPositionY);
+                }
+                // Caso a posição tenha o jogador
+                else if (objectPtrInTargetPosition->type == PLAYER)
+                {
+                    events[0] = GM_GAMEOVER; // Adiciona o evento de fim de jogo
+                    sprintf(gameover.texts[1].content, "score: %05d", score);
+                }
+            }
         }
     }
 }
 
 void Render()
 {
-    /* Rederiza os objetos no gameplay.
-    */
+    /* Rederiza as entidades.
+     */
 
-    if (state == GAMEPLAY)
+    for (unsigned int i = 0; i < entityMatrix.height; i++)
     {
-        for (uint8_t i = 0; i < objectMatrix.width; i++)
+        for (unsigned int j = 0; j < entityMatrix.width; j++)
         {
-            for (uint8_t j = 0; j < objectMatrix.height; j++)
+            // Limpa o caractere caso ela esteja vazio na matriz
+            if (GetEntityPtrFromMatrix(&entityMatrix, j, i)->type == EMPTY)
             {
-                uint8_t newAnimationFrame;
-                uint8_t isAnimated = GetObjectPtrFromMatrix(&objectMatrix, i, j)->isAnimated;
+                SetCharOnPosition(j, i, 32, 0x00);
+            }
+            else // Coloca o caractere
+            {
+                unsigned int newAnimationFrame;
+                int isAnimated = GetEntityPtrFromMatrix(&entityMatrix, j, i)->isAnimated;
 
                 if (isAnimated)
                 {
-                    GetObjectPtrFromMatrix(&objectMatrix, i, j)->animationFrame += ANIMATION_SPEED / (float)tick;
+                    GetEntityPtrFromMatrix(&entityMatrix, j, i)->animationFrame += ANIMATION_SPEED / (float)tick;
 
-                    if ((uint8_t)GetObjectPtrFromMatrix(&objectMatrix, i, j)->animationFrame > MAX_ANIM_FRAMES - 1)
-                    {
-                        GetObjectPtrFromMatrix(&objectMatrix, i, j)->animationFrame = 0.0f;
-                    }
+                    if ((unsigned int)GetEntityPtrFromMatrix(&entityMatrix, j, i)->animationFrame > MAX_ANIM_FRAMES - 1)
+                        GetEntityPtrFromMatrix(&entityMatrix, j, i)->animationFrame = 0.0f;
                 }
 
-                newAnimationFrame = (uint8_t)GetObjectPtrFromMatrix(&objectMatrix, i, j)->animationFrame;
+                newAnimationFrame = (unsigned int)GetEntityPtrFromMatrix(&entityMatrix, j, i)->animationFrame;
 
-                char newChar = GetObjectPtrFromMatrix(&objectMatrix, i, j)->c[newAnimationFrame];
+                char newChar = GetEntityPtrFromMatrix(&entityMatrix, j, i)->c[newAnimationFrame];
 
-                // Limpa o caractere caso ela esteja vazio na matriz
-                if (GetObjectPtrFromMatrix(&objectMatrix, i, j)->type == EMPTY)
-                {
-                    SetCharOnPosition(i, j, 32, 0x00);
-                }
-                else // Coloca o caractere
-                {
-                    SetCharOnPosition(i, j, newChar, GetObjectPtrFromMatrix(&objectMatrix, i, j)->color);
-                }
+                SetCharOnPosition(j, i, newChar, GetEntityPtrFromMatrix(&entityMatrix, j, i)->color);
             }
         }
-
-        WriteOutput();
     }
+
+    WriteOutput();
 }
 
 float Tick(double elapsedTime)
@@ -1050,180 +1070,6 @@ float Tick(double elapsedTime)
     else
     {
         return (float)elapsedTime;
-    }
-}
-
-void UpdatePhysics()
-{
-    /* Atualiza a física e verifica os eventos do gameplay.
-     */
-
-    Object *objectPtr;
-    Object *objectPtrInTargetPosition;
-    Object *objectPtrInCoinPosition;
-    Object *objectPtrInEnemyPosition;
-    uint8_t oldPositionX;
-    uint8_t oldPositionY;
-    float targetPositionX;
-    float targetPositionY;
-    uint8_t oldCoinPositionX;
-    uint8_t oldCoinPositionY;
-    float coinSpawnX;
-    float coinSpawnY;
-    float enemySpawnX;
-    float enemySpawnY;
-    float distanceFromPlayer;
-
-    if (state == GAMEPLAY)
-    {
-        for (uint8_t i = 0; i < objectMatrix.width; i++)
-        {
-            for (uint8_t j = 0; j < objectMatrix.height; j++)
-            {
-                // Obtém o ponteiro para o objeto
-                objectPtr = GetObjectPtrFromMatrix(&objectMatrix, i, j);
-
-                // Obtém a posição
-                oldPositionX = (uint8_t)objectPtr->position[0];
-                oldPositionY = (uint8_t)objectPtr->position[1];
-
-                // Obtém a posição alvo
-                targetPositionX = objectPtr->position[0] + objectPtr->velocity[0] / (float)tick;
-                targetPositionY = objectPtr->position[1] + objectPtr->velocity[1] / (float)tick;
-
-                // Redefine a velocidade
-                objectPtr->velocity[0] = 0.0f;
-                objectPtr->velocity[1] = 0.0f;
-
-                // Ponteiro do objeto na posição alvo
-                objectPtrInTargetPosition = GetObjectPtrFromMatrix(&objectMatrix,
-                                                                   (uint8_t)targetPositionX,
-                                                                   (uint8_t)targetPositionY);
-                if (objectPtr->type == PLAYER) // Se for o jogador
-                {
-                    /* Move o jogador caso o objeto na posição alvo esteja vazio ou seja o próprio
-                       jogador
-                    */
-                    if (objectPtrInTargetPosition->type == EMPTY ||
-                        objectPtrInTargetPosition->id == objectPtr->id)
-                    {
-                        // Define a nova posição
-                        objectPtr->position[0] = targetPositionX;
-                        objectPtr->position[1] = targetPositionY;
-
-                        // Move o jogador na matriz
-                        MoveObjectOnMatrix(&objectMatrix,
-                                           oldPositionX,
-                                           oldPositionY,
-                                           (uint8_t)objectPtr->position[0],
-                                           (uint8_t)objectPtr->position[1]);
-                    }
-                    // Caso o jogador esteja pegando a moeda
-                    else if (objectPtrInTargetPosition->type == COIN)
-                    {
-                        score++;
-
-                        // Atualiza o texto da pontuação
-                        sprintf(gameplay.texts[1].content, "score: %05d", score);
-                        gameplay.texts[1].update = 1;
-
-                        // Obtém a posição da moeda
-                        oldCoinPositionX = (uint8_t)objectMatrix.coinPtr->position[0];
-                        oldCoinPositionY = (uint8_t)objectMatrix.coinPtr->position[1];
-
-                        /* Não é a maneira ideal de evitar a sobreposição da moeda em outros
-                           objetos
-                        */
-                        do
-                        {
-                            /* Gera uma nova posição e repete o processo caso tenha algo na posição
-                               gerada
-                            */
-
-                            coinSpawnX = Randomf(1, objectMatrix.width - 2);
-                            coinSpawnY = Randomf(1, objectMatrix.height - 3);
-
-                            objectPtrInCoinPosition = GetObjectPtrFromMatrix(&objectMatrix,
-                                                                             (uint8_t)coinSpawnX,
-                                                                             (uint8_t)coinSpawnY);
-                        } while (objectPtrInCoinPosition->type != EMPTY);
-
-                        objectMatrix.coinPtr->position[0] = coinSpawnX;
-                        objectMatrix.coinPtr->position[1] = coinSpawnY;
-
-                        // Move a moeda na matriz
-                        MoveObjectOnMatrix(&objectMatrix,
-                                           oldCoinPositionX,
-                                           oldCoinPositionY,
-                                           (uint8_t)objectMatrix.coinPtr->position[0],
-                                           (uint8_t)objectMatrix.coinPtr->position[1]);
-
-                        /* Gera a posição do novo inimigo. A posição não pode sobrepor nenhum
-                           objeto e deve manter uma distância do jogador.
-                        */
-                        do
-                        {
-                            enemySpawnX = Randomf(1, objectMatrix.width - 2);
-                            enemySpawnY = Randomf(1, objectMatrix.height - 3);
-
-                            objectPtrInEnemyPosition = GetObjectPtrFromMatrix(&objectMatrix,
-                                                                              (uint8_t)enemySpawnX,
-                                                                              (uint8_t)enemySpawnY);
-
-                            distanceFromPlayer = sqrtf(powf((enemySpawnX - targetPositionX), 2.0f) +
-                                                       powf((enemySpawnY - targetPositionY), 2.0f));
-
-                        } while (objectPtrInEnemyPosition->type != EMPTY || distanceFromPlayer < 20.0f);
-
-                        Object enemy = {idCount++,
-                                        {178, 177, 176, 178},
-                                        0.0f,
-                                        ANIMATION_SPEED,
-                                        1,
-                                        0x0C,
-                                        {0.0f, 0.0f},
-                                        {enemySpawnX, enemySpawnY},
-                                        ENEMY_SPEED,
-                                        ENEMY};
-
-                        // Insere o inimigo na matriz
-                        InsertObjectOnMatrix(&objectMatrix, enemy, enemySpawnX, enemySpawnY);
-
-                        // Move o jogador
-                        objectPtr->position[0] = targetPositionX;
-                        objectPtr->position[1] = targetPositionY;
-
-                        MoveObjectOnMatrix(&objectMatrix,
-                                           oldPositionX,
-                                           oldPositionY,
-                                           (uint8_t)objectPtr->position[0],
-                                           (uint8_t)objectPtr->position[1]);
-                    }
-                }
-                else if (objectPtr->type == ENEMY) // Se for o inimigo
-                {
-                    // Se move caso o a posição alvo não tenha um objeto ou tenha o próprio inimigo
-                    if (objectPtrInTargetPosition->type == EMPTY ||
-                        objectPtrInTargetPosition->id == objectPtr->id)
-                    {
-                        objectPtr->position[0] = targetPositionX;
-                        objectPtr->position[1] = targetPositionY;
-
-                        MoveObjectOnMatrix(&objectMatrix,
-                                           oldPositionX,
-                                           oldPositionY,
-                                           (uint8_t)targetPositionX,
-                                           (uint8_t)targetPositionY);
-                    }
-                    // Caso a posição tenha o jogador
-                    else if (objectPtrInTargetPosition->type == PLAYER)
-                    {
-                        events[0] = GM_GAMEOVER; // Adiciona o evento de fim de jogo
-                        sprintf(gameover.texts[1].content, "score: %05d", score);
-                    }
-                }
-            }
-        }
     }
 }
 
