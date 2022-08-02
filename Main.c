@@ -12,15 +12,24 @@
  */
 
 #include <stdio.h>
+
+#include <time.h>
 #include <Windows.h>
 
+#include "include/core.h"
+#include "include/utilities.h"
+#include "include/graphics.h"
+#include "include/interface.h"
 #include "include/entity.h"
-#include "include/renderer.h"
-#include "include/survive.h"
+#include "include/world.h"
 
 int main()
 {
-    GameInit(120, 120, 30); // O argumento é a taxa de ticks e fps
+    srand((unsigned)time(NULL));
+    InitCore();
+    SetTick(120);
+    InitConsoleRenderer(120, 30);
+    InitInterface();
 
     while (state != EXIT)
     {
@@ -37,7 +46,7 @@ int main()
         {
             UpdateObjectBehaviour();
             UpdatePhysics();
-            Render(tick);
+            RenderEntities(tick);
         }
 
         UpdateInterfaces();
@@ -60,7 +69,7 @@ int main()
                     break;
                 case UI_QUIT:
 
-                    FreeEntityMatrix(&entityMatrix);
+                    FreeEntityMatrix();
                     state = EXIT;
                     break;
                 case UI_PAUSE:
@@ -73,7 +82,7 @@ int main()
                     break;
                 case UI_RESTART:
 
-                    FreeEntityMatrix(&entityMatrix);
+                    FreeEntityMatrix();
                     GenerateWorld(consoleWidth, consoleHeight);
                     state = GAMEPLAY;
                     break;
@@ -83,7 +92,7 @@ int main()
                     break;
                 case GM_GAMEOVER:
 
-                    FreeEntityMatrix(&entityMatrix);
+                    FreeEntityMatrix();
                     state = GAMEOVER;
                     break;
                 default:

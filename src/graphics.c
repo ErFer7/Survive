@@ -1,12 +1,16 @@
-#include "../include/renderer.h"
+#include "../include/graphics.h"
 
-#include <stdint.h>
 #include <Windows.h>
+
+unsigned int consoleWidth, consoleHeight;
+HANDLE consoleOutputHandle;
+SMALL_RECT consoleRect;
+CHAR_INFO *consoleBuffer;
 
 void InitConsoleRenderer(unsigned int width, unsigned int height)
 {
-    consoleWidth = width;
-    consoleHeight = height;
+    consoleWidth = width > 255 ? 255 : width;
+    consoleHeight = height > 255 ? 255 : height;
 
     consoleOutputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 
@@ -47,7 +51,7 @@ void SetCursorPosition(unsigned int x, unsigned int y)
     SetConsoleCursorPosition(consoleOutputHandle, coord);
 }
 
-void PrintStringOnPosition(char *s, uint8_t color, unsigned int x, unsigned int y)
+void PrintStringOnPosition(char *s, unsigned int color, unsigned int x, unsigned int y)
 {
     /* Coloca um string na posição (x, y) com a cor especificada (0 a 15).
      */

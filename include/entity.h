@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#define PLAYER_SPEED 23.5f
+#define ENEMY_SPEED 13.0f
 #define MAX_ANIM_FRAMES 4
 
 enum EntityType
@@ -21,7 +23,7 @@ typedef struct
     float animationFrame;    // 4 B
     float animationSpeed;    // 4 B
     int isAnimated;          // 1 B
-    uint8_t color;           // 1 B
+    int color;               // 1 B
     float velocity[2];       // 8 B
     float position[2];       // 8 B
     float speed;             // 4 B
@@ -40,10 +42,16 @@ typedef struct
 
 } EntityMatrix;
 
-EntityMatrix entityMatrix;
+extern EntityMatrix entityMatrix;
+extern unsigned int idCount;
 
-void EntityMatrixInit(EntityMatrix *entityMatrix, unsigned int width, unsigned int height);
-void InsertEntityOnMatrix(EntityMatrix *entityMatrix, Entity entity, unsigned int x, unsigned int y);
-void MoveEntityOnMatrix(EntityMatrix *entityMatrix, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1);
-Entity *GetEntityPtrFromMatrix(EntityMatrix *entityMatrix, unsigned int x, unsigned int y);
-void FreeEntityMatrix(EntityMatrix *entityMatrix);
+void EntityMatrixInit(unsigned int width, unsigned int height);
+void InsertEntityOnMatrix(Entity entity, unsigned int x, unsigned int y);
+void MoveEntityOnMatrix(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1);
+Entity *GetEntityPtrFromMatrix(unsigned int x, unsigned int y);
+void FreeEntityMatrix();
+void UpdateObjectBehaviour();
+void PlayerBehaviour();
+void EnemyBehaviour(unsigned int x, unsigned int y);
+void UpdatePhysics();
+void RenderEntities(int tick);
