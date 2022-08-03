@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <omp.h>
 
 #include "../include/core.h"
 #include "../include/utilities.h"
@@ -8,42 +9,45 @@
 #include "../include/entity.h"
 #include "../include/world.h"
 
-double rawnoise(int n)
+#define PI 3.141593
+
+// Thanks Charles Zinn for the perlin noise generator
+double RawNoise(int n)
 {
     n = (n << 13) ^ n;
     return (1.0 - ((n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff) / 1073741824.0);
 }
 
-double noise2d(int x, int y, int octave, int seed)
+double Noise(int x, int y, int octave, int seed)
 {
-    return rawnoise(x * 1619 + y * 31337 + octave * 3463 + seed * 13397);
+    return RawNoise(x * 1619 + y * 31337 + octave * 3463 + seed * 13397);
 }
 
-double interpolate(double a, double b, double x)
+double Interpolate(double a, double b, double x)
 {
-    double f = (1 - cos(x * 3.141593)) * 0.5;
+    double f = (1 - cos(x * PI)) * 0.5;
     return a * (1 - f) + b * f;
 }
 
-double smooth2d(double x, double y, int octave, int seed)
+double Smooth(double x, double y, int octave, int seed)
 {
     int intx = (int)x;
     double fracx = x - intx;
     int inty = (int)y;
     double fracy = y - inty;
 
-    double v1 = noise2d(intx, inty, octave, seed);
-    double v2 = noise2d(intx + 1, inty, octave, seed);
-    double v3 = noise2d(intx, inty + 1, octave, seed);
-    double v4 = noise2d(intx + 1, inty + 1, octave, seed);
+    double v1 = Noise(intx, inty, octave, seed);
+    double v2 = Noise(intx + 1, inty, octave, seed);
+    double v3 = Noise(intx, inty + 1, octave, seed);
+    double v4 = Noise(intx + 1, inty + 1, octave, seed);
 
-    double i1 = interpolate(v1, v2, fracx);
-    double i2 = interpolate(v3, v4, fracx);
+    double i1 = Interpolate(v1, v2, fracx);
+    double i2 = Interpolate(v3, v4, fracx);
 
-    return interpolate(i1, i2, fracy);
+    return Interpolate(i1, i2, fracy);
 }
 
-double pnoise2d(double x, double y, double persistence, int octaves, int seed)
+double PerlinNoise(double x, double y, double persistence, int octaves, int seed)
 {
     double total = 0.0;
     double frequency = 1.0;
@@ -52,7 +56,7 @@ double pnoise2d(double x, double y, double persistence, int octaves, int seed)
 
     for (i = 0; i < octaves; i++)
     {
-        total += smooth2d(x * frequency, y * frequency, i, seed) * amplitude;
+        total += Smooth(x * frequency, y * frequency, i, seed) * amplitude;
         frequency /= 2;
         amplitude *= persistence;
     }
@@ -69,49 +73,38 @@ void GenerateWorld(unsigned int width, unsigned int height)
     idCount = 0;
 
     // Inicializa as matrizes
-    EntityMatrixInit(width, height);
+    InitEntityMatrix(width, height);
 
-    Entity player = {idCount++,
-                     {254, 254, 254, 254},
-                     0.0f,
-                     ANIMATION_SPEED,
-                     0,
-                     0x0F,
-                     {0.0f, 0.0f},
-                     {(float)(width / 2), (float)(height / 2)},
-                     PLAYER_SPEED,
-                     PLAYER};
+    int seed = (int)Randomf(0, 100000);
 
-    float coinPositionX = 0.0f;
-    float coinPositionY = 0.0f;
-
-    // Não é a maneira ideal de evitar a sobreposição da moeda no jogador
-    do
+    #pragma omp parallel for collapse(2)
+    for (int i = 0; i < height; i++)
     {
-        coinPositionX = Randomf(1, width - 2);
-        coinPositionY = Randomf(1, height - 2);
-    } while (coinPositionX == player.position[0] && coinPositionY == player.position[1]);
+        for (int j = 0; j < width; j++)
+        {
+            Entity wall = {idCount++,
+                           {219, 178, 219, 178},
+                           0.0f,
+                           0.0f,
+                           0,
+                           0x87,
+                           {0.0f, 0.0f},
+                           {(float)j, (float)i},
+                           0.0f,
+                           WALL};
 
-    Entity coin = {idCount++,
-                   {45, 92, 124, 47},
-                   0.0f,
-                   ANIMATION_SPEED,
-                   1,
-                   0x0E,
-                   {0.0f, 0.0f},
-                   {coinPositionX, coinPositionY},
-                   0.0f,
-                   COIN};
+            double noise = PerlinNoise((double)j * 0.1, (double)i * 0.1, 0.65, 8, seed);
 
-    // Insere o jogador e moeda na matriz
-
-    InsertEntityOnMatrix(player,
-                         (int)player.position[0],
-                         (int)player.position[1]);
-
-    InsertEntityOnMatrix(coin,
-                         (int)coin.position[0],
-                         (int)coin.position[1]);
+            if (noise > 0.7 && noise <= 0.9)
+            {
+                wall.color = 0x08;
+                InsertEntityOnMatrix(wall, (int)wall.position[0], (int)wall.position[1]);
+            } else if (noise > 0.9)
+            {
+                InsertEntityOnMatrix(wall, (int)wall.position[0], (int)wall.position[1]);
+            }
+        }
+    }
 
     // Constroi as paredes de cima e de baixo
     for (int i = 0; i < width; i++)
@@ -181,38 +174,55 @@ void GenerateWorld(unsigned int width, unsigned int height)
                              (int)rightWall.position[1]);
     }
 
-    int pseed = (int)Randomf(0, 100000);
+    float spawnX = 0.0f;
+    float spawnY = 0.0f;
 
-    for (int i = 0; i < height; i++)
+    do
     {
-        for (int j = 0; j < width; j++)
+        spawnX = Randomf(1, width - 2);
+        spawnY = Randomf(1, height - 2);
+    } while (GetEntityPtrFromMatrix((int)spawnX, (int)spawnY)->type != EMPTY);
+
+    Entity player = {idCount++,
+                     {254, 254, 254, 254},
+                     0.0f,
+                     ANIMATION_SPEED,
+                     0,
+                     0x0F,
+                     {0.0f, 0.0f},
+                     {spawnX, spawnY},
+                     PLAYER_SPEED,
+                     PLAYER};
+
+    InsertEntityOnMatrix(player,
+                         (int)player.position[0],
+                         (int)player.position[1]);
+
+    for (int i = 0; i < MAX_COINS; i++)
+    {
+        // Não é a maneira ideal de evitar a sobreposição da moeda no jogador
+        do
         {
-            Entity wall = {idCount++,
-                           {219, 178, 219, 178},
-                           0.0f,
-                           0.0f,
-                           0,
-                           0x87,
-                           {0.0f, 0.0f},
-                           {(float)j, (float)i},
-                           0.0f,
-                           WALL};
+            spawnX = Randomf(1, width - 2);
+            spawnY = Randomf(1, height - 2);
+        } while (GetEntityPtrFromMatrix((int)spawnX, (int)spawnY)->type != EMPTY);
 
-            double pnoise = pnoise2d((double)j * 0.1, (double)i * 0.1, 0.65, 8, pseed);
+        Entity coin = {idCount++,
+                       {45, 92, 124, 47},
+                       0.0f,
+                       ANIMATION_SPEED,
+                       1,
+                       0x0E,
+                       {0.0f, 0.0f},
+                       {spawnX, spawnY},
+                       0.0f,
+                       COIN};
 
-            if (pnoise > 0.7 && pnoise <= 0.8)
-            {
-                wall.color = 0x08;
-                InsertEntityOnMatrix(wall, (int)wall.position[0], (int)wall.position[1]);
-            } else if (pnoise > 0.8 && pnoise <= 0.9)
-            {
-                InsertEntityOnMatrix(wall, (int)wall.position[0], (int)wall.position[1]);
-            }
-            else if (pnoise > 0.9)
-            {
-                wall.color = 0x0F;
-                InsertEntityOnMatrix(wall, (int)wall.position[0], (int)wall.position[1]);
-            }
-        }
+        // Insere o jogador e moeda na matriz
+
+        InsertEntityOnMatrix(coin,
+                             (int)coin.position[0],
+                             (int)coin.position[1]);
     }
+
 }

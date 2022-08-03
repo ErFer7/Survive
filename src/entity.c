@@ -11,8 +11,15 @@
 
 EntityMatrix entityMatrix;
 unsigned int idCount;
+unsigned int simulationAreaWidth, simulationAreaHeight;
 
-void EntityMatrixInit(unsigned int width, unsigned int height)
+void SetSimulationAreaSize(unsigned int width, unsigned int height)
+{
+    simulationAreaWidth = width;
+    simulationAreaHeight = height;
+}
+
+void InitEntityMatrix(unsigned int width, unsigned int height)
 {
     /* Inicializa uma matriz de entidades. A matriz é alocada na memória e possui uma largura e
        altura. Existem dois ponteiros que são úteis para manter a referência do jogador e
@@ -22,6 +29,7 @@ void EntityMatrixInit(unsigned int width, unsigned int height)
     entityMatrix.matrix = (Entity *)malloc(width * height * sizeof(Entity));
     entityMatrix.width = width;
     entityMatrix.height = height;
+    entityMatrix.coinPtrsSize = 0;
 
     // Preenche a matriz com entidades vazios
     for (unsigned int i = 0; i < height; i++)
@@ -52,9 +60,14 @@ void InsertEntityOnMatrix(Entity entity, int x, int y)
     entityMatrix.matrix[entityMatrix.width * y + x] = entity;
 
     if (entity.type == PLAYER)
+    {
         entityMatrix.playerPtr = &entityMatrix.matrix[entityMatrix.width * y + x];
+    }
     else if (entity.type == COIN)
-        entityMatrix.coinPtr = &entityMatrix.matrix[entityMatrix.width * y + x];
+    {
+        entityMatrix.coinPtrs[entityMatrix.coinPtrsSize] = &entityMatrix.matrix[entityMatrix.width * y + x];
+        entityMatrix.coinPtrsSize++;
+    }
 }
 
 void MoveEntityOnMatrix(int x0, int y0, int x1, int y1)
@@ -72,9 +85,17 @@ void MoveEntityOnMatrix(int x0, int y0, int x1, int y1)
         entityMatrix.matrix[entityMatrix.width * y0 + x0] = empty;
 
         if (object.type == PLAYER)
+        {
             entityMatrix.playerPtr = &entityMatrix.matrix[entityMatrix.width * y1 + x1];
+        }
         else if (object.type == COIN)
-            entityMatrix.coinPtr = &entityMatrix.matrix[entityMatrix.width * y1 + x1];
+        {
+            for (int i = 0; i < entityMatrix.coinPtrsSize; i++)
+            {
+                if (object.id == entityMatrix.coinPtrs[i]->id)
+                    entityMatrix.coinPtrs[i] = &entityMatrix.matrix[entityMatrix.width * y1 + x1];
+            }
+        }
     }
 }
 
@@ -104,10 +125,24 @@ void UpdateObjectBehaviour()
 
     PlayerBehaviour();
 
-    for (unsigned int i = 0; i < entityMatrix.height; i++)
-        for (unsigned int j = 0; j < entityMatrix.width; j++)
+    int startX = (int)(entityMatrix.playerPtr->position[0] - 0.5 * simulationAreaWidth);
+    int startY = (int)(entityMatrix.playerPtr->position[1] - 0.5 * simulationAreaHeight);
+    int endX = (int)(entityMatrix.playerPtr->position[0] + 0.5 * simulationAreaWidth) + 1;
+    int endY = (int)(entityMatrix.playerPtr->position[1] + 0.5 * simulationAreaHeight) + 1;
+
+    startX = startX < 0 ? 0 : startX;
+    startY = startY < 0 ? 0 : startY;
+    endX = endX > entityMatrix.width ? entityMatrix.width : endX;
+    endY = endY > entityMatrix.height ? entityMatrix.height : endY;
+
+    for (int i = startY; i < endY; i++)
+    {
+        for (int j = startX; j < endX; j++)
+        {
             if (GetEntityPtrFromMatrix(j, i)->type == ENEMY)
                 EnemyBehaviour(j, i);
+        }
+    }
 }
 
 void PlayerBehaviour()
@@ -222,15 +257,23 @@ void UpdatePhysics()
     float targetPositionY;
     int oldCoinPositionX;
     int oldCoinPositionY;
-    float coinSpawnX;
-    float coinSpawnY;
-    float enemySpawnX;
-    float enemySpawnY;
+    float spawnX;
+    float spawnY;
     float distanceFromPlayer;
 
-    for (unsigned int i = 0; i < entityMatrix.height; i++)
+    int startX = (int)(entityMatrix.playerPtr->position[0] - 0.5 * simulationAreaWidth);
+    int startY = (int)(entityMatrix.playerPtr->position[1] - 0.5 * simulationAreaHeight);
+    int endX = (int)(entityMatrix.playerPtr->position[0] + 0.5 * simulationAreaWidth) + 1;
+    int endY = (int)(entityMatrix.playerPtr->position[1] + 0.5 * simulationAreaHeight) + 1;
+
+    startX = startX < 0 ? 0 : startX;
+    startY = startY < 0 ? 0 : startY;
+    endX = endX > entityMatrix.width ? entityMatrix.width : endX;
+    endY = endY > entityMatrix.height ? entityMatrix.height : endY;
+
+    for (unsigned int i = startY; i < endY; i++)
     {
-        for (unsigned int j = 0; j < entityMatrix.width; j++)
+        for (unsigned int j = startX; j < endX; j++)
         {
             // Obtém o ponteiro para o objeto
             objectPtr = GetEntityPtrFromMatrix(j, i);
@@ -273,12 +316,12 @@ void UpdatePhysics()
                     score++;
 
                     // Atualiza o texto da pontuação
-                    sprintf(gameplay.texts[1].content, "score: %05d", score);
+                    sprintf(gameplay.texts[1].content, "score: %010d", score);
                     gameplay.texts[1].update = 1;
 
                     // Obtém a posição da moeda
-                    oldCoinPositionX = (int)entityMatrix.coinPtr->position[0];
-                    oldCoinPositionY = (int)entityMatrix.coinPtr->position[1];
+                    oldCoinPositionX = (int)objectPtrInTargetPosition->position[0];
+                    oldCoinPositionY = (int)objectPtrInTargetPosition->position[1];
 
                     /* Não é a maneira ideal de evitar a sobreposição da moeda em outros
                         objetos
@@ -289,33 +332,32 @@ void UpdatePhysics()
                             gerada
                         */
 
-                        coinSpawnX = Randomf(1, entityMatrix.width - 2);
-                        coinSpawnY = Randomf(1, entityMatrix.height - 2);
-
-                        objectPtrInCoinPosition = GetEntityPtrFromMatrix((int)coinSpawnX, (int)coinSpawnY);
+                        spawnX = Randomf(1, entityMatrix.width - 2);
+                        spawnY = Randomf(1, entityMatrix.height - 2);
+                        objectPtrInCoinPosition = GetEntityPtrFromMatrix((int)spawnX, (int)spawnY);
                     } while (objectPtrInCoinPosition->type != EMPTY);
 
-                    entityMatrix.coinPtr->position[0] = coinSpawnX;
-                    entityMatrix.coinPtr->position[1] = coinSpawnY;
+                    // Define a nova posição da moeda
+                    objectPtrInTargetPosition->position[0] = spawnX;
+                    objectPtrInTargetPosition->position[1] = spawnY;
 
                     // Move a moeda na matriz
                     MoveEntityOnMatrix(oldCoinPositionX,
                                        oldCoinPositionY,
-                                       (int)entityMatrix.coinPtr->position[0],
-                                       (int)entityMatrix.coinPtr->position[1]);
+                                       (int)spawnX,
+                                       (int)spawnY);
 
                     /* Gera a posição do novo inimigo. A posição não pode sobrepor nenhum
                         objeto e deve manter uma distância do jogador.
                     */
                     do
                     {
-                        enemySpawnX = Randomf(1, entityMatrix.width - 2);
-                        enemySpawnY = Randomf(1, entityMatrix.height - 2);
+                        spawnX = Randomf(1, entityMatrix.width - 2);
+                        spawnY = Randomf(1, entityMatrix.height - 2);
+                        objectPtrInEnemyPosition = GetEntityPtrFromMatrix((int)spawnX, (int)spawnY);
 
-                        objectPtrInEnemyPosition = GetEntityPtrFromMatrix((int)enemySpawnX, (int)enemySpawnY);
-
-                        distanceFromPlayer = sqrtf(powf((enemySpawnX - targetPositionX), 2.0f) +
-                                                   powf((enemySpawnY - targetPositionY), 2.0f));
+                        distanceFromPlayer = sqrtf(powf((spawnX - targetPositionX), 2.0f) +
+                                                   powf((spawnY - targetPositionY), 2.0f));
 
                     } while (objectPtrInEnemyPosition->type != EMPTY || distanceFromPlayer < 20.0f);
 
@@ -326,12 +368,12 @@ void UpdatePhysics()
                                     1,
                                     0x0C,
                                     {0.0f, 0.0f},
-                                    {enemySpawnX, enemySpawnY},
+                                    {spawnX, spawnY},
                                     ENEMY_SPEED,
                                     ENEMY};
 
                     // Insere o inimigo na matriz
-                    InsertEntityOnMatrix(enemy, enemySpawnX, enemySpawnY);
+                    InsertEntityOnMatrix(enemy, spawnX, spawnY);
 
                     // Move o jogador
                     objectPtr->position[0] = targetPositionX;
@@ -361,7 +403,7 @@ void UpdatePhysics()
                 else if (objectPtrInTargetPosition->type == PLAYER)
                 {
                     events[0] = GM_GAMEOVER; // Adiciona o evento de fim de jogo
-                    sprintf(gameover.texts[1].content, "score: %05d", score);
+                    sprintf(gameover.texts[1].content, "score: %010d", score);
                 }
             }
         }
@@ -374,7 +416,6 @@ void RenderEntities(int tick)
      */
 
     int validEntity;
-    int xOffset, yOffset;
     int x, y;
     Entity *entityPtr;
 
@@ -382,11 +423,8 @@ void RenderEntities(int tick)
     {
         for (unsigned int j = 0; j < consoleWidth; j++)
         {
-            xOffset = (int)(entityMatrix.playerPtr->position[0] - 0.5 * consoleWidth);
-            yOffset = (int)(entityMatrix.playerPtr->position[1] - 0.5 * consoleHeight);
-
-            x = (int)j + xOffset;
-            y = (int)i + yOffset;
+            x = (int)j + (int)(entityMatrix.playerPtr->position[0] - 0.5 * consoleWidth);
+            y = (int)i + (int)(entityMatrix.playerPtr->position[1] - 0.5 * consoleHeight);
 
             if ((x >= 0 && x < entityMatrix.width) && (y >= 0 && y < entityMatrix.height))
             {
