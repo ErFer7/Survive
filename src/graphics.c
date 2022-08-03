@@ -36,7 +36,7 @@ void FreeConsoleRenderer()
     FreeConsole();
 }
 
-void SetCharOnPosition(unsigned int x, unsigned int y, char c, unsigned short color)
+void SetCharOnPosition(int x, int y, char c, unsigned short color)
 {
     if (x >= 0 && x < consoleWidth && y >= 0 && y < consoleHeight)
     {
@@ -45,19 +45,19 @@ void SetCharOnPosition(unsigned int x, unsigned int y, char c, unsigned short co
     }
 }
 
-void SetCursorPosition(unsigned int x, unsigned int y)
+void SetCursorPosition(int x, int y)
 {
     COORD coord = {(SHORT)x, (SHORT)y};
     SetConsoleCursorPosition(consoleOutputHandle, coord);
 }
 
-void PrintStringOnPosition(char *s, unsigned int color, unsigned int x, unsigned int y)
+void PrintStringOnPosition(char *s, unsigned short color, int x, int y)
 {
     /* Coloca um string na posição (x, y) com a cor especificada (0 a 15).
      */
 
-    unsigned int calculatedX = x;
-    unsigned int calculatedY = y;
+    int calculatedX = x;
+    int calculatedY = y;
 
     for (int i = 0; i < strlen(s); i++)
     {

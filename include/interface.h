@@ -7,7 +7,7 @@
 #define MAX_TEXTS 3
 #define MAX_BUTTONS 3
 #define SELECTION_SPEED 10.0f
-#define VERSION "2.10"
+#define VERSION "2.11"
 
 enum Alignment
 {
@@ -26,8 +26,8 @@ enum Alignment
 typedef struct
 {
     char content[MAX_TEXT_STRLEN]; // 720 B
-    unsigned int color;            // 1 B
-    unsigned int position[2];      // 4 B
+    unsigned short color;          // 1 B
+    int position[2];               // 4 B
     int update;                    // 1 B
 
 } Text;
@@ -36,8 +36,8 @@ typedef struct
 typedef struct
 {
     char content[MAX_BUTTON_STRLEN]; // 9 B
-    unsigned int color;              // 1 B
-    unsigned int position[2];        // 4 B
+    unsigned short color;            // 1 B
+    int position[2];                 // 4 B
     enum Event event;                // (1 a 4) B
     int update;                      // 1 B
 
@@ -62,8 +62,8 @@ extern Interface gameover;
 extern int interfaceKeyLock;
 
 void BuildBorders();
-void CalculateAlignedPosition(unsigned int *x,
-                              unsigned int *y,
+void CalculateAlignedPosition(int *x,
+                              int *y,
                               unsigned int sizeX,
                               unsigned int sizeY,
                               enum Alignment alignment);

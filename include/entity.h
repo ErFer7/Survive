@@ -46,12 +46,12 @@ extern EntityMatrix entityMatrix;
 extern unsigned int idCount;
 
 void EntityMatrixInit(unsigned int width, unsigned int height);
-void InsertEntityOnMatrix(Entity entity, unsigned int x, unsigned int y);
-void MoveEntityOnMatrix(unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1);
-Entity *GetEntityPtrFromMatrix(unsigned int x, unsigned int y);
+void InsertEntityOnMatrix(Entity entity, int x, int y);
+void MoveEntityOnMatrix(int x0, int y0, int x1, int y1);
+Entity *GetEntityPtrFromMatrix(int x, int y);
 void FreeEntityMatrix();
 void UpdateObjectBehaviour();
 void PlayerBehaviour();
-void EnemyBehaviour(unsigned int x, unsigned int y);
+void EnemyBehaviour(int x, int y);
 void UpdatePhysics();
 void RenderEntities(int tick);

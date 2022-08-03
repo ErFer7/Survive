@@ -29,8 +29,8 @@ void BuildBorders()
     }
 }
 
-void CalculateAlignedPosition(unsigned int *x,
-                              unsigned int *y,
+void CalculateAlignedPosition(int *x,
+                              int *y,
                               unsigned int sizeX,
                               unsigned int sizeY,
                               enum Alignment alignment)

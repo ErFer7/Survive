@@ -23,12 +23,18 @@
 #include "include/entity.h"
 #include "include/world.h"
 
+#define TICK 120
+#define CONSOLE_WIDTH 120
+#define CONSOLE_HEIGHT 30
+#define WORLD_WIDTH 128
+#define WORLD_HEIGHT 128
+
 int main()
 {
     srand((unsigned)time(NULL));
     InitCore();
-    SetTick(120);
-    InitConsoleRenderer(120, 30);
+    SetTick(TICK);
+    InitConsoleRenderer(CONSOLE_WIDTH, CONSOLE_HEIGHT);
     InitInterface();
 
     while (state != EXIT)
@@ -60,7 +66,7 @@ int main()
                 {
                 case UI_PLAY:
 
-                    GenerateWorld(consoleWidth, consoleHeight);
+                    GenerateWorld(WORLD_WIDTH, WORLD_HEIGHT);
                     state = GAMEPLAY;
                     break;
                 case UI_INFO:
@@ -83,7 +89,7 @@ int main()
                 case UI_RESTART:
 
                     FreeEntityMatrix();
-                    GenerateWorld(consoleWidth, consoleHeight);
+                    GenerateWorld(WORLD_WIDTH, WORLD_HEIGHT);
                     state = GAMEPLAY;
                     break;
                 case UI_RETURN:
