@@ -29,8 +29,8 @@ void BuildBorders()
     }
 }
 
-void CalculateAlignedPosition(unsigned int *x,
-                              unsigned int *y,
+void CalculateAlignedPosition(int *x,
+                              int *y,
                               unsigned int sizeX,
                               unsigned int sizeY,
                               enum Alignment alignment)
@@ -434,14 +434,14 @@ void InitInterface()
     // Contador da pontuação
     Text scoreCounter = {
 
-        .content = "score: 00000",
+        .content = "Score: 0000000000",
         .color = 0x07,
-        .position = {-18, 0},
+        .position = {-24, 0},
         .update = 1};
 
     CalculateAlignedPosition(&scoreCounter.position[0],
                              &scoreCounter.position[1],
-                             12,
+                             17,
                              1,
                              BOTTOM_RIGHT);
 
@@ -559,14 +559,14 @@ void InitInterface()
     // Pontuação final
     Text finalScore = {
 
-        .content = "Score: 00000",
+        .content = "Score: 0000000000",
         .color = 0x07,
         .position = {0, 0},
         .update = 0};
 
     CalculateAlignedPosition(&finalScore.position[0],
                              &finalScore.position[1],
-                             12,
+                             17,
                              1,
                              CENTER);
 
