@@ -1,4 +1,4 @@
-// Sobreviva - Jogo de Testes - V 2.9.2 - ErFer7
+// Sobreviva - Jogo de Testes - v2.12-dev - ErFer7
 
 /***
  *     $$$$$$\   $$$$$$\  $$$$$$$\  $$$$$$$\  $$$$$$$$\ $$\    $$\ $$$$$$\ $$\    $$\  $$$$$$\  
@@ -42,20 +42,13 @@ int main()
 
     while (state != EXIT)
     {
-        LARGE_INTEGER frequency;
-        LARGE_INTEGER t1, t2;
-        double elapsedTime;
-
-        // Marca o tempo
-        QueryPerformanceFrequency(&frequency);
-        QueryPerformanceCounter(&t1);
+        StartChronometer(&tickFrequency, &tickInitialTime);
 
         // Atualiza sistemas e renderiza
         if (state == GAMEPLAY)
         {
-            UpdateObjectBehaviour();
+            UpdateEntityBehaviour();
             UpdatePhysics();
-            RenderEntities(tick);
         }
 
         UpdateInterfaces();
@@ -69,8 +62,9 @@ int main()
                 {
                 case UI_PLAY:
 
-                    GenerateWorld(WORLD_WIDTH, WORLD_HEIGHT);
                     state = GAMEPLAY;
+                    GenerateWorld(WORLD_WIDTH, WORLD_HEIGHT);
+                    StartRenderingThread();
                     break;
                 case UI_INFO:
 
@@ -78,22 +72,26 @@ int main()
                     break;
                 case UI_QUIT:
 
-                    FreeEntityMatrix();
                     state = EXIT;
+                    FreeEntityMatrix();
+                    StopRenderingThread();
                     break;
                 case UI_PAUSE:
 
                     state = PAUSE;
+                    StopRenderingThread();
                     break;
                 case UI_RESUME:
 
                     state = GAMEPLAY;
+                    StartRenderingThread();
                     break;
                 case UI_RESTART:
 
+                    state = GAMEPLAY;
                     FreeEntityMatrix();
                     GenerateWorld(WORLD_WIDTH, WORLD_HEIGHT);
-                    state = GAMEPLAY;
+                    StartRenderingThread();
                     break;
                 case UI_RETURN:
 
@@ -101,8 +99,9 @@ int main()
                     break;
                 case GM_GAMEOVER:
 
-                    FreeEntityMatrix();
                     state = GAMEOVER;
+                    FreeEntityMatrix();
+                    StopRenderingThread();
                     break;
                 default:
                     break;
@@ -118,17 +117,11 @@ int main()
         for (int i = 0; i < MAX_EVENTS; i++)
             events[i] = IDLE;
 
-        // Marca o tempo
-        QueryPerformanceCounter(&t2);
-
-        // Tempo em milisegundos
-        elapsedTime = (t2.QuadPart - t1.QuadPart) * 1000.0 / frequency.QuadPart;
-
-        float frameTime = Tick(elapsedTime); // Controla o fps
+        float frameTime = Tick(StopChronometer(tickFrequency, tickInitialTime, &tickFinalTime)); // Controla o fps
 
         // Define o fps na interface
-        sprintf(gameplay.texts[0].content, "%.3f fps   ", 1000.0f / frameTime);
-        gameplay.texts[0].update = 1;
+        sprintf(gameplay.texts[1].content, "%012.3f tps", 1000.0f / frameTime);
+        gameplay.texts[1].update = 1;
     }
 
     // Libera o console

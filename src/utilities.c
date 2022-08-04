@@ -3,10 +3,27 @@
 #include <Windows.h>
 
 float tick;
+LARGE_INTEGER renderingFrequency;
+LARGE_INTEGER renderingInitialTime, renderingFinalTime;
+double renderingElapsedTime;
+LARGE_INTEGER tickFrequency;
+LARGE_INTEGER tickInitialTime, tickFinalTime;
 
 void SetTick(float t)
 {
     tick = t;
+}
+
+void StartChronometer(LARGE_INTEGER *frequency, LARGE_INTEGER *initialTime)
+{
+    QueryPerformanceFrequency(frequency);
+    QueryPerformanceCounter(initialTime);
+}
+
+double StopChronometer(LARGE_INTEGER frequency, LARGE_INTEGER initialTime, LARGE_INTEGER *finalTime)
+{
+    QueryPerformanceCounter(finalTime);
+    return (finalTime->QuadPart - initialTime.QuadPart) * 1000.0 / frequency.QuadPart;
 }
 
 float Tick(double elapsedTime)

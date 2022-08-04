@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <pthread.h>
 
 #define PLAYER_SPEED 23.5f
 #define ENEMY_SPEED 13.0f
@@ -47,6 +48,7 @@ typedef struct
 extern EntityMatrix entityMatrix;
 extern unsigned int idCount;
 extern unsigned int simulationAreaWidth, simulationAreaHeight;
+extern pthread_t renderingThread;
 
 void SetSimulationAreaSize(unsigned int width, unsigned int height);
 void InitEntityMatrix(unsigned int width, unsigned int height);
@@ -54,8 +56,10 @@ void InsertEntityOnMatrix(Entity entity, int x, int y);
 void MoveEntityOnMatrix(int x0, int y0, int x1, int y1);
 Entity *GetEntityPtrFromMatrix(int x, int y);
 void FreeEntityMatrix();
-void UpdateObjectBehaviour();
+void UpdateEntityBehaviour();
 void PlayerBehaviour();
 void EnemyBehaviour(int x, int y);
 void UpdatePhysics();
-void RenderEntities(int tick);
+void StartRenderingThread();
+void StopRenderingThread();
+void *RenderEntities();

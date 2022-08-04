@@ -420,16 +420,30 @@ void InitInterface()
     // FPS
     Text fpsCounter = {
 
-        .content = "000.000 fps   ",
+        .content = "00000000.000 fps",
         .color = 0x07,
         .position = {0, 0},
         .update = 1};
 
     CalculateAlignedPosition(&fpsCounter.position[0],
                              &fpsCounter.position[1],
-                             11,
+                             16,
                              1,
                              BOTTOM_LEFT);
+
+    // Ticks
+    Text tickCounter = {
+
+        .content = "00000000.000 tps",
+        .color = 0x07,
+        .position = {0, 0},
+        .update = 1};
+
+    CalculateAlignedPosition(&tickCounter.position[0],
+                             &tickCounter.position[1],
+                             16,
+                             1,
+                             BOTTOM);
 
     // Contador da pontuação
     Text scoreCounter = {
@@ -448,7 +462,7 @@ void InitInterface()
     // Interface de gameplay
     Interface gameplayInit = {
 
-        .texts = {fpsCounter, scoreCounter},
+        .texts = {fpsCounter, tickCounter, scoreCounter},
         .update = 0};
 
     gameplay = gameplayInit;

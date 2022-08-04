@@ -75,7 +75,7 @@ void GenerateWorld(unsigned int width, unsigned int height)
     // Inicializa as matrizes
     InitEntityMatrix(width, height);
 
-    int seed = (int)Randomf(0, 100000);
+    int seed = (int)Randomf(0, 2147483647);
 
     #pragma omp parallel for collapse(2)
     for (int i = 0; i < height; i++)
@@ -83,23 +83,31 @@ void GenerateWorld(unsigned int width, unsigned int height)
         for (int j = 0; j < width; j++)
         {
             Entity wall = {idCount++,
-                           {219, 178, 219, 178},
+                           {219},
                            0.0f,
                            0.0f,
                            0,
-                           0x87,
+                           0x07,
                            {0.0f, 0.0f},
                            {(float)j, (float)i},
                            0.0f,
                            WALL};
 
-            double noise = PerlinNoise((double)j * 0.1, (double)i * 0.1, 0.65, 8, seed);
+            double noise = PerlinNoise((double)j * 0.1, (double)i * 0.1, 0.65, 5, seed);
 
-            if (noise > 0.7 && noise <= 0.9)
+            if (noise > 0.7 && noise <= 0.775)
             {
-                wall.color = 0x08;
+                wall.c[0] = 176;
                 InsertEntityOnMatrix(wall, (int)wall.position[0], (int)wall.position[1]);
-            } else if (noise > 0.9)
+            } else if (noise > 0.775 && noise <= 0.85)
+            {
+                wall.c[0] = 177;
+                InsertEntityOnMatrix(wall, (int)wall.position[0], (int)wall.position[1]);
+            } else if (noise > 0.85 && noise <= 0.925)
+            {
+                wall.c[0] = 178;
+                InsertEntityOnMatrix(wall, (int)wall.position[0], (int)wall.position[1]);
+            } else if (noise > 0.925)
             {
                 InsertEntityOnMatrix(wall, (int)wall.position[0], (int)wall.position[1]);
             }
@@ -110,7 +118,7 @@ void GenerateWorld(unsigned int width, unsigned int height)
     for (int i = 0; i < width; i++)
     {
         Entity topWall = {idCount++,
-                          {219, 223, 219, 220},
+                          {219},
                           0.0f,
                           0.0f,
                           0,
@@ -121,7 +129,7 @@ void GenerateWorld(unsigned int width, unsigned int height)
                           WALL};
 
         Entity bottonWall = {idCount++,
-                             {219, 223, 219, 220},
+                             {219},
                              0.0f,
                              0.0f,
                              0,
@@ -144,7 +152,7 @@ void GenerateWorld(unsigned int width, unsigned int height)
     for (int i = 0; i < height - 1; i++)
     {
         Entity leftWall = {idCount++,
-                           {219, 178, 219, 178},
+                           {219},
                            0.0f,
                            0.0f,
                            0,
@@ -155,7 +163,7 @@ void GenerateWorld(unsigned int width, unsigned int height)
                            WALL};
 
         Entity rightWall = {idCount++,
-                            {219, 178, 219, 178},
+                            {219},
                             0.0f,
                             0.0f,
                             0,
@@ -184,7 +192,7 @@ void GenerateWorld(unsigned int width, unsigned int height)
     } while (GetEntityPtrFromMatrix((int)spawnX, (int)spawnY)->type != EMPTY);
 
     Entity player = {idCount++,
-                     {254, 254, 254, 254},
+                     {254},
                      0.0f,
                      ANIMATION_SPEED,
                      0,

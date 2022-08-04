@@ -7,7 +7,7 @@
 #define MAX_TEXTS 3
 #define MAX_BUTTONS 3
 #define SELECTION_SPEED 10.0f
-#define VERSION "2.11"
+#define VERSION "2.12"
 
 enum Alignment
 {
