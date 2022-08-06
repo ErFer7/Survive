@@ -2,12 +2,12 @@
 
 #include <Windows.h>
 
-unsigned int consoleWidth, consoleHeight;
+int consoleWidth, consoleHeight;
 HANDLE consoleOutputHandle;
 SMALL_RECT consoleRect;
 CHAR_INFO *consoleBuffer;
 
-void InitConsoleRenderer(unsigned int width, unsigned int height)
+void InitConsoleRenderer(int width, int height)
 {
     consoleWidth = width > 255 ? 255 : width;
     consoleHeight = height > 255 ? 255 : height;

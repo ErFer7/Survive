@@ -64,7 +64,7 @@ double PerlinNoise(double x, double y, double persistence, int octaves, int seed
     return total;
 }
 
-void GenerateWorld(unsigned int width, unsigned int height)
+void GenerateWorld(int width, int height)
 {
     /* Gera o mundo do jogo.
      */

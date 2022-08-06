@@ -7,7 +7,7 @@
 #define MAX_TEXTS 3
 #define MAX_BUTTONS 3
 #define SELECTION_SPEED 10.0f
-#define VERSION "2.12"
+#define VERSION "2.12.1"
 
 enum Alignment
 {
@@ -62,11 +62,7 @@ extern Interface gameover;
 extern int interfaceKeyLock;
 
 void BuildBorders();
-void CalculateAlignedPosition(int *x,
-                              int *y,
-                              unsigned int sizeX,
-                              unsigned int sizeY,
-                              enum Alignment alignment);
+void CalculateAlignedPosition(int *x, int *y, int sizeX, int sizeY, enum Alignment alignment);
 void InterfaceBehaviour(Interface *interfaceIn);
 void UpdateInterfaces();
 void RenderInterface(Interface *interfaceIn);

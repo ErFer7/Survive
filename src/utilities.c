@@ -38,7 +38,7 @@ float Tick(double elapsedTime)
     {
         Sleep(correctionTime); // Espera
 
-        return 1000.0f / (double)tick;
+        return 1000.0f / (float)(tick);
     }
     else
     {

@@ -28,8 +28,6 @@
 #define CONSOLE_HEIGHT 30
 #define WORLD_WIDTH 512
 #define WORLD_HEIGHT 512
-#define SIMULATION_AREA_WIDTH 128
-#define SIMULATION_AREA_HEIGHT 128
 
 int main()
 {
@@ -38,7 +36,6 @@ int main()
     SetTick(TICK);
     InitConsoleRenderer(CONSOLE_WIDTH, CONSOLE_HEIGHT);
     InitInterface();
-    SetSimulationAreaSize(SIMULATION_AREA_WIDTH, SIMULATION_AREA_HEIGHT);
 
     while (state != EXIT)
     {
@@ -48,7 +45,7 @@ int main()
         if (state == GAMEPLAY)
         {
             UpdateEntityBehaviour();
-            UpdatePhysics();
+            UpdateEntityPhysics();
         }
 
         UpdateInterfaces();
@@ -96,6 +93,7 @@ int main()
                 case UI_RETURN:
 
                     state = MAIN_MENU;
+                    FreeEntityMatrix();
                     break;
                 case GM_GAMEOVER:
 
