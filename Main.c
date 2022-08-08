@@ -39,15 +39,6 @@ int main()
 
     while (state != EXIT)
     {
-        StartChronometer(&tickFrequency, &tickInitialTime);
-
-        // Atualiza sistemas e renderiza
-        if (state == GAMEPLAY)
-        {
-            UpdateEntityBehaviour();
-            UpdateEntityPhysics();
-        }
-
         UpdateInterfaces();
 
         // Máquina de estados com base em eventos
@@ -61,6 +52,9 @@ int main()
 
                     state = GAMEPLAY;
                     GenerateWorld(WORLD_WIDTH, WORLD_HEIGHT);
+                    InitEntitySemaphores();
+                    StartBehaviourThread();
+                    StartPhysicsThread();
                     StartRenderingThread();
                     break;
                 case UI_INFO:
@@ -70,17 +64,25 @@ int main()
                 case UI_QUIT:
 
                     state = EXIT;
-                    FreeEntityMatrix();
+                    StopBehaviourThread();
+                    StopPhysicsThread();
                     StopRenderingThread();
+                    FreeEntityMatrix();
+                    FreeEntitySemaphores();
                     break;
                 case UI_PAUSE:
 
                     state = PAUSE;
+                    StopBehaviourThread();
+                    StopPhysicsThread();
                     StopRenderingThread();
                     break;
                 case UI_RESUME:
 
                     state = GAMEPLAY;
+                    InitEntitySemaphores();
+                    StartBehaviourThread();
+                    StartPhysicsThread();
                     StartRenderingThread();
                     break;
                 case UI_RESTART:
@@ -88,6 +90,9 @@ int main()
                     state = GAMEPLAY;
                     FreeEntityMatrix();
                     GenerateWorld(WORLD_WIDTH, WORLD_HEIGHT);
+                    InitEntitySemaphores();
+                    StartBehaviourThread();
+                    StartPhysicsThread();
                     StartRenderingThread();
                     break;
                 case UI_RETURN:
@@ -98,8 +103,11 @@ int main()
                 case GM_GAMEOVER:
 
                     state = GAMEOVER;
-                    FreeEntityMatrix();
+                    StopBehaviourThread();
+                    StopPhysicsThread();
                     StopRenderingThread();
+                    FreeEntityMatrix();
+                    FreeEntitySemaphores();
                     break;
                 default:
                     break;
@@ -114,12 +122,6 @@ int main()
         */
         for (int i = 0; i < MAX_EVENTS; i++)
             events[i] = IDLE;
-
-        float frameTime = Tick(StopChronometer(tickFrequency, tickInitialTime, &tickFinalTime)); // Controla o fps
-
-        // Define o fps na interface
-        sprintf(gameplay.texts[1].content, "%012.3f tps", 1000.0f / frameTime);
-        gameplay.texts[1].update = 1;
     }
 
     // Libera o console

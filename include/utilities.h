@@ -6,8 +6,12 @@ extern float tick;
 extern LARGE_INTEGER renderingFrequency;
 extern LARGE_INTEGER renderingInitialTime, renderingFinalTime;
 extern double renderingElapsedTime;
+extern LARGE_INTEGER behaviourFrequency;
+extern LARGE_INTEGER behaviourInitialTime, behaviourFinalTime;
+extern double behaviourElapsedTime;
 extern LARGE_INTEGER tickFrequency;
 extern LARGE_INTEGER tickInitialTime, tickFinalTime;
+extern double tickElapsedTime;
 
 void SetTick(float t);
 void StartChronometer(LARGE_INTEGER *frequency, LARGE_INTEGER *initialTime);

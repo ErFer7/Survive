@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 #define PLAYER_SPEED 23.5f
 #define ENEMY_SPEED 13.0f
@@ -50,17 +51,27 @@ typedef struct
 
 extern EntityMatrix entityMatrix;
 extern unsigned int idCount;
+extern pthread_t behaviourThread;
+extern pthread_t physicsThread;
 extern pthread_t renderingThread;
+extern sem_t behaviourSemaphore;
+extern sem_t physicsSemaphore;
 
+void InitEntitySemaphores();
+void FreeEntitySemaphores();
 void InitEntityMatrix(int width, int height);
 void InsertEntityOnMatrix(Entity entity, int x, int y);
 void MoveEntityOnMatrix(int x0, int y0, int x1, int y1);
 Entity *GetEntityPtrFromMatrix(int x, int y);
 void FreeEntityMatrix();
-void UpdateEntityBehaviour();
+void *UpdateEntityBehaviour();
 void PlayerBehaviour();
 void EnemyBehaviour(Entity *enemyPtr);
-void UpdateEntityPhysics();
+void StartBehaviourThread();
+void StopBehaviourThread();
+void StartPhysicsThread();
+void StopPhysicsThread();
+void *UpdateEntityPhysics();
 void UpdatePlayerPhysics();
 void UpdateEnemyPhysics(Entity *enemyPtr);
 void StartRenderingThread();

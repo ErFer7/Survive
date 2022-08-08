@@ -81,79 +81,91 @@ void InterfaceBehaviour(Interface *interfaceIn)
 {
     /* Define o comportamento de uma interface.
      */
-    if (GetKeyState(VK_RETURN) & 0x8000 && !interfaceKeyLock) // Enter
+    if (!interfaceKeyLock)
     {
-        // Adiciona o evento do botão na lista de eventos caso o botão seja válido
-        if (interfaceIn->buttons[(int)interfaceIn->selectedButton].event != IDLE)
+        if (GetKeyState(VK_RETURN) & 0x8000) // Enter
         {
-            events[1] = interfaceIn->buttons[(int)interfaceIn->selectedButton].event;
-            interfaceIn->update = 1;
-        }
+            // Adiciona o evento do botão na lista de eventos caso o botão seja válido
+            if (interfaceIn->buttons[(int)interfaceIn->selectedButton].event != IDLE)
+            {
+                events[1] = interfaceIn->buttons[(int)interfaceIn->selectedButton].event;
+                interfaceIn->update = 1;
+            }
 
-        interfaceKeyLock = 1;
+            interfaceKeyLock = 1;
+        }
+        else if (GetKeyState(VK_UP) & 0x8000) // Seta para cima
+        {
+            // Seleciona o botão superior caso possível
+            if ((int)interfaceIn->selectedButton > 0)
+            {
+                interfaceIn->selectedButton--;
+                interfaceIn->buttons[(int)interfaceIn->selectedButton].color = 0x0C;
+                interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].color = 0x07;
+                interfaceIn->buttons[(int)interfaceIn->selectedButton].update = 1;
+                interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].update = 1;
+            }
+
+            interfaceKeyLock = 1;
+        }
+        else if (GetKeyState(VK_DOWN) & 0x8000) // Seta para baixo
+        {
+            // Seleciona o botão inferior caso possível
+            if ((int)interfaceIn->selectedButton < MAX_BUTTONS - 1 &&
+                interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].event != IDLE)
+            {
+                interfaceIn->selectedButton++;
+                interfaceIn->buttons[(int)interfaceIn->selectedButton].color = 0x0C;
+                interfaceIn->buttons[(int)interfaceIn->selectedButton - 1].color = 0x07;
+                interfaceIn->buttons[(int)interfaceIn->selectedButton].update = 1;
+                interfaceIn->buttons[(int)interfaceIn->selectedButton - 1].update = 1;
+            }
+
+            interfaceKeyLock = 1;
+        }
+        else if (GetKeyState(VK_ESCAPE) & 0x8000) // Esc
+        {
+            // Adiciona o evento correspondente ao estado na lista de eventos
+            switch (state)
+            {
+            case MAIN_MENU:
+
+                events[1] = UI_QUIT; // Evento de saída
+                break;
+            case INFO_MENU:
+
+                events[1] = UI_RETURN; // Evento de retorno ao menu
+                interfaceIn->update = 1;
+                break;
+            case GAMEPLAY:
+
+                events[1] = UI_PAUSE; // Evento de pausa
+                break;
+            case PAUSE:
+
+                events[1] = UI_RESUME; // Evento de continuar o jogo
+                interfaceIn->update = 1;
+                break;
+            case GAMEOVER:
+
+                events[1] = UI_RETURN; // Evento de retornar ao menu
+                interfaceIn->update = 1;
+                break;
+            default:
+                break;
+            }
+
+            interfaceKeyLock = 1;
+        }
     }
-    else if (GetKeyState(VK_UP) & 0x8000) // Seta para cima
+
+    if (interfaceKeyLock && !(GetKeyState(VK_RETURN) & 0x8000 ||
+                              GetKeyState(VK_ESCAPE) & 0x8000 ||
+                              GetKeyState(VK_UP) & 0x8000 ||
+                              GetKeyState(VK_DOWN) & 0x8000))
     {
-        // Seleciona o botão superior caso possível
-        if ((int)interfaceIn->selectedButton > 0)
-        {
-            interfaceIn->selectedButton -= interfaceIn->selectionSpeed / tick;
-            interfaceIn->buttons[(int)interfaceIn->selectedButton].color = 0x0C;
-            interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].color = 0x07;
-            interfaceIn->buttons[(int)interfaceIn->selectedButton].update = 1;
-            interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].update = 1;
-        }
-    }
-    else if (GetKeyState(VK_DOWN) & 0x8000) // Seta para baixo
-    {
-        // Seleciona o botão inferior caso possível
-        if ((int)interfaceIn->selectedButton < MAX_BUTTONS - 1 &&
-            interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].event != IDLE)
-        {
-            interfaceIn->selectedButton += interfaceIn->selectionSpeed / tick;
-            interfaceIn->buttons[(int)interfaceIn->selectedButton].color = 0x0C;
-            interfaceIn->buttons[(int)interfaceIn->selectedButton - 1].color = 0x07;
-            interfaceIn->buttons[(int)interfaceIn->selectedButton].update = 1;
-            interfaceIn->buttons[(int)interfaceIn->selectedButton - 1].update = 1;
-        }
-    }
-    else if (GetKeyState(VK_ESCAPE) & 0x8000 && !interfaceKeyLock) // Esc
-    {
-        // Adiciona o evento correspondente ao estado na lista de eventos
-        switch (state)
-        {
-        case MAIN_MENU:
-
-            events[1] = UI_QUIT; // Evento de saída
-            break;
-        case INFO_MENU:
-
-            events[1] = UI_RETURN; // Evento de retorno ao menu
-            interfaceIn->update = 1;
-            break;
-        case GAMEPLAY:
-
-            events[1] = UI_PAUSE; // Evento de pausa
-            break;
-        case PAUSE:
-
-            events[1] = UI_RESUME; // Evento de continuar o jogo
-            interfaceIn->update = 1;
-            break;
-        case GAMEOVER:
-
-            events[1] = UI_RETURN; // Evento de retornar ao menu
-            interfaceIn->update = 1;
-            break;
-        default:
-            break;
-        }
-
-        interfaceKeyLock = 1;
-    }
-
-    if (interfaceKeyLock && !(GetKeyState(VK_RETURN) & 0x8000 || GetKeyState(VK_ESCAPE) & 0x8000))
         interfaceKeyLock = 0;
+    }
 }
 
 void UpdateInterfaces()
@@ -332,8 +344,7 @@ void InitInterface()
 
         .texts = {mainMenuTitle, version},
         .buttons = {playButton, infoButton, quitButton},
-        .selectedButton = 0.0f,
-        .selectionSpeed = SELECTION_SPEED,
+        .selectedButton = 0,
         .update = 1};
 
     mainMenu = mainMenuInit;
@@ -416,30 +427,44 @@ void InitInterface()
     // FPS
     Text fpsCounter = {
 
-        .content = "00000000.000 fps",
+        .content = "FPS: 00000000.000",
         .color = 0x07,
         .position = {0, 0},
         .update = 1};
 
     CalculateAlignedPosition(&fpsCounter.position[0],
                              &fpsCounter.position[1],
-                             16,
+                             17,
+                             1,
+                             BOTTOM_LEFT);
+
+    // Behaviour updates per second
+    Text bupsCounter = {
+
+        .content = "BLT: 00000000.000 us",
+        .color = 0x07,
+        .position = {19, 0},
+        .update = 1};
+
+    CalculateAlignedPosition(&bupsCounter.position[0],
+                             &bupsCounter.position[1],
+                             20,
                              1,
                              BOTTOM_LEFT);
 
     // Ticks
     Text tickCounter = {
 
-        .content = "00000000.000 tps",
+        .content = "PLT: 00000000.000 us",
         .color = 0x07,
-        .position = {0, 0},
+        .position = {41, 0},
         .update = 1};
 
     CalculateAlignedPosition(&tickCounter.position[0],
                              &tickCounter.position[1],
-                             16,
+                             20,
                              1,
-                             BOTTOM);
+                             BOTTOM_LEFT);
 
     // Contador da pontuação
     Text scoreCounter = {
@@ -458,7 +483,7 @@ void InitInterface()
     // Interface de gameplay
     Interface gameplayInit = {
 
-        .texts = {fpsCounter, tickCounter, scoreCounter},
+        .texts = {fpsCounter, bupsCounter, tickCounter, scoreCounter},
         .update = 0};
 
     gameplay = gameplayInit;
@@ -535,8 +560,7 @@ void InitInterface()
 
         .texts = {pauseTitle},
         .buttons = {resumeButton, restartButton, menuButton},
-        .selectedButton = 0.0f,
-        .selectionSpeed = SELECTION_SPEED,
+        .selectedButton = 0,
         .update = 1};
 
     pause = pauseInit;
@@ -585,8 +609,7 @@ void InitInterface()
 
         .texts = {gameoverTitle, finalScore},
         .buttons = {restartButton, menuButton},
-        .selectedButton = 0.0f,
-        .selectionSpeed = SELECTION_SPEED,
+        .selectedButton = 0,
         .update = 1};
 
     gameover = gameoverInit;

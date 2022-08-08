@@ -12,7 +12,23 @@
 
 EntityMatrix entityMatrix;
 unsigned int idCount;
+pthread_t behaviourThread;
+pthread_t physicsThread;
 pthread_t renderingThread;
+sem_t behaviourSemaphore;
+sem_t physicsSemaphore;
+
+void InitEntitySemaphores()
+{
+    sem_init(&behaviourSemaphore, 0, 1);
+    sem_init(&physicsSemaphore, 0, 0);
+}
+
+void FreeEntitySemaphores()
+{
+    sem_destroy(&behaviourSemaphore);
+    sem_destroy(&physicsSemaphore);
+}
 
 void InitEntityMatrix(int width, int height)
 {
@@ -150,17 +166,43 @@ void FreeEntityMatrix()
 
 }
 
-void UpdateEntityBehaviour()
+void StartBehaviourThread()
+{
+    pthread_create(&behaviourThread, NULL, UpdateEntityBehaviour, NULL);
+}
+
+void StopBehaviourThread()
+{
+    pthread_join(behaviourThread, NULL);
+}
+
+void *UpdateEntityBehaviour()
 {
     /* Atualiza cada objeto com base no seu comportamento.
      */
 
-    PlayerBehaviour();
-
-    for (int i = 0; i < entityMatrix.enemyPtrsSize; i++)
+    while (state == GAMEPLAY)
     {
-        EnemyBehaviour(entityMatrix.enemyPtrs[i]);
+        StartChronometer(&behaviourFrequency, &behaviourInitialTime);
+
+        if (sem_trywait(&behaviourSemaphore))
+        {
+            PlayerBehaviour();
+
+            for (int i = 0; i < entityMatrix.enemyPtrsSize; i++)
+            {
+                EnemyBehaviour(entityMatrix.enemyPtrs[i]);
+            }
+            sem_post(&physicsSemaphore);
+        }
+
+        behaviourElapsedTime = StopChronometer(behaviourFrequency, behaviourInitialTime, &behaviourFinalTime);
+
+        sprintf(gameplay.texts[1].content, "BLT: %012.3f us", (float)behaviourElapsedTime * 1000.0f);
+        gameplay.texts[1].update = 1;
     }
+
+    return 0;
 }
 
 void PlayerBehaviour()
@@ -168,24 +210,35 @@ void PlayerBehaviour()
     /* Comportamento do jogador.
      */
 
+
     float runCoefficient = 1.0f; // Coeficiente de corrida
 
     if (GetKeyState(VK_SPACE) & 0x8000) // Espaço
+    {
         runCoefficient = 2.0f;          // Dobra a velocidade na corrida
+    }
 
     if (GetKeyState(VK_UP) & 0x8000) // Seta para cima
+    {
         // Adiciona velocidade para cima
         entityMatrix.playerPtr->velocity[1] = -entityMatrix.playerPtr->speed * runCoefficient;
+    }
     else if (GetKeyState(VK_DOWN) & 0x8000) // Seta para baixo
+    {
         // Adiciona velocidade para baixo
         entityMatrix.playerPtr->velocity[1] = entityMatrix.playerPtr->speed * runCoefficient;
+    }
 
     if (GetKeyState(VK_RIGHT) & 0x8000) // Seta para a direita
+    {
         // Adiciona velocidade para direita
         entityMatrix.playerPtr->velocity[0] = entityMatrix.playerPtr->speed * runCoefficient;
+    }
     else if (GetKeyState(VK_LEFT) & 0x8000) // Seta para a esquerda
+    {
         // Adiciona velocidade para esquerda
         entityMatrix.playerPtr->velocity[0] = -entityMatrix.playerPtr->speed * runCoefficient;
+    }
 
     /* Corrige a dessincronização diagonal (Fenômeno em que a posição horizontal e vertical
        avançam em passos diferentes.
@@ -218,49 +271,150 @@ void EnemyBehaviour(Entity *enemyPtr)
     /* Comportamento do inimigo.
      */
 
-    int intents[4] = {0, 0, 0, 0};
+    int x = (int)enemyPtr->position[0];
+    int y = (int)enemyPtr->position[1];
+    int targetX = (int)entityMatrix.playerPtr->position[0];
+    int targetY = (int)entityMatrix.playerPtr->position[1];
+    float directionX = 0.0f;
+    float directionY = 0.0f;
+    int blocked = 0;
+    Entity* targetEntity;
 
-    int x = enemyPtr->position[0];
-    int y = enemyPtr->position[1];
+    if (targetX > x) // Caso o jogador esteja na direita
+    {
+        targetEntity = GetEntityPtrFromMatrix(x + 1, y);
 
-    if ((int)entityMatrix.playerPtr->position[0] > x) // Caso o jogador esteja na direita
-    {
-        intents[0] = 1;
+        if (targetEntity->type == EMPTY || targetEntity->type == PLAYER)
+        {
+            directionX = 1.0f;
+        }
+        else
+        {
+            blocked = 1;
+        }
     }
-    else if ((int)entityMatrix.playerPtr->position[0] < x) // Caso o jogador esteja na esquerda
+    else if (targetX < x) // Caso o jogador esteja na esquerda
     {
-        intents[1] = 1;
-    }
+        targetEntity = GetEntityPtrFromMatrix(x - 1, y);
 
-    if ((int)entityMatrix.playerPtr->position[1] > y) // Caso o jogador esteja em baixo
-    {
-        intents[2] = 1;
-    }
-    else if ((int)entityMatrix.playerPtr->position[1] < y) // Caso o jogador esteja em cima
-    {
-        intents[3] = 1;
-    }
-
-    if (intents[0])
-    {
-        enemyPtr->velocity[0] = enemyPtr->speed;
-    }
-    else if (intents[1])
-    {
-        enemyPtr->velocity[0] = -enemyPtr->speed;
+        if (targetEntity->type == EMPTY || targetEntity->type == PLAYER)
+        {
+            directionX = -1.0f;
+        }
+        else
+        {
+            blocked = 1;
+        }
     }
 
-    if (intents[2])
+    if (targetY > y) // Caso o jogador esteja em baixo
     {
-        enemyPtr->velocity[1] = enemyPtr->speed;
+        targetEntity = GetEntityPtrFromMatrix(x + (int)directionX, y + 1);
+
+        if (targetEntity->type == EMPTY || targetEntity->type == PLAYER)
+        {
+            directionY = 1.0f;
+        }
+        else
+        {
+            blocked = 1;
+        }
     }
-    else if (intents[3])
+    else if (targetY < y) // Caso o jogador esteja em cima
     {
-        enemyPtr->velocity[1] = -enemyPtr->speed;
+        targetEntity = GetEntityPtrFromMatrix(x + (int)directionX, y - 1);
+
+        if (targetEntity->type == EMPTY || targetEntity->type == PLAYER)
+        {
+            directionY = -1.0f;
+        }
+        else
+        {
+            blocked = 1;
+        }
     }
+
+    if (blocked)
+    {
+        float distances[8];
+        float smallestDistance = INFINITY;
+        int direction;
+
+        int distanceIndex = 0;
+
+        for (int j = x - 1; j < x + 2; j++)
+        {
+            for (int k = y - 1; k < y + 2; k++)
+            {
+                if (j != x || k != y)
+                {
+                    if (GetEntityPtrFromMatrix(j, k)->type == EMPTY)
+                    {
+                        distances[distanceIndex] = sqrtf(powf((j - targetX), 2.0f) + powf((k - targetY), 2.0f));
+                    }
+                    else
+                    {
+                        distances[distanceIndex] = INFINITY;
+                    }
+
+                    distanceIndex++;
+                }
+            }
+        }
+
+        for (int j = 0; j < 8; j++)
+        {
+            if (smallestDistance > distances[j])
+            {
+                smallestDistance = distances[j];
+                direction = j;
+            }
+        }
+
+        switch (direction)
+        {
+        case 0:
+            directionX = -1.0f;
+            directionY = -1.0f;
+            break;
+        case 1:
+            directionX = -1.0f;
+            directionY = 0.0f;
+            break;
+        case 2:
+            directionX = -1.0f;
+            directionY = 1.0f;
+            break;
+        case 3:
+            directionX = 0.0f;
+            directionY = -1.0f;
+            break;
+        case 4:
+            directionX = 0.0f;
+            directionY = 1.0f;
+            break;
+        case 5:
+            directionX = 1.0f;
+            directionY = -1.0f;
+            break;
+        case 6:
+            directionX = 1.0f;
+            directionY = 0.0f;
+            break;
+        case 7:
+            directionX = 1.0f;
+            directionY = 1.0f;
+            break;
+        default:
+            break;
+        }
+    }
+
+    enemyPtr->velocity[0] = directionX * enemyPtr->speed;
+    enemyPtr->velocity[1] = directionY * enemyPtr->speed;
 
     /* Corrige a dessincronização diagonal (Fenômeno em que a posição horizontal e vertical
-       avançam em passos diferentes.
+       avançam em passos diferentes)
 
        Este bloco é executado apenas quando o movimento é na diagonal.
     */
@@ -284,17 +438,43 @@ void EnemyBehaviour(Entity *enemyPtr)
     }
 }
 
-void UpdateEntityPhysics()
+void StartPhysicsThread()
+{
+    pthread_create(&physicsThread, NULL, UpdateEntityPhysics, NULL);
+}
+
+void StopPhysicsThread()
+{
+    pthread_join(physicsThread, NULL);
+}
+
+void *UpdateEntityPhysics()
 {
     /* Atualiza a física e verifica os eventos do gameplay.
      */
 
-    UpdatePlayerPhysics();
-
-    for (int i = 0; i < entityMatrix.enemyPtrsSize; i++)
+    while(state == GAMEPLAY)
     {
-        UpdateEnemyPhysics(entityMatrix.enemyPtrs[i]);
+        StartChronometer(&tickFrequency, &tickInitialTime);
+
+        sem_wait(&physicsSemaphore);
+        UpdatePlayerPhysics();
+
+        for (int i = 0; i < entityMatrix.enemyPtrsSize; i++)
+        {
+            UpdateEnemyPhysics(entityMatrix.enemyPtrs[i]);
+        }
+
+        sem_post(&behaviourSemaphore);
+
+        tickElapsedTime = StopChronometer(tickFrequency, tickInitialTime, &tickFinalTime);
+        tickElapsedTime = Tick(tickElapsedTime);
+
+        sprintf(gameplay.texts[2].content, "PLT: %012.3f us", (float)tickElapsedTime * 1000.0f);
+        gameplay.texts[2].update = 1;
     }
+
+    return 0;
 }
 
 void UpdatePlayerPhysics()
@@ -347,8 +527,8 @@ void UpdatePlayerPhysics()
         score++;
 
         // Atualiza o texto da pontuação
-        sprintf(gameplay.texts[2].content, "Score: %010d", score);
-        gameplay.texts[2].update = 1;
+        sprintf(gameplay.texts[3].content, "Score: %010d", score);
+        gameplay.texts[3].update = 1;
 
         // Obtém a posição da moeda
         oldCoinPositionX = (int)entityPtrInTargetPosition->position[0];
@@ -374,9 +554,9 @@ void UpdatePlayerPhysics()
 
         // Move a moeda na matriz
         MoveEntityOnMatrix(oldCoinPositionX,
-                            oldCoinPositionY,
-                            (int)spawnX,
-                            (int)spawnY);
+                           oldCoinPositionY,
+                           (int)spawnX,
+                           (int)spawnY);
 
         /* Gera a posição do novo inimigo. A posição não pode sobrepor nenhum
             objeto e deve manter uma distância do jogador.
@@ -535,7 +715,7 @@ void *RenderEntities()
 
         renderingElapsedTime = StopChronometer(renderingFrequency, renderingInitialTime, &renderingFinalTime);
 
-        sprintf(gameplay.texts[0].content, "%012.3f fps", 1000.0f / (float)renderingElapsedTime);
+        sprintf(gameplay.texts[0].content, "FPS: %012.3f", 1000.0f / (float)renderingElapsedTime);
         gameplay.texts[0].update = 1;
     }
 

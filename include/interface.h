@@ -4,10 +4,9 @@
 
 #define MAX_TEXT_STRLEN 720
 #define MAX_BUTTON_STRLEN 9
-#define MAX_TEXTS 3
+#define MAX_TEXTS 4
 #define MAX_BUTTONS 3
-#define SELECTION_SPEED 10.0f
-#define VERSION "2.12.1"
+#define VERSION "2.13"
 
 enum Alignment
 {
@@ -48,8 +47,7 @@ typedef struct
 {
     Text texts[MAX_TEXTS];       // 2178 B
     Button buttons[MAX_BUTTONS]; // (48 a 57) B
-    float selectedButton;        // 4 B
-    float selectionSpeed;        // 4 B
+    int selectedButton;          // 4 B
     int update;                  // 1 B
 
 } Interface;
