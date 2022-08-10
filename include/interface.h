@@ -6,7 +6,7 @@
 #define MAX_BUTTON_STRLEN 9
 #define MAX_TEXTS 4
 #define MAX_BUTTONS 3
-#define VERSION "2.13.1"
+#define VERSION "2.14"
 
 enum Alignment
 {

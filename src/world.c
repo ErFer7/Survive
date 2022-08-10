@@ -77,7 +77,7 @@ void GenerateWorld(int width, int height)
 
     int seed = (int)Randomf(0, 2147483647);
 
-    #pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2)
     for (int i = 0; i < height; i++)
     {
         for (int j = 0; j < width; j++)
@@ -88,15 +88,18 @@ void GenerateWorld(int width, int height)
             {
                 Entity wall = CreateWall((float)j, (float)i, 176);
                 InsertEntityOnMatrix(wall, j, i);
-            } else if (noise > 0.775 && noise <= 0.85)
+            }
+            else if (noise > 0.775 && noise <= 0.85)
             {
                 Entity wall = CreateWall((float)j, (float)i, 177);
                 InsertEntityOnMatrix(wall, j, i);
-            } else if (noise > 0.85 && noise <= 0.925)
+            }
+            else if (noise > 0.85 && noise <= 0.925)
             {
                 Entity wall = CreateWall((float)j, (float)i, 178);
                 InsertEntityOnMatrix(wall, j, i);
-            } else if (noise > 0.925)
+            }
+            else if (noise > 0.925)
             {
                 Entity wall = CreateWall((float)j, (float)i, 219);
                 InsertEntityOnMatrix(wall, j, i);
@@ -127,12 +130,7 @@ void GenerateWorld(int width, int height)
     float spawnX = 0.0f;
     float spawnY = 0.0f;
 
-    do
-    {
-        spawnX = Randomf(1, width - 2);
-        spawnY = Randomf(1, height - 2);
-    } while (GetEntityPtrFromMatrix((int)spawnX, (int)spawnY)->type != EMPTY);
-
+    GenerateSpawnPosition(&spawnX, &spawnY, 0.0f, 0.0f, 0.0f);
     Entity player = CreatePlayer(spawnX, spawnY);
     InsertEntityOnMatrix(player, (int)spawnX, (int)spawnY);
 
@@ -140,15 +138,8 @@ void GenerateWorld(int width, int height)
     // obtém-se o limite abaixo
     for (int i = 0; i < (int)round((width * height) / 3600.0f); i++)
     {
-        // Não é a maneira ideal de evitar a sobreposição da moeda no jogador
-        do
-        {
-            spawnX = Randomf(1, width - 2);
-            spawnY = Randomf(1, height - 2);
-        } while (GetEntityPtrFromMatrix((int)spawnX, (int)spawnY)->type != EMPTY);
-
+        GenerateSpawnPosition(&spawnX, &spawnY, 0.0f, 0.0f, 0.0f);
         Entity coin = CreateCoin(spawnX, spawnY);
         InsertEntityOnMatrix(coin, (int)spawnX, (int)spawnY);
     }
-
 }

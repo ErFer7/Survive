@@ -9,10 +9,9 @@ double renderingElapsedTime;
 LARGE_INTEGER behaviourFrequency;
 LARGE_INTEGER behaviourInitialTime, behaviourFinalTime;
 double behaviourElapsedTime;
-LARGE_INTEGER tickFrequency;
-LARGE_INTEGER tickInitialTime, tickFinalTime;
-double tickElapsedTime;
-
+LARGE_INTEGER physicsFrequency;
+LARGE_INTEGER physicsInitialTime, physicsFinalTime;
+double physicsElapsedTime;
 
 void SetTick(float t)
 {
@@ -42,7 +41,6 @@ float Tick(double elapsedTime)
     if (correctionTime > 0) // Caso seja necessário esperar
     {
         Sleep(correctionTime); // Espera
-
         return 1000.0f / (float)(tick);
     }
     else

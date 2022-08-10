@@ -2,8 +2,6 @@
 
 #include <Windows.h>
 
-#define ANIMATION_SPEED 0.25f
-
 extern int consoleWidth, consoleHeight;
 extern HANDLE consoleOutputHandle;
 extern SMALL_RECT consoleRect;

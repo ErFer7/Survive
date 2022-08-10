@@ -9,9 +9,9 @@ extern double renderingElapsedTime;
 extern LARGE_INTEGER behaviourFrequency;
 extern LARGE_INTEGER behaviourInitialTime, behaviourFinalTime;
 extern double behaviourElapsedTime;
-extern LARGE_INTEGER tickFrequency;
-extern LARGE_INTEGER tickInitialTime, tickFinalTime;
-extern double tickElapsedTime;
+extern LARGE_INTEGER physicsFrequency;
+extern LARGE_INTEGER physicsInitialTime, physicsFinalTime;
+extern double physicsElapsedTime;
 
 void SetTick(float t);
 void StartChronometer(LARGE_INTEGER *frequency, LARGE_INTEGER *initialTime);
