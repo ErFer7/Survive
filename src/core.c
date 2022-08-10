@@ -1,12 +1,50 @@
 #include "../include/core.h"
 
-unsigned int score = 0;
-enum State state = MAIN_MENU;
-enum Event events[MAX_EVENTS];
+#include <stdlib.h>
+#include <time.h>
+#include <pthread.h>
+#include <semaphore.h>
+
+unsigned int score;
+enum State state;
+enum Event event;
+pthread_mutex_t eventMutex;
 
 void InitCore()
 {
-    // Inicializa os eventos
-    for (int i = 0; i < MAX_EVENTS; i++)
-        events[i] = IDLE;
+    srand((unsigned)time(NULL));
+
+    score = 0;
+    state = MAIN_MENU;
+    event = IDLE;
+
+    pthread_mutex_init(&eventMutex, NULL);
+}
+
+void FreeCore()
+{
+    pthread_mutex_destroy(&eventMutex);
+}
+
+void SetGameEvent(enum Event newEvent, int force)
+{
+    if (event == IDLE || force)
+    {
+        event = newEvent;
+    }
+}
+
+enum Event GetGameEvent()
+{
+    return event;
+}
+
+void LockEvent()
+{
+    pthread_mutex_lock(&eventMutex);
+}
+
+void UnlockEvent()
+{
+    pthread_mutex_unlock(&eventMutex);
 }
