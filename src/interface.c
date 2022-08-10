@@ -441,7 +441,7 @@ void InitInterface()
     // Behaviour updates per second
     Text bupsCounter = {
 
-        .content = "BLT: 00000000.000 us",
+        .content = "BLT: 00000000.000 ms",
         .color = 0x07,
         .position = {19, 0},
         .update = 1};
@@ -455,7 +455,7 @@ void InitInterface()
     // Ticks
     Text tickCounter = {
 
-        .content = "PLT: 00000000.000 us",
+        .content = "PLT: 00000000.000 ms",
         .color = 0x07,
         .position = {41, 0},
         .update = 1};

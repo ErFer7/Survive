@@ -7,7 +7,6 @@
 #define PLAYER_SPEED 23.5f
 #define ENEMY_SPEED 13.0f
 #define MAX_ANIM_FRAMES 4
-#define MAX_COINS 73
 
 enum EntityType
 {
@@ -26,7 +25,7 @@ typedef struct
     float animationFrame;
     float animationSpeed;
     int isAnimated;
-    int color;
+    unsigned int color;
     float velocity[2];
     float position[2];
     float speed;
@@ -39,7 +38,7 @@ typedef struct
 {
     Entity *matrix;
     Entity *playerPtr;
-    Entity *coinPtrs[MAX_COINS];
+    Entity **coinPtrs;
     Entity **enemyPtrs;
     int coinPtrsSize;
     int enemyPtrsSize;
@@ -64,6 +63,11 @@ void InsertEntityOnMatrix(Entity entity, int x, int y);
 void MoveEntityOnMatrix(int x0, int y0, int x1, int y1);
 Entity *GetEntityPtrFromMatrix(int x, int y);
 void FreeEntityMatrix();
+Entity CreateEmpty(float x, float y);
+Entity CreatePlayer(float x, float y);
+Entity CreateCoin(float x, float y);
+Entity CreateEnemy(float x, float y);
+Entity CreateWall(float x, float y, char c);
 void *UpdateEntityBehaviour();
 void PlayerBehaviour();
 void EnemyBehaviour(Entity *enemyPtr);

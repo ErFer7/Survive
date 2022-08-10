@@ -49,17 +49,7 @@ void InitEntityMatrix(int width, int height)
     {
         for (int j = 0; j < width; j++)
         {
-            Entity empty = {0,
-                            {255},
-                            0.0f,
-                            0.0f,
-                            0,
-                            0x00,
-                            {0.0f, 0.0f},
-                            {(float)i, (float)j},
-                            0.0f,
-                            EMPTY};
-
+            Entity empty = CreateEmpty(i, j);
             InsertEntityOnMatrix(empty, j, i);
         }
     }
@@ -78,8 +68,18 @@ void InsertEntityOnMatrix(Entity entity, int x, int y)
     }
     else if (entity.type == COIN)
     {
-        entityMatrix.coinPtrs[entityMatrix.coinPtrsSize] = &entityMatrix.matrix[entityMatrix.width * y + x];
+        if (entityMatrix.coinPtrsSize == 0)
+        {
+            entityMatrix.coinPtrs = (Entity **)malloc(sizeof(Entity *));
+        }
+        else
+        {
+            entityMatrix.coinPtrs = (Entity **)realloc(entityMatrix.coinPtrs,
+                                                       sizeof(Entity *) * (entityMatrix.coinPtrsSize + 1));
+        }
+
         entityMatrix.coinPtrsSize++;
+        entityMatrix.coinPtrs[entityMatrix.coinPtrsSize - 1] = &entityMatrix.matrix[entityMatrix.width * y + x];
     }
     else if (entity.type == ENEMY)
     {
@@ -106,7 +106,7 @@ void MoveEntityOnMatrix(int x0, int y0, int x1, int y1)
 
     if (x0 != x1 || y0 != y1)
     {
-        Entity empty = {7, {255}, 0.0f, 0.0f, 0, 0, {0.0f, 0.0f}, {(float)x0, (float)y0}, 0.0f, EMPTY};
+        Entity empty = CreateEmpty(x0, y0);
         Entity entity = entityMatrix.matrix[entityMatrix.width * y0 + x0];
 
         entityMatrix.matrix[entityMatrix.width * y1 + x1] = entity;
@@ -155,6 +155,7 @@ void FreeEntityMatrix()
 
     if (entityMatrix.allocated)
     {
+        free(entityMatrix.coinPtrs);
         free(entityMatrix.enemyPtrs);
         free(entityMatrix.matrix);
         entityMatrix.enemyPtrs = NULL;
@@ -164,6 +165,97 @@ void FreeEntityMatrix()
         entityMatrix.allocated = 0;
     }
 
+}
+
+Entity CreateEmpty(float x, float y)
+{
+    Entity empty = {
+        .id = 0,
+        .c = {255},
+        .animationFrame = 0.0f,
+        .animationSpeed = 0.0f,
+        .isAnimated = 0,
+        .color = 0x00,
+        .velocity = {0.0f, 0.0f},
+        .position = {x, y},
+        .speed = 0.0f,
+        .type = EMPTY
+    };
+
+    return empty;
+}
+
+Entity CreatePlayer(float x, float y)
+{
+    Entity player = {
+
+        .id = idCount++,
+        .c = {254},
+        .animationFrame = 0.0f,
+        .animationSpeed = 0.0f,
+        .isAnimated = 0,
+        .color = 0x0F,
+        .velocity = {0.0f, 0.0f},
+        .position = {x, y},
+        .speed = PLAYER_SPEED,
+        .type = PLAYER
+    };
+
+    return player;
+}
+
+Entity CreateCoin(float x, float y)
+{
+    Entity coin = {
+        .id = idCount++,
+        .c = {45, 92, 124, 47},
+        .animationFrame = 0.0f,
+        .animationSpeed = ANIMATION_SPEED,
+        .isAnimated = 1,
+        .color = 0x0E,
+        .velocity = {0.0f, 0.0f},
+        .position = {x, y},
+        .speed = 0.0f,
+        .type = COIN
+    };
+
+    return coin;
+}
+
+Entity CreateEnemy(float x, float y)
+{
+    Entity enemy = {
+        .id = idCount++,
+        .c = {178, 177, 176, 178},
+        .animationFrame = 0.0f,
+        .animationSpeed = ANIMATION_SPEED,
+        .isAnimated = 1,
+        .color = 0x0C,
+        .velocity = {0.0f, 0.0f},
+        .position = {x, y},
+        .speed = ENEMY_SPEED,
+        .type = ENEMY
+    };
+
+    return enemy;
+}
+
+Entity CreateWall(float x, float y, char c)
+{
+    Entity wall = {
+        .id = idCount++,
+        .c = {c},
+        .animationFrame = 0.0f,
+        .animationSpeed = 0.0f,
+        .isAnimated = 0,
+        .color = 0x07,
+        .velocity = {0.0f, 0.0f},
+        .position = {x, y},
+        .speed = 0.0f,
+        .type = WALL
+    };
+
+    return wall;
 }
 
 void StartBehaviourThread()
@@ -198,7 +290,7 @@ void *UpdateEntityBehaviour()
 
         behaviourElapsedTime = StopChronometer(behaviourFrequency, behaviourInitialTime, &behaviourFinalTime);
 
-        sprintf(gameplay.texts[1].content, "BLT: %012.3f us", (float)behaviourElapsedTime * 1000.0f);
+        sprintf(gameplay.texts[1].content, "BLT: %012.3f ms", (float)behaviourElapsedTime);
         gameplay.texts[1].update = 1;
     }
 
@@ -213,7 +305,7 @@ void PlayerBehaviour()
 
     float runCoefficient = 1.0f; // Coeficiente de corrida
 
-    if (GetKeyState(VK_SPACE) & 0x8000) // Espaço
+    if (GetKeyState(0x5A) & 0x8000) // Tecla Z
     {
         runCoefficient = 2.0f;          // Dobra a velocidade na corrida
     }
@@ -470,7 +562,7 @@ void *UpdateEntityPhysics()
         tickElapsedTime = StopChronometer(tickFrequency, tickInitialTime, &tickFinalTime);
         tickElapsedTime = Tick(tickElapsedTime);
 
-        sprintf(gameplay.texts[2].content, "PLT: %012.3f us", (float)tickElapsedTime * 1000.0f);
+        sprintf(gameplay.texts[2].content, "PLT: %012.3f ms", (float)tickElapsedTime);
         gameplay.texts[2].update = 1;
     }
 
@@ -572,18 +664,7 @@ void UpdatePlayerPhysics()
 
         } while (entityPtrInSpawnPosition->type != EMPTY || distanceFromPlayer < 20.0f);
 
-        Entity enemy = {idCount++,
-                        {178, 177, 176, 178},
-                        0.0f,
-                        ANIMATION_SPEED,
-                        1,
-                        0x0C,
-                        {0.0f, 0.0f},
-                        {spawnX, spawnY},
-                        ENEMY_SPEED,
-                        ENEMY};
-
-        // Insere o inimigo na matriz
+        Entity enemy = CreateEnemy(spawnX, spawnY);
         InsertEntityOnMatrix(enemy, spawnX, spawnY);
 
         // Move o jogador
