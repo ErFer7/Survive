@@ -85,10 +85,15 @@ void InterfaceBehaviour(Interface *interfaceIn)
     {
         if (GetKeyState(VK_RETURN) & 0x8000) // Enter
         {
-            // Adiciona o evento do botão na lista de eventos caso o botão seja válido
-            if (interfaceIn->buttons[(int)interfaceIn->selectedButton].event != IDLE)
+            if (interfaceIn->selectedButton < 0)
             {
-                events[1] = interfaceIn->buttons[(int)interfaceIn->selectedButton].event;
+                interfaceIn->selectedButton = 0;
+            }
+
+            // Adiciona o evento do botão na lista de eventos caso o botão seja válido
+            if (interfaceIn->buttons[interfaceIn->selectedButton].event != IDLE)
+            {
+                events[1] = interfaceIn->buttons[interfaceIn->selectedButton].event;
                 interfaceIn->update = 1;
             }
 
@@ -97,13 +102,13 @@ void InterfaceBehaviour(Interface *interfaceIn)
         else if (GetKeyState(VK_UP) & 0x8000) // Seta para cima
         {
             // Seleciona o botão superior caso possível
-            if ((int)interfaceIn->selectedButton > 0)
+            if (interfaceIn->selectedButton > 0)
             {
                 interfaceIn->selectedButton--;
-                interfaceIn->buttons[(int)interfaceIn->selectedButton].color = 0x0C;
-                interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].color = 0x07;
-                interfaceIn->buttons[(int)interfaceIn->selectedButton].update = 1;
-                interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].update = 1;
+                interfaceIn->buttons[interfaceIn->selectedButton].color = 0x0C;
+                interfaceIn->buttons[interfaceIn->selectedButton + 1].color = 0x07;
+                interfaceIn->buttons[interfaceIn->selectedButton].update = 1;
+                interfaceIn->buttons[interfaceIn->selectedButton + 1].update = 1;
             }
 
             interfaceKeyLock = 1;
@@ -111,14 +116,14 @@ void InterfaceBehaviour(Interface *interfaceIn)
         else if (GetKeyState(VK_DOWN) & 0x8000) // Seta para baixo
         {
             // Seleciona o botão inferior caso possível
-            if ((int)interfaceIn->selectedButton < MAX_BUTTONS - 1 &&
-                interfaceIn->buttons[(int)interfaceIn->selectedButton + 1].event != IDLE)
+            if (interfaceIn->selectedButton < MAX_BUTTONS - 1 &&
+                interfaceIn->buttons[interfaceIn->selectedButton + 1].event != IDLE)
             {
                 interfaceIn->selectedButton++;
-                interfaceIn->buttons[(int)interfaceIn->selectedButton].color = 0x0C;
-                interfaceIn->buttons[(int)interfaceIn->selectedButton - 1].color = 0x07;
-                interfaceIn->buttons[(int)interfaceIn->selectedButton].update = 1;
-                interfaceIn->buttons[(int)interfaceIn->selectedButton - 1].update = 1;
+                interfaceIn->buttons[interfaceIn->selectedButton].color = 0x0C;
+                interfaceIn->buttons[interfaceIn->selectedButton - 1].color = 0x07;
+                interfaceIn->buttons[interfaceIn->selectedButton].update = 1;
+                interfaceIn->buttons[interfaceIn->selectedButton - 1].update = 1;
             }
 
             interfaceKeyLock = 1;
@@ -298,7 +303,7 @@ void InitInterface()
     Button playButton = {
 
         .content = "Play",
-        .color = 0x0C,
+        .color = 0x07,
         .position = {0, 0},
         .event = UI_PLAY,
         .update = 0};
@@ -344,7 +349,7 @@ void InitInterface()
 
         .texts = {mainMenuTitle, version},
         .buttons = {playButton, infoButton, quitButton},
-        .selectedButton = 0,
+        .selectedButton = -1,
         .update = 1};
 
     mainMenu = mainMenuInit;
@@ -397,12 +402,26 @@ void InitInterface()
                              1,
                              CENTER);
 
+    // Link do github
+    Text controlInfo = {
+
+        .content = "Use the arrows to move and X to run",
+        .color = 0x07,
+        .position = {0, 3},
+        .update = 0};
+
+    CalculateAlignedPosition(&controlInfo.position[0],
+                             &controlInfo.position[1],
+                             35,
+                             1,
+                             CENTER);
+
     // Botão de retorno
     Button returnButton = {
 
         .content = "Back",
-        .color = 0x0C,
-        .position = {0, 3},
+        .color = 0x07,
+        .position = {0, 5},
         .event = UI_RETURN,
         .update = 0};
 
@@ -415,9 +434,9 @@ void InitInterface()
     // Menu de informações
     Interface infoMenuInit = {
 
-        .texts = {infoMenuTitle, creationDateInfo, githubInfo},
+        .texts = {infoMenuTitle, creationDateInfo, githubInfo, controlInfo},
         .buttons = {returnButton},
-        .selectedButton = 0.0f,
+        .selectedButton = -1,
         .update = 1};
 
     infoMenu = infoMenuInit;
@@ -514,7 +533,7 @@ void InitInterface()
     Button resumeButton = {
 
         .content = "Resume",
-        .color = 0x0C,
+        .color = 0x07,
         .position = {0, 0},
         .event = UI_RESUME,
         .update = 0};
@@ -560,7 +579,7 @@ void InitInterface()
 
         .texts = {pauseTitle},
         .buttons = {resumeButton, restartButton, menuButton},
-        .selectedButton = 0,
+        .selectedButton = -1,
         .update = 1};
 
     pause = pauseInit;
@@ -609,7 +628,7 @@ void InitInterface()
 
         .texts = {gameoverTitle, finalScore},
         .buttons = {restartButton, menuButton},
-        .selectedButton = 0,
+        .selectedButton = -1,
         .update = 1};
 
     gameover = gameoverInit;

@@ -7,6 +7,7 @@
 #define PLAYER_SPEED 23.5f
 #define ENEMY_SPEED 13.0f
 #define MAX_ANIM_FRAMES 4
+#define ANIMATION_SPEED 10.0f
 
 enum EntityType
 {
@@ -63,6 +64,7 @@ void InsertEntityOnMatrix(Entity entity, int x, int y);
 void MoveEntityOnMatrix(int x0, int y0, int x1, int y1);
 Entity *GetEntityPtrFromMatrix(int x, int y);
 void FreeEntityMatrix();
+void GenerateSpawnPosition(float *x, float *y, float minDistanceFrom, float anchorX, float anchorY);
 Entity CreateEmpty(float x, float y);
 Entity CreatePlayer(float x, float y);
 Entity CreateCoin(float x, float y);

@@ -164,7 +164,22 @@ void FreeEntityMatrix()
         entityMatrix.height = 0;
         entityMatrix.allocated = 0;
     }
+}
 
+void GenerateSpawnPosition(float *x, float *y, float minDistanceFrom, float anchorX, float anchorY)
+{
+    Entity *entityPtrInSpawnPosition;
+    float distanceFromAnchor;
+
+    do
+    {
+        *x = Randomf(1, entityMatrix.width - 2);
+        *y = Randomf(1, entityMatrix.height - 2);
+        entityPtrInSpawnPosition = GetEntityPtrFromMatrix((int)*x, (int)*y);
+
+        distanceFromAnchor = sqrtf(powf((anchorX - *x), 2.0f) + powf((anchorY - *y), 2.0f));
+
+    } while (entityPtrInSpawnPosition->type != EMPTY || distanceFromAnchor < minDistanceFrom);
 }
 
 Entity CreateEmpty(float x, float y)
@@ -179,8 +194,7 @@ Entity CreateEmpty(float x, float y)
         .velocity = {0.0f, 0.0f},
         .position = {x, y},
         .speed = 0.0f,
-        .type = EMPTY
-    };
+        .type = EMPTY};
 
     return empty;
 }
@@ -198,8 +212,7 @@ Entity CreatePlayer(float x, float y)
         .velocity = {0.0f, 0.0f},
         .position = {x, y},
         .speed = PLAYER_SPEED,
-        .type = PLAYER
-    };
+        .type = PLAYER};
 
     return player;
 }
@@ -216,8 +229,7 @@ Entity CreateCoin(float x, float y)
         .velocity = {0.0f, 0.0f},
         .position = {x, y},
         .speed = 0.0f,
-        .type = COIN
-    };
+        .type = COIN};
 
     return coin;
 }
@@ -234,8 +246,7 @@ Entity CreateEnemy(float x, float y)
         .velocity = {0.0f, 0.0f},
         .position = {x, y},
         .speed = ENEMY_SPEED,
-        .type = ENEMY
-    };
+        .type = ENEMY};
 
     return enemy;
 }
@@ -252,8 +263,7 @@ Entity CreateWall(float x, float y, char c)
         .velocity = {0.0f, 0.0f},
         .position = {x, y},
         .speed = 0.0f,
-        .type = WALL
-    };
+        .type = WALL};
 
     return wall;
 }
@@ -302,12 +312,11 @@ void PlayerBehaviour()
     /* Comportamento do jogador.
      */
 
-
     float runCoefficient = 1.0f; // Coeficiente de corrida
 
-    if (GetKeyState(0x5A) & 0x8000) // Tecla Z
+    if (GetKeyState(0x58) & 0x8000) // Tecla X
     {
-        runCoefficient = 2.0f;          // Dobra a velocidade na corrida
+        runCoefficient = 2.0f; // Dobra a velocidade na corrida
     }
 
     if (GetKeyState(VK_UP) & 0x8000) // Seta para cima
@@ -370,7 +379,7 @@ void EnemyBehaviour(Entity *enemyPtr)
     float directionX = 0.0f;
     float directionY = 0.0f;
     int blocked = 0;
-    Entity* targetEntity;
+    Entity *targetEntity;
 
     if (targetX > x) // Caso o jogador esteja na direita
     {
@@ -545,9 +554,9 @@ void *UpdateEntityPhysics()
     /* Atualiza a física e verifica os eventos do gameplay.
      */
 
-    while(state == GAMEPLAY)
+    while (state == GAMEPLAY)
     {
-        StartChronometer(&tickFrequency, &tickInitialTime);
+        StartChronometer(&physicsFrequency, &physicsInitialTime);
 
         sem_wait(&physicsSemaphore);
         UpdatePlayerPhysics();
@@ -559,10 +568,10 @@ void *UpdateEntityPhysics()
 
         sem_post(&behaviourSemaphore);
 
-        tickElapsedTime = StopChronometer(tickFrequency, tickInitialTime, &tickFinalTime);
-        tickElapsedTime = Tick(tickElapsedTime);
+        physicsElapsedTime = StopChronometer(physicsFrequency, physicsInitialTime, &physicsFinalTime);
+        physicsElapsedTime = Tick(physicsElapsedTime);
 
-        sprintf(gameplay.texts[2].content, "PLT: %012.3f ms", (float)tickElapsedTime);
+        sprintf(gameplay.texts[2].content, "PLT: %012.3f ms", (float)physicsElapsedTime);
         gameplay.texts[2].update = 1;
     }
 
@@ -576,11 +585,10 @@ void UpdatePlayerPhysics()
     float targetPositionX;
     float targetPositionY;
     Entity *entityPtrInTargetPosition;
-    int oldCoinPositionX;
-    int oldCoinPositionY;
     float spawnX;
     float spawnY;
     Entity *entityPtrInSpawnPosition;
+    Entity *entityPtrInAdjacentPosition;
     float distanceFromPlayer;
 
     // Obtém a posição
@@ -588,8 +596,13 @@ void UpdatePlayerPhysics()
     oldPositionY = (int)entityMatrix.playerPtr->position[1];
 
     // Obtém a posição alvo
-    targetPositionX = entityMatrix.playerPtr->position[0] + entityMatrix.playerPtr->velocity[0] / (float)tick;
-    targetPositionY = entityMatrix.playerPtr->position[1] + entityMatrix.playerPtr->velocity[1] / (float)tick;
+    targetPositionX = entityMatrix.playerPtr->position[0] +
+                      entityMatrix.playerPtr->velocity[0] *
+                          ((float)physicsElapsedTime / 1000.0f);
+
+    targetPositionY = entityMatrix.playerPtr->position[1] +
+                      entityMatrix.playerPtr->velocity[1] *
+                          ((float)physicsElapsedTime / 1000.0f);
 
     // Redefine a velocidade
     entityMatrix.playerPtr->velocity[0] = 0.0f;
@@ -597,6 +610,36 @@ void UpdatePlayerPhysics()
 
     // Ponteiro do objeto na posição alvo
     entityPtrInTargetPosition = GetEntityPtrFromMatrix((int)targetPositionX, (int)targetPositionY);
+
+    for (int j = targetPositionX - 1; j < targetPositionX + 2; j++)
+    {
+        for (int k = targetPositionY - 1; k < targetPositionY + 2; k++)
+        {
+            if (j != targetPositionX || k != targetPositionY)
+            {
+                entityPtrInAdjacentPosition = GetEntityPtrFromMatrix(j, k);
+                if (entityPtrInAdjacentPosition->type == COIN)
+                {
+                    score++;
+
+                    // Atualiza o texto da pontuação
+                    sprintf(gameplay.texts[3].content, "Score: %010d", score);
+                    gameplay.texts[3].update = 1;
+
+                    GenerateSpawnPosition(&spawnX, &spawnY, 0.0f, 0.0f, 0.0f);
+                    entityPtrInAdjacentPosition->position[0] = spawnX;
+                    entityPtrInAdjacentPosition->position[1] = spawnY;
+
+                    // Move a moeda na matriz
+                    MoveEntityOnMatrix(j, k, (int)spawnX, (int)spawnY);
+
+                    GenerateSpawnPosition(&spawnX, &spawnY, 20.0f, targetPositionX, targetPositionY);
+                    Entity enemy = CreateEnemy(spawnX, spawnY);
+                    InsertEntityOnMatrix(enemy, spawnX, spawnY);
+                }
+            }
+        }
+    }
 
     /* Move o jogador caso o objeto na posição alvo esteja vazio ou seja o próprio
         jogador
@@ -608,69 +651,6 @@ void UpdatePlayerPhysics()
         entityMatrix.playerPtr->position[1] = targetPositionY;
 
         // Move o jogador na matriz
-        MoveEntityOnMatrix(oldPositionX,
-                           oldPositionY,
-                           (int)entityMatrix.playerPtr->position[0],
-                           (int)entityMatrix.playerPtr->position[1]);
-    }
-    // Caso o jogador esteja pegando a moeda
-    else if (entityPtrInTargetPosition->type == COIN)
-    {
-        score++;
-
-        // Atualiza o texto da pontuação
-        sprintf(gameplay.texts[3].content, "Score: %010d", score);
-        gameplay.texts[3].update = 1;
-
-        // Obtém a posição da moeda
-        oldCoinPositionX = (int)entityPtrInTargetPosition->position[0];
-        oldCoinPositionY = (int)entityPtrInTargetPosition->position[1];
-
-        /* Não é a maneira ideal de evitar a sobreposição da moeda em outros
-            objetos
-        */
-        do
-        {
-            /* Gera uma nova posição e repete o processo caso tenha algo na posição
-                gerada
-            */
-
-            spawnX = Randomf(1, entityMatrix.width - 2);
-            spawnY = Randomf(1, entityMatrix.height - 2);
-            entityPtrInSpawnPosition = GetEntityPtrFromMatrix((int)spawnX, (int)spawnY);
-        } while (entityPtrInSpawnPosition->type != EMPTY);
-
-        // Define a nova posição da moeda
-        entityPtrInTargetPosition->position[0] = spawnX;
-        entityPtrInTargetPosition->position[1] = spawnY;
-
-        // Move a moeda na matriz
-        MoveEntityOnMatrix(oldCoinPositionX,
-                           oldCoinPositionY,
-                           (int)spawnX,
-                           (int)spawnY);
-
-        /* Gera a posição do novo inimigo. A posição não pode sobrepor nenhum
-            objeto e deve manter uma distância do jogador.
-        */
-        do
-        {
-            spawnX = Randomf(1, entityMatrix.width - 2);
-            spawnY = Randomf(1, entityMatrix.height - 2);
-            entityPtrInSpawnPosition = GetEntityPtrFromMatrix((int)spawnX, (int)spawnY);
-
-            distanceFromPlayer = sqrtf(powf((spawnX - targetPositionX), 2.0f) +
-                                       powf((spawnY - targetPositionY), 2.0f));
-
-        } while (entityPtrInSpawnPosition->type != EMPTY || distanceFromPlayer < 20.0f);
-
-        Entity enemy = CreateEnemy(spawnX, spawnY);
-        InsertEntityOnMatrix(enemy, spawnX, spawnY);
-
-        // Move o jogador
-        entityMatrix.playerPtr->position[0] = targetPositionX;
-        entityMatrix.playerPtr->position[1] = targetPositionY;
-
         MoveEntityOnMatrix(oldPositionX,
                            oldPositionY,
                            (int)entityMatrix.playerPtr->position[0],
@@ -691,8 +671,13 @@ void UpdateEnemyPhysics(Entity *enemyPtr)
     oldPositionY = (int)enemyPtr->position[1];
 
     // Obtém a posição alvo
-    targetPositionX = enemyPtr->position[0] + enemyPtr->velocity[0] / (float)tick;
-    targetPositionY = enemyPtr->position[1] + enemyPtr->velocity[1] / (float)tick;
+    targetPositionX = enemyPtr->position[0] +
+                      enemyPtr->velocity[0] *
+                          ((float)physicsElapsedTime / 1000.0f);
+
+    targetPositionY = enemyPtr->position[1] +
+                      enemyPtr->velocity[1] *
+                          ((float)physicsElapsedTime / 1000.0f);
 
     // Redefine a velocidade
     enemyPtr->velocity[0] = 0.0f;
@@ -707,10 +692,7 @@ void UpdateEnemyPhysics(Entity *enemyPtr)
         enemyPtr->position[0] = targetPositionX;
         enemyPtr->position[1] = targetPositionY;
 
-        MoveEntityOnMatrix(oldPositionX,
-                           oldPositionY,
-                           (int)targetPositionX,
-                           (int)targetPositionY);
+        MoveEntityOnMatrix(oldPositionX, oldPositionY, (int)targetPositionX, (int)targetPositionY);
     }
     // Caso a posição tenha o jogador
     else if (entityPtrInTargetPosition->type == PLAYER)
@@ -775,7 +757,7 @@ void *RenderEntities()
 
                     if (isAnimated)
                     {
-                        entityPtr->animationFrame += ANIMATION_SPEED * (float)renderingElapsedTime;
+                        entityPtr->animationFrame += ANIMATION_SPEED * ((float)renderingElapsedTime / 1000.0f);
 
                         if ((int)entityPtr->animationFrame > MAX_ANIM_FRAMES - 1)
                             entityPtr->animationFrame = 0.0f;
