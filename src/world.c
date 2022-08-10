@@ -1,3 +1,5 @@
+#include "../include/world.h"
+
 #include <stdio.h>
 #include <math.h>
 #include <omp.h>
@@ -7,7 +9,6 @@
 #include "../include/graphics.h"
 #include "../include/interface.h"
 #include "../include/entity.h"
-#include "../include/world.h"
 
 #define PI 3.141593
 

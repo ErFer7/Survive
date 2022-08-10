@@ -1,6 +1,6 @@
 #pragma once
 
-#define MAX_EVENTS 2
+#include <pthread.h>
 
 enum Event
 {
@@ -26,7 +26,13 @@ enum State
 };
 
 extern enum State state;
-extern enum Event events[MAX_EVENTS];
+extern enum Event event;
 extern unsigned int score;
+extern pthread_mutex_t eventMutex;
 
 void InitCore();
+void FreeCore();
+void SetGameEvent(enum Event newEvent, int force);
+enum Event GetGameEvent();
+void LockEvent();
+void UnlockEvent();

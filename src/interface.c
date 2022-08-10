@@ -11,24 +11,6 @@ Interface pause;
 Interface gameover;
 int interfaceKeyLock;
 
-void BuildBorders()
-{
-    /* Faz as bordas da tela.
-     */
-
-    for (int i = 0; i < consoleWidth; i++)
-    {
-        SetCharOnPosition(i, 0, 219, 7);
-        SetCharOnPosition(i, consoleHeight - 2, 219, 7);
-    }
-
-    for (int i = 0; i < consoleHeight - 1; i++)
-    {
-        SetCharOnPosition(0, i, 219, 7);
-        SetCharOnPosition(consoleWidth - 1, i, 219, 7);
-    }
-}
-
 void CalculateAlignedPosition(int *x, int *y, int sizeX, int sizeY, enum Alignment alignment)
 {
     /* Calcula a posição com base no alinhamento e retorna.
@@ -93,7 +75,9 @@ void InterfaceBehaviour(Interface *interfaceIn)
             // Adiciona o evento do botão na lista de eventos caso o botão seja válido
             if (interfaceIn->buttons[interfaceIn->selectedButton].event != IDLE)
             {
-                events[1] = interfaceIn->buttons[interfaceIn->selectedButton].event;
+                LockEvent();
+                SetGameEvent(interfaceIn->buttons[interfaceIn->selectedButton].event, 0);
+                UnlockEvent();
                 interfaceIn->update = 1;
             }
 
@@ -131,34 +115,36 @@ void InterfaceBehaviour(Interface *interfaceIn)
         else if (GetKeyState(VK_ESCAPE) & 0x8000) // Esc
         {
             // Adiciona o evento correspondente ao estado na lista de eventos
+            LockEvent();
             switch (state)
             {
             case MAIN_MENU:
 
-                events[1] = UI_QUIT; // Evento de saída
+                SetGameEvent(UI_QUIT, 0); // Evento de saída
                 break;
             case INFO_MENU:
 
-                events[1] = UI_RETURN; // Evento de retorno ao menu
+                SetGameEvent(UI_RETURN, 0); // Evento de retorno ao menu
                 interfaceIn->update = 1;
                 break;
             case GAMEPLAY:
 
-                events[1] = UI_PAUSE; // Evento de pausa
+                SetGameEvent(UI_PAUSE, 0); // Evento de pausa
                 break;
             case PAUSE:
 
-                events[1] = UI_RESUME; // Evento de continuar o jogo
+                SetGameEvent(UI_RESUME, 0); // Evento de continuar o jogo
                 interfaceIn->update = 1;
                 break;
             case GAMEOVER:
 
-                events[1] = UI_RETURN; // Evento de retornar ao menu
+                SetGameEvent(UI_RETURN, 0); // Evento de retornar ao menu
                 interfaceIn->update = 1;
                 break;
             default:
                 break;
             }
+            UnlockEvent();
 
             interfaceKeyLock = 1;
         }
@@ -219,7 +205,6 @@ void RenderInterface(Interface *interfaceIn)
     if (interfaceIn->update)
     {
         ClearOutput();
-        BuildBorders();
     }
 
     // Renderiza cada texto
@@ -290,14 +275,14 @@ void InitInterface()
 
         .content = VERSION,
         .color = 0x07,
-        .position = {1, 1},
+        .position = {0, -1},
         .update = 0};
 
     CalculateAlignedPosition(&version.position[0],
                              &version.position[1],
-                             6,
+                             4,
                              1,
-                             TOP_LEFT);
+                             BOTTOM);
 
     // Botão de play
     Button playButton = {
@@ -446,42 +431,42 @@ void InitInterface()
     // FPS
     Text fpsCounter = {
 
-        .content = "FPS: 00000000.000",
+        .content = "FPS: 0000.000",
         .color = 0x07,
         .position = {0, 0},
         .update = 1};
 
     CalculateAlignedPosition(&fpsCounter.position[0],
                              &fpsCounter.position[1],
-                             17,
+                             13,
                              1,
                              BOTTOM_LEFT);
 
     // Behaviour updates per second
     Text bupsCounter = {
 
-        .content = "BLT: 00000000.000 ms",
+        .content = "BLT: 0000.000 ms",
         .color = 0x07,
-        .position = {19, 0},
+        .position = {15, 0},
         .update = 1};
 
     CalculateAlignedPosition(&bupsCounter.position[0],
                              &bupsCounter.position[1],
-                             20,
+                             16,
                              1,
                              BOTTOM_LEFT);
 
     // Ticks
     Text tickCounter = {
 
-        .content = "PLT: 00000000.000 ms",
+        .content = "PLT: 0000.000 ms",
         .color = 0x07,
-        .position = {41, 0},
+        .position = {33, 0},
         .update = 1};
 
     CalculateAlignedPosition(&tickCounter.position[0],
                              &tickCounter.position[1],
-                             20,
+                             16,
                              1,
                              BOTTOM_LEFT);
 

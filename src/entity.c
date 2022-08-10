@@ -296,12 +296,12 @@ void *UpdateEntityBehaviour()
                 EnemyBehaviour(entityMatrix.enemyPtrs[i]);
             }
             sem_post(&physicsSemaphore);
+
+            behaviourElapsedTime = StopChronometer(behaviourFrequency, behaviourInitialTime, &behaviourFinalTime);
+
+            sprintf(gameplay.texts[1].content, "BLT: %08.3f ms", (float)behaviourElapsedTime);
+            gameplay.texts[1].update = 1;
         }
-
-        behaviourElapsedTime = StopChronometer(behaviourFrequency, behaviourInitialTime, &behaviourFinalTime);
-
-        sprintf(gameplay.texts[1].content, "BLT: %012.3f ms", (float)behaviourElapsedTime);
-        gameplay.texts[1].update = 1;
     }
 
     return 0;
@@ -571,7 +571,7 @@ void *UpdateEntityPhysics()
         physicsElapsedTime = StopChronometer(physicsFrequency, physicsInitialTime, &physicsFinalTime);
         physicsElapsedTime = Tick(physicsElapsedTime);
 
-        sprintf(gameplay.texts[2].content, "PLT: %012.3f ms", (float)physicsElapsedTime);
+        sprintf(gameplay.texts[2].content, "PLT: %08.3f ms", (float)physicsElapsedTime);
         gameplay.texts[2].update = 1;
     }
 
@@ -587,9 +587,7 @@ void UpdatePlayerPhysics()
     Entity *entityPtrInTargetPosition;
     float spawnX;
     float spawnY;
-    Entity *entityPtrInSpawnPosition;
     Entity *entityPtrInAdjacentPosition;
-    float distanceFromPlayer;
 
     // Obtém a posição
     oldPositionX = (int)entityMatrix.playerPtr->position[0];
@@ -615,7 +613,9 @@ void UpdatePlayerPhysics()
     {
         for (int k = targetPositionY - 1; k < targetPositionY + 2; k++)
         {
-            if (j != targetPositionX || k != targetPositionY)
+            if ((j != targetPositionX || k != targetPositionY) &&
+                (j >= 0 && j < entityMatrix.width) &&
+                (k >= 0 && k < entityMatrix.height))
             {
                 entityPtrInAdjacentPosition = GetEntityPtrFromMatrix(j, k);
                 if (entityPtrInAdjacentPosition->type == COIN)
@@ -697,7 +697,9 @@ void UpdateEnemyPhysics(Entity *enemyPtr)
     // Caso a posição tenha o jogador
     else if (entityPtrInTargetPosition->type == PLAYER)
     {
-        events[0] = GM_GAMEOVER; // Adiciona o evento de fim de jogo
+        LockEvent();
+        SetGameEvent(GM_GAMEOVER, 1); // Adiciona o evento de fim de jogo
+        UnlockEvent();
         sprintf(gameover.texts[1].content, "Score: %010d", score);
     }
 }
@@ -778,7 +780,7 @@ void *RenderEntities()
 
         renderingElapsedTime = StopChronometer(renderingFrequency, renderingInitialTime, &renderingFinalTime);
 
-        sprintf(gameplay.texts[0].content, "FPS: %012.3f", 1000.0f / (float)renderingElapsedTime);
+        sprintf(gameplay.texts[0].content, "FPS: %08.3f", 1000.0f / (float)renderingElapsedTime);
         gameplay.texts[0].update = 1;
     }
 

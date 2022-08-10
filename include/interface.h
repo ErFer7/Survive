@@ -6,7 +6,7 @@
 #define MAX_BUTTON_STRLEN 9
 #define MAX_TEXTS 4
 #define MAX_BUTTONS 3
-#define VERSION "2.14"
+#define VERSION "2.15"
 
 enum Alignment
 {
@@ -59,7 +59,6 @@ extern Interface pause;
 extern Interface gameover;
 extern int interfaceKeyLock;
 
-void BuildBorders();
 void CalculateAlignedPosition(int *x, int *y, int sizeX, int sizeY, enum Alignment alignment);
 void InterfaceBehaviour(Interface *interfaceIn);
 void UpdateInterfaces();
