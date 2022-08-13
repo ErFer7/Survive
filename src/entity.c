@@ -17,6 +17,7 @@ pthread_t physicsThread;
 pthread_t renderingThread;
 sem_t behaviourSemaphore;
 sem_t physicsSemaphore;
+int fixedScreen;
 
 void InitEntitySemaphores()
 {
@@ -704,8 +705,9 @@ void UpdateEnemyPhysics(Entity *enemyPtr)
     }
 }
 
-void StartRenderingThread()
+void StartRenderingThread(int fixedScreen_)
 {
+    fixedScreen = fixedScreen_;
     pthread_create(&renderingThread, NULL, RenderEntities, NULL);
 }
 
@@ -727,8 +729,16 @@ void *RenderEntities()
     {
         StartChronometer(&renderingFrequency, &renderingInitialTime);
 
-        xOffset = (int)(entityMatrix.playerPtr->position[0] - 0.5 * consoleWidth);
-        yOffset = (int)(entityMatrix.playerPtr->position[1] - 0.5 * consoleHeight);
+        if (!fixedScreen)
+        {
+            xOffset = (int)(entityMatrix.playerPtr->position[0] - 0.5 * consoleWidth);
+            yOffset = (int)(entityMatrix.playerPtr->position[1] - 0.5 * consoleHeight);
+        }
+        else
+        {
+            xOffset = 0;
+            yOffset = 0;
+        }
 
         for (int i = 0; i < consoleHeight - 1; i++)
         {

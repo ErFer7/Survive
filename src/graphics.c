@@ -7,10 +7,10 @@ HANDLE consoleOutputHandle;
 SMALL_RECT consoleRect;
 CHAR_INFO *consoleBuffer;
 
-void InitConsoleRenderer(int width, int height)
+void InitConsoleRenderer(int consoleWidth_, int consoleHeight_)
 {
-    consoleWidth = width > 255 ? 255 : width;
-    consoleHeight = height > 255 ? 255 : height;
+    consoleWidth = consoleWidth_ > 255 ? 255 : consoleWidth_;
+    consoleHeight = consoleHeight_ > 255 ? 255 : consoleHeight_;
 
     consoleOutputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 

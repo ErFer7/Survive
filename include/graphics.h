@@ -7,7 +7,7 @@ extern HANDLE consoleOutputHandle;
 extern SMALL_RECT consoleRect;
 extern CHAR_INFO *consoleBuffer;
 
-void InitConsoleRenderer(int width, int height);
+void InitConsoleRenderer(int consoleWidth_, int consoleHeight_);
 void FreeConsoleRenderer();
 void SetCharOnPosition(int x, int y, char c, unsigned short color);
 void PrintStringOnPosition(char *s, unsigned short color, int x, int y);

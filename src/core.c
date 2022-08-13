@@ -26,11 +26,11 @@ void FreeCore()
     pthread_mutex_destroy(&eventMutex);
 }
 
-void SetGameEvent(enum Event newEvent, int force)
+void SetGameEvent(enum Event event_, int force)
 {
     if (event == IDLE || force)
     {
-        event = newEvent;
+        event = event_;
     }
 }
 

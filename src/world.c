@@ -12,6 +12,8 @@
 
 #define PI 3.141593
 
+int worldWidth, worldHeight, empty;
+
 // Thanks Charles Zinn for the perlin noise generator
 double RawNoise(int n)
 {
@@ -65,67 +67,73 @@ double PerlinNoise(double x, double y, double persistence, int octaves, int seed
     return total;
 }
 
-void GenerateWorld(int width, int height)
+void GenerateWorld(int worldWidth_, int worldHeight_, int empty_)
 {
     /* Gera o mundo do jogo.
      */
 
     score = 0;
     idCount = 0;
+    worldWidth = worldWidth_;
+    worldHeight = worldHeight_;
+    empty = empty_;
 
     // Inicializa as matrizes
-    InitEntityMatrix(width, height);
+    InitEntityMatrix(worldWidth, worldHeight);
 
-    int seed = (int)Randomf(0, 2147483647);
-
-#pragma omp parallel for collapse(2)
-    for (int i = 0; i < height; i++)
+    if (!empty)
     {
-        for (int j = 0; j < width; j++)
-        {
-            double noise = PerlinNoise((double)j * 0.1, (double)i * 0.1, 0.65, 5, seed);
+        int seed = (int)Randomf(0, 2147483647);
 
-            if (noise > 0.7 && noise <= 0.775)
+        #pragma omp parallel for collapse(2)
+        for (int i = 0; i < worldHeight; i++)
+        {
+            for (int j = 0; j < worldWidth; j++)
             {
-                Entity wall = CreateWall((float)j, (float)i, 176);
-                InsertEntityOnMatrix(wall, j, i);
-            }
-            else if (noise > 0.775 && noise <= 0.85)
-            {
-                Entity wall = CreateWall((float)j, (float)i, 177);
-                InsertEntityOnMatrix(wall, j, i);
-            }
-            else if (noise > 0.85 && noise <= 0.925)
-            {
-                Entity wall = CreateWall((float)j, (float)i, 178);
-                InsertEntityOnMatrix(wall, j, i);
-            }
-            else if (noise > 0.925)
-            {
-                Entity wall = CreateWall((float)j, (float)i, 219);
-                InsertEntityOnMatrix(wall, j, i);
+                double noise = PerlinNoise((double)j * 0.1, (double)i * 0.1, 0.65, 5, seed);
+
+                if (noise > 0.7 && noise <= 0.775)
+                {
+                    Entity wall = CreateWall((float)j, (float)i, 176);
+                    InsertEntityOnMatrix(wall, j, i);
+                }
+                else if (noise > 0.775 && noise <= 0.85)
+                {
+                    Entity wall = CreateWall((float)j, (float)i, 177);
+                    InsertEntityOnMatrix(wall, j, i);
+                }
+                else if (noise > 0.85 && noise <= 0.925)
+                {
+                    Entity wall = CreateWall((float)j, (float)i, 178);
+                    InsertEntityOnMatrix(wall, j, i);
+                }
+                else if (noise > 0.925)
+                {
+                    Entity wall = CreateWall((float)j, (float)i, 219);
+                    InsertEntityOnMatrix(wall, j, i);
+                }
             }
         }
     }
 
     // Constroi as paredes de cima e de baixo
-    for (int i = 0; i < width; i++)
+    for (int i = 0; i < worldWidth; i++)
     {
         Entity topWall = CreateWall((float)i, 0.0f, 219);
-        Entity bottonWall = CreateWall((float)i, (float)(height - 1), 219);
+        Entity bottonWall = CreateWall((float)i, (float)(worldHeight - 1), 219);
 
         InsertEntityOnMatrix(topWall, i, 0.0f);
-        InsertEntityOnMatrix(bottonWall, i, height - 1);
+        InsertEntityOnMatrix(bottonWall, i, worldHeight - 1);
     }
 
     // Constroi as paredes da esquerda e direita
-    for (int i = 0; i < height - 1; i++)
+    for (int i = 0; i < worldHeight - 1; i++)
     {
         Entity leftWall = CreateWall(0.0f, (float)i, 219);
-        Entity rightWall = CreateWall((float)(width - 1), (float)i, 219);
+        Entity rightWall = CreateWall((float)(worldWidth - 1), (float)i, 219);
 
         InsertEntityOnMatrix(leftWall, 0.0f, i);
-        InsertEntityOnMatrix(rightWall, width - 1, i);
+        InsertEntityOnMatrix(rightWall, worldWidth - 1, i);
     }
 
     float spawnX = 0.0f;
@@ -137,7 +145,7 @@ void GenerateWorld(int width, int height)
 
     // Para um mapa 120 x 30 era gerada apenas uma moeda, sendo assim 3600 equivalem a uma moeda. Usando a regra de 3
     // obtém-se o limite abaixo
-    for (int i = 0; i < (int)round((width * height) / 3600.0f); i++)
+    for (int i = 0; i < (int)round((worldWidth * worldHeight) / 3600.0f); i++)
     {
         GenerateSpawnPosition(&spawnX, &spawnY, 0.0f, 0.0f, 0.0f);
         Entity coin = CreateCoin(spawnX, spawnY);

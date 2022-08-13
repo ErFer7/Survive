@@ -55,6 +55,7 @@ extern pthread_t physicsThread;
 extern pthread_t renderingThread;
 extern sem_t behaviourSemaphore;
 extern sem_t physicsSemaphore;
+extern int fixedScreen;
 
 void InitEntitySemaphores();
 void FreeEntitySemaphores();
@@ -79,6 +80,6 @@ void StopPhysicsThread();
 void *UpdateEntityPhysics();
 void UpdatePlayerPhysics();
 void UpdateEnemyPhysics(Entity *enemyPtr);
-void StartRenderingThread();
+void StartRenderingThread(int fixedScreen_);
 void StopRenderingThread();
 void *RenderEntities();
