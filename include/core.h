@@ -5,7 +5,12 @@
 enum Event
 {
     IDLE,
-    UI_PLAY,
+    UI_START,
+    UI_START_SMALL,
+    UI_START_REGULAR,
+    UI_START_LARGE,
+    UI_START_MEGA,
+    UI_START_CLASSIC,
     UI_INFO,
     UI_QUIT,
     UI_PAUSE,
@@ -19,6 +24,7 @@ enum State
 {
     MAIN_MENU,
     INFO_MENU,
+    START_MENU,
     GAMEPLAY,
     PAUSE,
     GAMEOVER,
@@ -32,7 +38,7 @@ extern pthread_mutex_t eventMutex;
 
 void InitCore();
 void FreeCore();
-void SetGameEvent(enum Event newEvent, int force);
+void SetGameEvent(enum Event event_, int force);
 enum Event GetGameEvent();
 void LockEvent();
 void UnlockEvent();
