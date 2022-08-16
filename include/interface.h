@@ -6,7 +6,7 @@
 #define MAX_BUTTON_STRLEN 32
 #define MAX_TEXTS 4
 #define MAX_BUTTONS 16
-#define VERSION "2.16"
+#define VERSION "2.17-dev"
 
 enum Alignment
 {
@@ -60,6 +60,17 @@ extern Interface pause;
 extern Interface gameover;
 extern int interfaceKeyLock;
 
+typedef struct
+{
+    Interface mainMenu;
+    Interface startMenu;
+    Interface infoMenu;
+    Interface gameplay;
+    Interface pause;
+    Interface gameover;
+    int interfaceKeyLock;
+} InterfaceContext;
+
 void CalculateAlignedPosition(char* string, int *x, int *y, enum Alignment alignment);
 Text CreateText(char content[MAX_TEXT_STRLEN],
                 unsigned short color,
@@ -74,8 +85,8 @@ Button CreateButton(char content[MAX_BUTTON_STRLEN],
                     enum Event event,
                     int update,
                     enum Alignment alignment);
-void InterfaceBehaviour(Interface *interface_);
-void UpdateInterfaces();
+void InterfaceBehaviour(EventStateContext *eventStateContextPtr, Interface *interface_);
+void UpdateInterfaces(EventStateContext *eventStateContextPtr);
 void RenderInterface(Interface *interface_);
 void BuildMainMenuInterface();
 void BuildInfoInterface();

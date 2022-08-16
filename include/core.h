@@ -31,14 +31,12 @@ enum State
     EXIT
 };
 
-extern enum State state;
-extern enum Event event;
-extern unsigned int score;
-extern pthread_mutex_t eventMutex;
+typedef struct
+{
+    enum Event event;
+    enum State state;
+    pthread_mutex_t eventMutex;
+} EventStateContext;
 
-void InitCore();
-void FreeCore();
-void SetGameEvent(enum Event event_, int force);
-enum Event GetGameEvent();
-void LockEvent();
-void UnlockEvent();
+void InitEventStateContext(EventStateContext *eventStateCtx);
+void FreeEventStateContext(EventStateContext *eventStateCtx);

@@ -1,7 +1,9 @@
 #include "../include/interface.h"
 
 #include <stdio.h>
+#include <pthread.h>
 
+#include "../include/vector2D.h"
 #include "../include/core.h"
 #include "../include/utilities.h"
 #include "../include/graphics.h"
@@ -145,7 +147,7 @@ Button CreateButton(char content[MAX_BUTTON_STRLEN],
     return button;
 }
 
-void InterfaceBehaviour(Interface *interface_)
+void InterfaceBehaviour(EventStateContext *eventStateContextPtr, Interface *interface_)
 {
     /* Define o comportamento de uma interface.
      */
@@ -156,9 +158,12 @@ void InterfaceBehaviour(Interface *interface_)
             // Adiciona o evento do botão na lista de eventos caso o botão seja válido
             if (interface_->buttons[interface_->selectedButton].event != IDLE)
             {
-                LockEvent();
-                SetGameEvent(interface_->buttons[interface_->selectedButton].event, 0);
-                UnlockEvent();
+                pthread_mutex_lock(&eventStateContextPtr->eventMutex);
+                if (eventStateContextPtr->event == IDLE)
+                {
+                    eventStateContextPtr->event = interface_->buttons[interface_->selectedButton].event;
+                }
+                pthread_mutex_unlock(&eventStateContextPtr->eventMutex);
                 interface_->update = 1;
             }
 
@@ -196,41 +201,44 @@ void InterfaceBehaviour(Interface *interface_)
         else if (GetKeyState(VK_ESCAPE) & 0x8000) // Esc
         {
             // Adiciona o evento correspondente ao estado na lista de eventos
-            LockEvent();
-            switch (state)
+            pthread_mutex_lock(&eventStateContextPtr->eventMutex);
+            if (eventStateContextPtr->event == IDLE)
             {
-            case MAIN_MENU:
+                switch (eventStateContextPtr->state)
+                {
+                case MAIN_MENU:
 
-                SetGameEvent(UI_QUIT, 0); // Evento de saída
-                break;
-            case INFO_MENU:
+                    eventStateContextPtr->event = UI_QUIT;
+                    break;
+                case INFO_MENU:
 
-                SetGameEvent(UI_RETURN, 0); // Evento de retorno ao menu
-                interface_->update = 1;
-                break;
-            case START_MENU:
+                    eventStateContextPtr->event = UI_RETURN;
+                    interface_->update = 1;
+                    break;
+                case START_MENU:
 
-                SetGameEvent(UI_RETURN, 0); // Evento de retorno ao menu
-                interface_->update = 1;
-                break;
-            case GAMEPLAY:
+                    eventStateContextPtr->event = UI_RETURN;
+                    interface_->update = 1;
+                    break;
+                case GAMEPLAY:
 
-                SetGameEvent(UI_PAUSE, 0); // Evento de pausa
-                break;
-            case PAUSE:
+                    eventStateContextPtr->event = UI_PAUSE;
+                    break;
+                case PAUSE:
 
-                SetGameEvent(UI_RESUME, 0); // Evento de continuar o jogo
-                interface_->update = 1;
-                break;
-            case GAMEOVER:
+                    eventStateContextPtr->event = UI_RESUME;
+                    interface_->update = 1;
+                    break;
+                case GAMEOVER:
 
-                SetGameEvent(UI_RETURN, 0); // Evento de retornar ao menu
-                interface_->update = 1;
-                break;
-            default:
-                break;
+                    eventStateContextPtr->event = UI_RETURN;
+                    interface_->update = 1;
+                    break;
+                default:
+                    break;
+                }
             }
-            UnlockEvent();
+            pthread_mutex_unlock(&eventStateContextPtr->eventMutex);
 
             interfaceKeyLock = 1;
         }
@@ -245,41 +253,41 @@ void InterfaceBehaviour(Interface *interface_)
     }
 }
 
-void UpdateInterfaces()
+void UpdateInterfaces(EventStateContext *eventStateContextPtr)
 {
     /* Atualiza todas as interfaces com base no estado.
      */
 
-    switch (state)
+    switch (eventStateContextPtr->state)
     {
     case MAIN_MENU:
 
         RenderInterface(&mainMenu);
-        InterfaceBehaviour(&mainMenu);
+        InterfaceBehaviour(eventStateContextPtr, &mainMenu);
         break;
     case INFO_MENU:
 
         RenderInterface(&infoMenu);
-        InterfaceBehaviour(&infoMenu);
+        InterfaceBehaviour(eventStateContextPtr, &infoMenu);
         break;
     case START_MENU:
         RenderInterface(&startMenu);
-        InterfaceBehaviour(&startMenu);
+        InterfaceBehaviour(eventStateContextPtr, &startMenu);
         break;
     case GAMEPLAY:
 
         RenderInterface(&gameplay);
-        InterfaceBehaviour(&gameplay);
+        InterfaceBehaviour(eventStateContextPtr, &gameplay);
         break;
     case PAUSE:
 
         RenderInterface(&pause);
-        InterfaceBehaviour(&pause);
+        InterfaceBehaviour(eventStateContextPtr, &pause);
         break;
     case GAMEOVER:
 
         RenderInterface(&gameover);
-        InterfaceBehaviour(&gameover);
+        InterfaceBehaviour(eventStateContextPtr, &gameover);
         break;
     default:
         break;
@@ -326,7 +334,7 @@ void RenderInterface(Interface *interface_)
     }
 
     // Move o cursor para o canto da tela
-    SetCursorPosition(consoleWidth - 1, consoleHeight - 1);
+    SetCursorPosition(CreateVector2D(consoleWidth - 1, consoleHeight - 1));
 
     interface_->update = 0; // Reseta o estado de atualização da interface
 

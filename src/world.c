@@ -4,6 +4,7 @@
 #include <math.h>
 #include <omp.h>
 
+#include "../include/vector2D.h"
 #include "../include/core.h"
 #include "../include/utilities.h"
 #include "../include/graphics.h"
@@ -11,8 +12,6 @@
 #include "../include/entity.h"
 
 #define PI 3.141593
-
-int worldWidth, worldHeight, empty;
 
 // Thanks Charles Zinn for the perlin noise generator
 double RawNoise(int n)
@@ -67,88 +66,86 @@ double PerlinNoise(double x, double y, double persistence, int octaves, int seed
     return total;
 }
 
-void GenerateWorld(int worldWidth_, int worldHeight_, int empty_)
+void GenerateWorld(GameplayContext *gameplayCtxPtr)
 {
     /* Gera o mundo do jogo.
      */
 
-    score = 0;
-    idCount = 0;
-    worldWidth = worldWidth_;
-    worldHeight = worldHeight_;
-    empty = empty_;
-
-    // Inicializa as matrizes
-    InitEntityMatrix(worldWidth, worldHeight);
-
-    if (!empty)
+    if (!gameplayCtxPtr->empty)
     {
         int seed = (int)Randomf(0, 2147483647);
 
         #pragma omp parallel for collapse(2)
-        for (int i = 0; i < worldHeight; i++)
+        for (int i = 0; i < gameplayCtxPtr->worldSize.y; i++)
         {
-            for (int j = 0; j < worldWidth; j++)
+            for (int j = 0; j < gameplayCtxPtr->worldSize.x; j++)
             {
+                Vector2D position = CreateVector2D(j, i);
+                Vector2Df positionf = VectorInt2Float(position);
                 double noise = PerlinNoise((double)j * 0.1, (double)i * 0.1, 0.65, 5, seed);
 
                 if (noise > 0.7 && noise <= 0.775)
                 {
-                    Entity wall = CreateWall((float)j, (float)i, 176);
-                    InsertEntityOnMatrix(wall, j, i);
+                    Entity wall = CreateWall(positionf, 176);
+                    InsertEntityOnMatrix(&gameplayCtxPtr->entityMatrix, wall, position);
                 }
                 else if (noise > 0.775 && noise <= 0.85)
                 {
-                    Entity wall = CreateWall((float)j, (float)i, 177);
-                    InsertEntityOnMatrix(wall, j, i);
+                    Entity wall = CreateWall(positionf, 177);
+                    InsertEntityOnMatrix(&gameplayCtxPtr->entityMatrix, wall, position);
                 }
                 else if (noise > 0.85 && noise <= 0.925)
                 {
-                    Entity wall = CreateWall((float)j, (float)i, 178);
-                    InsertEntityOnMatrix(wall, j, i);
+                    Entity wall = CreateWall(positionf, 178);
+                    InsertEntityOnMatrix(&gameplayCtxPtr->entityMatrix, wall, position);
                 }
                 else if (noise > 0.925)
                 {
-                    Entity wall = CreateWall((float)j, (float)i, 219);
-                    InsertEntityOnMatrix(wall, j, i);
+                    Entity wall = CreateWall(positionf, 219);
+                    InsertEntityOnMatrix(&gameplayCtxPtr->entityMatrix, wall, position);
                 }
             }
         }
     }
 
     // Constroi as paredes de cima e de baixo
-    for (int i = 0; i < worldWidth; i++)
+    for (int i = 0; i < gameplayCtxPtr->worldSize.x; i++)
     {
-        Entity topWall = CreateWall((float)i, 0.0f, 219);
-        Entity bottonWall = CreateWall((float)i, (float)(worldHeight - 1), 219);
+        Entity topWall = CreateWall(CreateVector2Df((float)i, 0.0f), 219);
+        Entity bottonWall = CreateWall(CreateVector2Df((float)i, (float)(gameplayCtxPtr->worldSize.y - 1)), 219);
 
-        InsertEntityOnMatrix(topWall, i, 0.0f);
-        InsertEntityOnMatrix(bottonWall, i, worldHeight - 1);
+        Vector2D topVector = CreateVector2D(i, 0);
+        Vector2D bottomVector = CreateVector2D(i, gameplayCtxPtr->worldSize.y - 1);
+
+        InsertEntityOnMatrix(&gameplayCtxPtr->entityMatrix, topWall, topVector);
+        InsertEntityOnMatrix(&gameplayCtxPtr->entityMatrix, bottonWall, bottomVector);
     }
 
     // Constroi as paredes da esquerda e direita
-    for (int i = 0; i < worldHeight - 1; i++)
+    for (int i = 0; i < gameplayCtxPtr->worldSize.y - 1; i++)
     {
-        Entity leftWall = CreateWall(0.0f, (float)i, 219);
-        Entity rightWall = CreateWall((float)(worldWidth - 1), (float)i, 219);
+        Entity leftWall = CreateWall(CreateVector2Df(0.0f, (float)i), 219);
+        Entity rightWall = CreateWall(CreateVector2Df((float)(gameplayCtxPtr->worldSize.x - 1), (float)i), 219);
 
-        InsertEntityOnMatrix(leftWall, 0.0f, i);
-        InsertEntityOnMatrix(rightWall, worldWidth - 1, i);
+        Vector2D leftVector = CreateVector2D(0, i);
+        Vector2D rightVector = CreateVector2D(gameplayCtxPtr->worldSize.x - 1, i);
+
+        InsertEntityOnMatrix(&gameplayCtxPtr->entityMatrix, leftWall, leftVector);
+        InsertEntityOnMatrix(&gameplayCtxPtr->entityMatrix, rightWall, rightVector);
     }
 
-    float spawnX = 0.0f;
-    float spawnY = 0.0f;
+    Vector2Df spawn;
 
-    GenerateSpawnPosition(&spawnX, &spawnY, 0.0f, 0.0f, 0.0f);
-    Entity player = CreatePlayer(spawnX, spawnY);
-    InsertEntityOnMatrix(player, (int)spawnX, (int)spawnY);
+    spawn = GenerateSpawnPosition(&gameplayCtxPtr->entityMatrix, 0.0f, CreateVector2Df(0.0f, 0.0f));
+    Entity player = CreatePlayer(spawn);
+    InsertEntityOnMatrix(&gameplayCtxPtr->entityMatrix, player, VectorFloat2Int(spawn));
 
     // Para um mapa 120 x 30 era gerada apenas uma moeda, sendo assim 3600 equivalem a uma moeda. Usando a regra de 3
     // obtém-se o limite abaixo
-    for (int i = 0; i < (int)round((worldWidth * worldHeight) / 3600.0f); i++)
+    for (int i = 0; i < (int)round((gameplayCtxPtr->worldSize.x * gameplayCtxPtr->worldSize.y) / 3600.0f); i++)
     {
-        GenerateSpawnPosition(&spawnX, &spawnY, 0.0f, 0.0f, 0.0f);
-        Entity coin = CreateCoin(spawnX, spawnY);
-        InsertEntityOnMatrix(coin, (int)spawnX, (int)spawnY);
+        spawn = GenerateSpawnPosition(&gameplayCtxPtr->entityMatrix, 0.0f, CreateVector2Df(0.0f, 0.0f));
+        Entity coin = CreateCoin(spawn);
+        InsertEntityOnMatrix(&gameplayCtxPtr->entityMatrix, coin, VectorFloat2Int(spawn));
     }
 }

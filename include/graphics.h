@@ -2,15 +2,20 @@
 
 #include <Windows.h>
 
-extern int consoleWidth, consoleHeight;
-extern HANDLE consoleOutputHandle;
-extern SMALL_RECT consoleRect;
-extern CHAR_INFO *consoleBuffer;
+#include "../include/vector2D.h"
 
-void InitConsoleRenderer(int consoleWidth_, int consoleHeight_);
-void FreeConsoleRenderer();
-void SetCharOnPosition(int x, int y, char c, unsigned short color);
-void PrintStringOnPosition(char *s, unsigned short color, int x, int y);
-void SetCursorPosition(int x, int y);
-void WriteOutput();
-void ClearOutput();
+typedef struct
+{
+    Vector2D size;
+    HANDLE outputHandle;
+    SMALL_RECT rect;
+    CHAR_INFO *buffer;
+} ConsoleContext;
+
+void InitConsoleContext(ConsoleContext *consoleCtxPtr, Vector2D size);
+void FreeConsoleContext(ConsoleContext *consoleCtxPtr);
+void SetCharOnPosition(ConsoleContext *consoleCtxPtr, Vector2D position, char c, unsigned short color);
+void SetCursorPosition(ConsoleContext *consoleCtxPtr, Vector2D position);
+void PrintStringOnPosition(ConsoleContext *consoleCtxPtr, char *s, unsigned short color, int x, int y);
+void WriteOutput(ConsoleContext *consoleCtxPtr);
+void ClearOutput(ConsoleContext *consoleCtxPtr);

@@ -3,48 +3,17 @@
 #include <stdlib.h>
 #include <time.h>
 #include <pthread.h>
-#include <semaphore.h>
 
-unsigned int score;
-enum State state;
-enum Event event;
-pthread_mutex_t eventMutex;
-
-void InitCore()
+void InitEventStateContext(EventStateContext *eventStateCtx)
 {
     srand((unsigned)time(NULL));
 
-    score = 0;
-    state = MAIN_MENU;
-    event = IDLE;
-
-    pthread_mutex_init(&eventMutex, NULL);
+    eventStateCtx->event = IDLE;
+    eventStateCtx->state = MAIN_MENU;
+    pthread_mutex_init(&eventStateCtx->eventMutex, NULL);
 }
 
-void FreeCore()
+void FreeEventStateContext(EventStateContext *eventStateCtx)
 {
-    pthread_mutex_destroy(&eventMutex);
-}
-
-void SetGameEvent(enum Event event_, int force)
-{
-    if (event == IDLE || force)
-    {
-        event = event_;
-    }
-}
-
-enum Event GetGameEvent()
-{
-    return event;
-}
-
-void LockEvent()
-{
-    pthread_mutex_lock(&eventMutex);
-}
-
-void UnlockEvent()
-{
-    pthread_mutex_unlock(&eventMutex);
+    pthread_mutex_destroy(&eventStateCtx->eventMutex);
 }
