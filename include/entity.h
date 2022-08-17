@@ -47,7 +47,9 @@ typedef struct
     int enemyPtrsSize;
     int width;
     int height;
-    int allocated;
+    int matrixAllocated;
+    int coinPtrsAllocated;
+    int enemyPtrsAllocated;
 
 } EntityMatrix;
 
@@ -99,6 +101,7 @@ typedef struct
     TimeContext *timeCtxPtr;
 } RenderThreadArg;
 
+void PreInitGameplayContext(GameplayContext *gameplayCtxPtr);
 void InitGameplayContext(GameplayContext *gameplayCtxPtr, Vector2D size, int fixedScreen, int empty);
 void FreeGameplayContext(GameplayContext *gameplayCtxPtr);
 void InitEntitySemaphores(ThreadsContext *threadsCtxPtr);

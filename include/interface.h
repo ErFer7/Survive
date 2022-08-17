@@ -4,11 +4,7 @@
 #include "../include/core.h"
 #include "../include/graphics.h"
 
-#define MAX_TEXT_STRLEN 1024
-#define MAX_BUTTON_STRLEN 32
-#define MAX_TEXTS 4
-#define MAX_BUTTONS 16
-#define VERSION "2.17-dev"
+#define VERSION "2.17"
 
 enum Alignment
 {
@@ -26,7 +22,8 @@ enum Alignment
 // Texto
 typedef struct
 {
-    char content[MAX_TEXT_STRLEN];
+    char *content;
+    int contentSize;
     unsigned short color;
     Vector2D position;
     int update;
@@ -36,7 +33,8 @@ typedef struct
 // Botão
 typedef struct
 {
-    char content[MAX_BUTTON_STRLEN];
+    char *content;
+    int contentSize;
     unsigned short color;
     Vector2D position;
     enum Event event;
@@ -47,8 +45,10 @@ typedef struct
 // Interface
 typedef struct
 {
-    Text texts[MAX_TEXTS];
-    Button buttons[MAX_BUTTONS];
+    Text *texts;
+    int textCount;
+    Button *buttons;
+    int buttonCount;
     int selectedButton;
     int update;
 
@@ -65,20 +65,24 @@ typedef struct
     int interfaceKeyLock;
 } InterfaceContext;
 
+void InitInterfaceContext(InterfaceContext *interfaceCtxPtr, Vector2D consoleSize);
+void FreeInterfaceContext(InterfaceContext *interfaceCtxPtr);
 Vector2D CalculateAlignedPosition(char *string, Vector2D position, Vector2D consoleSize, enum Alignment alignment);
-Text CreateText(char content[MAX_TEXT_STRLEN],
+Text CreateText(char *content,
                 unsigned short color,
                 Vector2D position,
                 Vector2D consoleSize,
                 int update,
                 enum Alignment alignment);
-Button CreateButton(char content[MAX_BUTTON_STRLEN],
+void FreeText(Text *text);
+Button CreateButton(char *content,
                     unsigned short color,
                     Vector2D position,
                     Vector2D consoleSize,
                     enum Event event,
                     int update,
                     enum Alignment alignment);
+void FreeButton(Button *button);
 void InterfaceBehaviour(EventStateContext *eventStateContextPtr, Interface *interfacePtr, int *interfaceKeyLockPtr);
 void UpdateInterfaces(EventStateContext *eventStateContextPtr,
                       InterfaceContext *interfaceCtxPtr,
@@ -90,4 +94,4 @@ Interface BuildStartInterface(Vector2D consoleSize);
 Interface BuildGameplayInterface(Vector2D consoleSize);
 Interface BuildPauseInterface(Vector2D consoleSize);
 Interface BuildGameoverInterface(Vector2D consoleSize);
-void InitInterfaceContext(InterfaceContext *interfaceCtxPtr, Vector2D consoleSize);
+void FreeInterface(Interface *interfacePtr);

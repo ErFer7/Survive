@@ -11,6 +11,13 @@
 #include "../include/graphics.h"
 #include "../include/interface.h"
 
+void PreInitGameplayContext(GameplayContext *gameplayCtxPtr)
+{
+    gameplayCtxPtr->entityMatrix.matrixAllocated = 0;
+    gameplayCtxPtr->entityMatrix.coinPtrsAllocated = 0;
+    gameplayCtxPtr->entityMatrix.enemyPtrsAllocated = 0;
+}
+
 void InitGameplayContext(GameplayContext *gameplayCtxPtr, Vector2D size, int fixedScreen, int empty)
 {
     InitEntityMatrix(&gameplayCtxPtr->entityMatrix, size);
@@ -49,7 +56,7 @@ void InitEntityMatrix(EntityMatrix *entityMatrixPtr, Vector2D size)
     entityMatrixPtr->height = size.y;
     entityMatrixPtr->coinPtrsSize = 0;
     entityMatrixPtr->enemyPtrsSize = 0;
-    entityMatrixPtr->allocated = 1;
+    entityMatrixPtr->matrixAllocated = 1;
 
     // Preenche a matriz com entidades vazios
     for (int i = 0; i < size.y; i++)
@@ -78,6 +85,7 @@ void InsertEntityOnMatrix(EntityMatrix *entityMatrixPtr, Entity entity, Vector2D
         if (entityMatrixPtr->coinPtrsSize == 0)
         {
             entityMatrixPtr->coinPtrs = (Entity **)malloc(sizeof(Entity *));
+            entityMatrixPtr->coinPtrsAllocated = 1;
         }
         else
         {
@@ -94,6 +102,7 @@ void InsertEntityOnMatrix(EntityMatrix *entityMatrixPtr, Entity entity, Vector2D
         if (entityMatrixPtr->enemyPtrsSize == 0)
         {
             entityMatrixPtr->enemyPtrs = (Entity **)malloc(sizeof(Entity *));
+            entityMatrixPtr->enemyPtrsAllocated = 1;
         }
         else
         {
@@ -167,16 +176,22 @@ void FreeEntityMatrix(EntityMatrix *entityMatrixPtr)
     /* Libera a memória da matriz.
      */
 
-    if (entityMatrixPtr->allocated)
+    if (entityMatrixPtr->matrixAllocated)
+    {
+        free(entityMatrixPtr->matrix);
+        entityMatrixPtr->matrixAllocated = 0;
+    }
+
+    if (entityMatrixPtr->coinPtrsAllocated)
     {
         free(entityMatrixPtr->coinPtrs);
+        entityMatrixPtr->coinPtrsAllocated = 0;
+    }
+
+    if (entityMatrixPtr->enemyPtrsAllocated)
+    {
         free(entityMatrixPtr->enemyPtrs);
-        free(entityMatrixPtr->matrix);
-        entityMatrixPtr->enemyPtrs = NULL;
-        entityMatrixPtr->matrix = NULL;
-        entityMatrixPtr->width = 0;
-        entityMatrixPtr->height = 0;
-        entityMatrixPtr->allocated = 0;
+        entityMatrixPtr->enemyPtrsAllocated = 0;
     }
 }
 

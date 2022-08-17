@@ -38,6 +38,7 @@ int main()
     InitTimeContext(&timeCtx, TICK);
     InitConsoleContext(&consoleCtx, CreateVector2D(CONSOLE_WIDTH, CONSOLE_HEIGHT));
     InitInterfaceContext(&interfaceCtx, consoleCtx.size);
+    PreInitGameplayContext(&gameplayCtx);
 
     while (eventStateCtx.state != EXIT)
     {
@@ -166,6 +167,7 @@ int main()
 
     FreeEventStateContext(&eventStateCtx);
     FreeConsoleContext(&consoleCtx);
+    FreeInterfaceContext(&interfaceCtx);
 
     return 0;
 }

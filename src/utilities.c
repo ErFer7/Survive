@@ -5,6 +5,9 @@
 void InitTimeContext(TimeContext *timeCtxPtr, float tick)
 {
     timeCtxPtr->tick = tick;
+    timeCtxPtr->renderingElapsedTime = 0.0;
+    timeCtxPtr->behaviourElapsedTime = 0.0;
+    timeCtxPtr->physicsElapsedTime = 0.0;
 }
 
 void StartChronometer(LARGE_INTEGER *frequency, LARGE_INTEGER *initialTime)
