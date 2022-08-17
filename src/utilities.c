@@ -2,20 +2,9 @@
 
 #include <Windows.h>
 
-float tick;
-LARGE_INTEGER renderingFrequency;
-LARGE_INTEGER renderingInitialTime, renderingFinalTime;
-double renderingElapsedTime;
-LARGE_INTEGER behaviourFrequency;
-LARGE_INTEGER behaviourInitialTime, behaviourFinalTime;
-double behaviourElapsedTime;
-LARGE_INTEGER physicsFrequency;
-LARGE_INTEGER physicsInitialTime, physicsFinalTime;
-double physicsElapsedTime;
-
-void SetTick(float t)
+void InitTimeContext(TimeContext *timeCtxPtr, float tick)
 {
-    tick = t;
+    timeCtxPtr->tick = tick;
 }
 
 void StartChronometer(LARGE_INTEGER *frequency, LARGE_INTEGER *initialTime)
@@ -30,7 +19,7 @@ double StopChronometer(LARGE_INTEGER frequency, LARGE_INTEGER initialTime, LARGE
     return (finalTime->QuadPart - initialTime.QuadPart) * 1000.0 / frequency.QuadPart;
 }
 
-float Tick(double elapsedTime)
+float Tick(float tick, double elapsedTime)
 {
     /* Controla o tempo de espera entre frames e o retorna.
      */
@@ -41,7 +30,7 @@ float Tick(double elapsedTime)
     if (correctionTime > 0) // Caso seja necessário esperar
     {
         Sleep(correctionTime); // Espera
-        return 1000.0f / (float)(tick);
+        return 1000.0f / tick;
     }
     else
     {

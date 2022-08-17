@@ -23,6 +23,7 @@ void InitConsoleContext(ConsoleContext *consoleCtxPtr, Vector2D size)
     SetConsoleScreenBufferSize(consoleCtxPtr->outputHandle, coord);
     SetConsoleActiveScreenBuffer(consoleCtxPtr->outputHandle);
 
+
     consoleCtxPtr->buffer = malloc(consoleCtxPtr->size.x * consoleCtxPtr->size.y * sizeof(CHAR_INFO));
 }
 
@@ -47,18 +48,18 @@ void SetCursorPosition(ConsoleContext *consoleCtxPtr, Vector2D position)
     SetConsoleCursorPosition(consoleCtxPtr->outputHandle, coord);
 }
 
-void PrintStringOnPosition(ConsoleContext *consoleCtxPtr, char *s, unsigned short color, int x, int y)
+void PrintStringOnPosition(ConsoleContext *consoleCtxPtr, char *s, unsigned short color, Vector2D position)
 {
     /* Coloca um string na posição (x, y) com a cor especificada (0 a 15).
      */
 
-    Vector2D calculated = CreateVector2D(x, y);
+    Vector2D calculated = position;
 
     for (int i = 0; i < strlen(s); i++)
     {
         if (s[i] == '\n') // Aumenta a altura quando uma nova linha é encontrada
         {
-            calculated.x = x;
+            calculated.x = position.x;
             calculated.y++;
         }
         else if (s[i] != '\0')
