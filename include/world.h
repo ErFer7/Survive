@@ -1,10 +1,10 @@
 #pragma once
 
-extern int worldWidth, worldHeight, empty;
+#include "../include/entity.h"
 
 double RawNoise(int n);
 double Noise(int x, int y, int octave, int seed);
 double Interpolate(double a, double b, double x);
 double Smooth(double x, double y, int octave, int seed);
 double PerlinNoise(double x, double y, double persistence, int octaves, int seed);
-void GenerateWorld(int worldWidth_, int worldHeight_, int empty_);
+void GenerateWorld(GameplayContext *gameplayCtxPtr);

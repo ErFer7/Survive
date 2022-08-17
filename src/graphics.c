@@ -2,90 +2,100 @@
 
 #include <Windows.h>
 
-int consoleWidth, consoleHeight;
-HANDLE consoleOutputHandle;
-SMALL_RECT consoleRect;
-CHAR_INFO *consoleBuffer;
+#include "../include/vector2D.h"
+#include "../include/core.h"
 
-void InitConsoleRenderer(int consoleWidth_, int consoleHeight_)
+void InitConsoleContext(ConsoleContext *consoleCtxPtr, Vector2D size)
 {
-    consoleWidth = consoleWidth_ > 255 ? 255 : consoleWidth_;
-    consoleHeight = consoleHeight_ > 255 ? 255 : consoleHeight_;
+    consoleCtxPtr->size = size;
 
-    consoleOutputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    consoleCtxPtr->outputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    consoleRect.Top = 0;
-    consoleRect.Bottom = (short)(consoleHeight - 1);
-    consoleRect.Left = 0;
-    consoleRect.Right = (short)(consoleWidth - 1);
+    consoleCtxPtr->rect.Top = 0;
+    consoleCtxPtr->rect.Bottom = (short)(consoleCtxPtr->size.y - 1);
+    consoleCtxPtr->rect.Left = 0;
+    consoleCtxPtr->rect.Right = (short)(consoleCtxPtr->size.x - 1);
 
-    SetConsoleWindowInfo(consoleOutputHandle, TRUE, &consoleRect);
+    SetConsoleWindowInfo(consoleCtxPtr->outputHandle, TRUE, &consoleCtxPtr->rect);
 
-    COORD coord = {(short)consoleWidth, (short)consoleHeight};
+    COORD coord = {(short)consoleCtxPtr->size.x, (short)consoleCtxPtr->size.y};
 
-    SetConsoleScreenBufferSize(consoleOutputHandle, coord);
-    SetConsoleActiveScreenBuffer(consoleOutputHandle);
+    SetConsoleScreenBufferSize(consoleCtxPtr->outputHandle, coord);
+    SetConsoleActiveScreenBuffer(consoleCtxPtr->outputHandle);
 
-    consoleBuffer = malloc(consoleWidth * consoleHeight * sizeof(CHAR_INFO));   // Aloca a memória para o buffer do console
-    memset(consoleBuffer, 0, consoleWidth * consoleHeight * sizeof(CHAR_INFO)); // Reseta o buffer
+
+    consoleCtxPtr->buffer = malloc(consoleCtxPtr->size.x * consoleCtxPtr->size.y * sizeof(CHAR_INFO));
 }
 
-void FreeConsoleRenderer()
+void FreeConsoleContext(ConsoleContext *consoleCtxPtr)
 {
-    CloseHandle(consoleOutputHandle);
+    CloseHandle(consoleCtxPtr->outputHandle);
     FreeConsole();
 }
 
-void SetCharOnPosition(int x, int y, char c, unsigned short color)
+void SetCharOnPosition(ConsoleContext *consoleCtxPtr, Vector2D position, char c, unsigned short color)
 {
-    if (x >= 0 && x < consoleWidth && y >= 0 && y < consoleHeight)
+    if (position.x >= 0 && position.x < consoleCtxPtr->size.x && position.y >= 0 && position.y < consoleCtxPtr->size.y)
     {
-        consoleBuffer[y * consoleWidth + x].Attributes = color;
-        consoleBuffer[y * consoleWidth + x].Char.AsciiChar = c;
+        consoleCtxPtr->buffer[position.y * consoleCtxPtr->size.x + position.x].Attributes = color;
+        consoleCtxPtr->buffer[position.y * consoleCtxPtr->size.x + position.x].Char.AsciiChar = c;
     }
 }
 
-void SetCursorPosition(int x, int y)
+void SetCursorPosition(ConsoleContext *consoleCtxPtr, Vector2D position)
 {
-    COORD coord = {(SHORT)x, (SHORT)y};
-    SetConsoleCursorPosition(consoleOutputHandle, coord);
+    COORD coord = {(SHORT)position.x, (SHORT)position.y};
+    SetConsoleCursorPosition(consoleCtxPtr->outputHandle, coord);
 }
 
-void PrintStringOnPosition(char *s, unsigned short color, int x, int y)
+void PrintStringOnPosition(ConsoleContext *consoleCtxPtr, char *string, unsigned short color, Vector2D position)
 {
     /* Coloca um string na posição (x, y) com a cor especificada (0 a 15).
      */
 
-    int calculatedX = x;
-    int calculatedY = y;
+    Vector2D calculated = position;
+    int i = 0;
+    char c;
 
-    for (int i = 0; i < strlen(s); i++)
+    while (1)
     {
-        if (s[i] == '\n') // Aumenta a altura quando uma nova linha é encontrada
+        c = string[i];
+
+        if (c != '\0')
         {
-            calculatedX = x;
-            calculatedY++;
+            if (c != '\n')
+            {
+                calculated.x++;
+                SetCharOnPosition(consoleCtxPtr, calculated, string[i], color);
+            }
+            else
+            {
+                calculated.x = position.x;
+                calculated.y++;
+            }
+
+            i++;
         }
-        else if (s[i] != '\0')
+        else
         {
-            SetCharOnPosition(calculatedX++, calculatedY, s[i], color);
+            break;
         }
     }
 }
 
-void WriteOutput()
+void WriteOutput(ConsoleContext *consoleCtxPtr)
 {
-    COORD bufferSize = {(SHORT)consoleWidth, (SHORT)consoleHeight};
-    COORD bufferCoord = {0, 0};
+    COORD size = {(SHORT)consoleCtxPtr->size.x, (SHORT)consoleCtxPtr->size.y};
+    COORD coord = {0, 0};
 
-    WriteConsoleOutputA(consoleOutputHandle, consoleBuffer, bufferSize, bufferCoord, &consoleRect);
+    WriteConsoleOutputA(consoleCtxPtr->outputHandle, consoleCtxPtr->buffer, size, coord, &consoleCtxPtr->rect);
 }
 
-void ClearOutput()
+void ClearOutput(ConsoleContext *consoleCtxPtr)
 {
-    for (int i = 0; i < consoleHeight; i++)
-        for (int j = 0; j < consoleWidth; j++)
-            SetCharOnPosition(j, i, 32, 0x00);
+    for (int i = 0; i < consoleCtxPtr->size.y; i++)
+        for (int j = 0; j < consoleCtxPtr->size.x; j++)
+            SetCharOnPosition(consoleCtxPtr, CreateVector2D(j, i), 32, 0x00);
 
-    WriteOutput();
+    WriteOutput(consoleCtxPtr);
 }

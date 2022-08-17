@@ -1,24 +1,41 @@
 #include "../include/interface.h"
 
 #include <stdio.h>
+#include <pthread.h>
 
+#include "../include/vector2D.h"
 #include "../include/core.h"
 #include "../include/utilities.h"
 #include "../include/graphics.h"
 
-Interface mainMenu;
-Interface startMenu;
-Interface infoMenu;
-Interface gameplay;
-Interface pause;
-Interface gameover;
-int interfaceKeyLock;
+void InitInterfaceContext(InterfaceContext *interfaceCtxPtr, Vector2D consoleSize)
+{
+    interfaceCtxPtr->mainMenu = BuildMainMenuInterface(consoleSize);
+    interfaceCtxPtr->infoMenu = BuildInfoInterface(consoleSize);
+    interfaceCtxPtr->startMenu = BuildStartInterface(consoleSize);
+    interfaceCtxPtr->gameplay = BuildGameplayInterface(consoleSize);
+    interfaceCtxPtr->pause = BuildPauseInterface(consoleSize);
+    interfaceCtxPtr->gameover = BuildGameoverInterface(consoleSize);
 
-void CalculateAlignedPosition(char *string, int *x, int *y, enum Alignment alignment)
+    interfaceCtxPtr->interfaceKeyLock = 0;
+}
+
+void FreeInterfaceContext(InterfaceContext *interfaceCtxPtr)
+{
+    FreeInterface(&interfaceCtxPtr->mainMenu);
+    FreeInterface(&interfaceCtxPtr->infoMenu);
+    FreeInterface(&interfaceCtxPtr->startMenu);
+    FreeInterface(&interfaceCtxPtr->gameplay);
+    FreeInterface(&interfaceCtxPtr->pause);
+    FreeInterface(&interfaceCtxPtr->gameover);
+}
+
+Vector2D CalculateAlignedPosition(char *string, Vector2D position, Vector2D consoleSize, enum Alignment alignment)
 {
     /* Calcula a posição com base no alinhamento e retorna.
      */
 
+    Vector2D calculatedPosition = position;
     int width = 0;
     int height = 0;
     int lineWidth = 0;
@@ -58,516 +75,528 @@ void CalculateAlignedPosition(char *string, int *x, int *y, enum Alignment align
     {
     case TOP:
 
-        *x += (consoleWidth - width) / 2;
+        calculatedPosition.x += (consoleSize.x - width) / 2;
         break;
     case TOP_RIGHT:
 
-        *x += (consoleWidth + width / 2) - 1;
+        calculatedPosition.x += (consoleSize.x + width / 2) - 1;
         break;
     case LEFT:
 
-        *y += (consoleHeight - height) / 2;
+        calculatedPosition.y += (consoleSize.y - height) / 2;
         break;
     case CENTER:
 
-        *x += (consoleWidth - width) / 2;
-        *y += (consoleHeight - height) / 2;
+        calculatedPosition.x += (consoleSize.x - width) / 2;
+        calculatedPosition.y += (consoleSize.y - height) / 2;
         break;
     case RIGHT:
 
-        *x += (consoleWidth + width / 2) - 1;
-        *y += (consoleHeight - height) / 2;
+        calculatedPosition.x += (consoleSize.x + width / 2) - 1;
+        calculatedPosition.y += (consoleSize.y - height) / 2;
         break;
     case BOTTOM_LEFT:
 
-        *y += (consoleHeight + height / 2) - 1;
+        calculatedPosition.y += (consoleSize.y + height / 2) - 1;
         break;
     case BOTTOM:
 
-        *x += (consoleWidth - width) / 2;
-        *y += (consoleHeight + height / 2) - 1;
+        calculatedPosition.x += (consoleSize.x - width) / 2;
+        calculatedPosition.y += (consoleSize.y + height / 2) - 1;
         break;
     case BOTTOM_RIGHT:
 
-        *x += (consoleWidth + width / 2) - 1;
-        *y += (consoleHeight + height / 2) - 1;
+        calculatedPosition.x += (consoleSize.x + width / 2) - 1;
+        calculatedPosition.y += (consoleSize.y + height / 2) - 1;
         break;
     default:
         break;
     }
+
+    return calculatedPosition;
 }
 
-Text CreateText(char content[MAX_TEXT_STRLEN],
+Text CreateText(char *content,
                 unsigned short color,
-                int x,
-                int y,
+                Vector2D position,
+                Vector2D consoleSize,
                 int update,
                 enum Alignment alignment)
 {
     Text text = {
-        .content = "",
+        .contentSize = (int)strlen(content),
         .color = color,
-        .position = {x, y},
         .update = update};
 
-    memcpy(text.content, content, sizeof(char) * MAX_TEXT_STRLEN);
+    text.content = malloc(sizeof(char) * (text.contentSize + 1));
+    memcpy(text.content, content, sizeof(char) * (text.contentSize + 1));
 
-    CalculateAlignedPosition(text.content,
-                             &text.position[0],
-                             &text.position[1],
-                             alignment);
+    text.position = CalculateAlignedPosition(text.content, position, consoleSize, alignment);
 
     return text;
 }
 
-Button CreateButton(char content[MAX_BUTTON_STRLEN],
+void FreeText(Text *text)
+{
+    free(text->content);
+}
+
+Button CreateButton(char *content,
                     unsigned short color,
-                    int x,
-                    int y,
+                    Vector2D position,
+                    Vector2D consoleSize,
                     enum Event event,
                     int update,
                     enum Alignment alignment)
 {
     Button button = {
-        .content = "",
+        .contentSize = (int)strlen(content),
         .color = color,
-        .position = {x, y},
         .event = event,
         .update = update};
 
-    memcpy(button.content, content, sizeof(char) * MAX_BUTTON_STRLEN);
+    button.content = malloc(sizeof(char) * (button.contentSize + 1));
+    memcpy(button.content, content, sizeof(char) * (button.contentSize + 1));
 
-    CalculateAlignedPosition(button.content,
-                             &button.position[0],
-                             &button.position[1],
-                             alignment);
+    button.position = CalculateAlignedPosition(button.content, position, consoleSize, alignment);
 
     return button;
 }
 
-void InterfaceBehaviour(Interface *interface_)
+void FreeButton(Button *button)
+{
+    free(button->content);
+}
+
+void InterfaceBehaviour(EventStateContext *eventStateContextPtr, Interface *interfacePtr, int *interfaceKeyLockPtr)
 {
     /* Define o comportamento de uma interface.
      */
-    if (!interfaceKeyLock)
+    if (!*interfaceKeyLockPtr)
     {
         if (GetKeyState(VK_RETURN) & 0x8000) // Enter
         {
             // Adiciona o evento do botão na lista de eventos caso o botão seja válido
-            if (interface_->buttons[interface_->selectedButton].event != IDLE)
+            if (interfacePtr->buttons[interfacePtr->selectedButton].event != IDLE)
             {
-                LockEvent();
-                SetGameEvent(interface_->buttons[interface_->selectedButton].event, 0);
-                UnlockEvent();
-                interface_->update = 1;
+                pthread_mutex_lock(&eventStateContextPtr->eventMutex);
+                if (eventStateContextPtr->event == IDLE)
+                {
+                    eventStateContextPtr->event = interfacePtr->buttons[interfacePtr->selectedButton].event;
+                }
+                pthread_mutex_unlock(&eventStateContextPtr->eventMutex);
+                interfacePtr->update = 1;
             }
 
-            interfaceKeyLock = 1;
+            *interfaceKeyLockPtr = 1;
         }
         else if (GetKeyState(VK_UP) & 0x8000) // Seta para cima
         {
             // Seleciona o botão superior caso possível
-            if (interface_->selectedButton > 0)
+            if (interfacePtr->selectedButton > 0)
             {
-                interface_->selectedButton--;
-                interface_->buttons[interface_->selectedButton].color = 0x0C;
-                interface_->buttons[interface_->selectedButton + 1].color = 0x07;
-                interface_->buttons[interface_->selectedButton].update = 1;
-                interface_->buttons[interface_->selectedButton + 1].update = 1;
+                interfacePtr->selectedButton--;
+                interfacePtr->buttons[interfacePtr->selectedButton].color = 0x0C;
+                interfacePtr->buttons[interfacePtr->selectedButton + 1].color = 0x07;
+                interfacePtr->buttons[interfacePtr->selectedButton].update = 1;
+                interfacePtr->buttons[interfacePtr->selectedButton + 1].update = 1;
             }
 
-            interfaceKeyLock = 1;
+            *interfaceKeyLockPtr = 1;
         }
         else if (GetKeyState(VK_DOWN) & 0x8000) // Seta para baixo
         {
             // Seleciona o botão inferior caso possível
-            if (interface_->selectedButton < MAX_BUTTONS - 1 &&
-                interface_->buttons[interface_->selectedButton + 1].event != IDLE)
+            if (interfacePtr->selectedButton < interfacePtr->buttonCount - 1 &&
+                interfacePtr->buttons[interfacePtr->selectedButton + 1].event != IDLE)
             {
-                interface_->selectedButton++;
-                interface_->buttons[interface_->selectedButton].color = 0x0C;
-                interface_->buttons[interface_->selectedButton - 1].color = 0x07;
-                interface_->buttons[interface_->selectedButton].update = 1;
-                interface_->buttons[interface_->selectedButton - 1].update = 1;
+                interfacePtr->selectedButton++;
+                interfacePtr->buttons[interfacePtr->selectedButton].color = 0x0C;
+                interfacePtr->buttons[interfacePtr->selectedButton - 1].color = 0x07;
+                interfacePtr->buttons[interfacePtr->selectedButton].update = 1;
+                interfacePtr->buttons[interfacePtr->selectedButton - 1].update = 1;
             }
 
-            interfaceKeyLock = 1;
+            *interfaceKeyLockPtr = 1;
         }
         else if (GetKeyState(VK_ESCAPE) & 0x8000) // Esc
         {
             // Adiciona o evento correspondente ao estado na lista de eventos
-            LockEvent();
-            switch (state)
+            pthread_mutex_lock(&eventStateContextPtr->eventMutex);
+            if (eventStateContextPtr->event == IDLE)
             {
-            case MAIN_MENU:
+                switch (eventStateContextPtr->state)
+                {
+                case MAIN_MENU:
 
-                SetGameEvent(UI_QUIT, 0); // Evento de saída
-                break;
-            case INFO_MENU:
+                    eventStateContextPtr->event = UI_QUIT;
+                    break;
+                case INFO_MENU:
 
-                SetGameEvent(UI_RETURN, 0); // Evento de retorno ao menu
-                interface_->update = 1;
-                break;
-            case START_MENU:
+                    eventStateContextPtr->event = UI_RETURN;
+                    interfacePtr->update = 1;
+                    break;
+                case START_MENU:
 
-                SetGameEvent(UI_RETURN, 0); // Evento de retorno ao menu
-                interface_->update = 1;
-                break;
-            case GAMEPLAY:
+                    eventStateContextPtr->event = UI_RETURN;
+                    interfacePtr->update = 1;
+                    break;
+                case GAMEPLAY:
 
-                SetGameEvent(UI_PAUSE, 0); // Evento de pausa
-                break;
-            case PAUSE:
+                    eventStateContextPtr->event = UI_PAUSE;
+                    break;
+                case PAUSE:
 
-                SetGameEvent(UI_RESUME, 0); // Evento de continuar o jogo
-                interface_->update = 1;
-                break;
-            case GAMEOVER:
+                    eventStateContextPtr->event = UI_RESUME;
+                    interfacePtr->update = 1;
+                    break;
+                case GAMEOVER:
 
-                SetGameEvent(UI_RETURN, 0); // Evento de retornar ao menu
-                interface_->update = 1;
-                break;
-            default:
-                break;
+                    eventStateContextPtr->event = UI_RETURN;
+                    interfacePtr->update = 1;
+                    break;
+                default:
+                    break;
+                }
             }
-            UnlockEvent();
+            pthread_mutex_unlock(&eventStateContextPtr->eventMutex);
 
-            interfaceKeyLock = 1;
+            *interfaceKeyLockPtr = 1;
         }
     }
 
-    if (interfaceKeyLock && !(GetKeyState(VK_RETURN) & 0x8000 ||
-                              GetKeyState(VK_ESCAPE) & 0x8000 ||
-                              GetKeyState(VK_UP) & 0x8000 ||
-                              GetKeyState(VK_DOWN) & 0x8000))
+    if (*interfaceKeyLockPtr && !(GetKeyState(VK_RETURN) & 0x8000 ||
+                                  GetKeyState(VK_ESCAPE) & 0x8000 ||
+                                  GetKeyState(VK_UP) & 0x8000 ||
+                                  GetKeyState(VK_DOWN) & 0x8000))
     {
-        interfaceKeyLock = 0;
+        *interfaceKeyLockPtr = 0;
     }
 }
 
-void UpdateInterfaces()
+void UpdateInterfaces(EventStateContext *eventStateContextPtr,
+                      InterfaceContext *interfaceCtxPtr,
+                      ConsoleContext *consoleCtxPtr)
 {
     /* Atualiza todas as interfaces com base no estado.
      */
 
-    switch (state)
+    switch (eventStateContextPtr->state)
     {
     case MAIN_MENU:
 
-        RenderInterface(&mainMenu);
-        InterfaceBehaviour(&mainMenu);
+        RenderInterface(consoleCtxPtr, &interfaceCtxPtr->mainMenu);
+        InterfaceBehaviour(eventStateContextPtr, &interfaceCtxPtr->mainMenu, &interfaceCtxPtr->interfaceKeyLock);
         break;
     case INFO_MENU:
 
-        RenderInterface(&infoMenu);
-        InterfaceBehaviour(&infoMenu);
+        RenderInterface(consoleCtxPtr, &interfaceCtxPtr->infoMenu);
+        InterfaceBehaviour(eventStateContextPtr, &interfaceCtxPtr->infoMenu, &interfaceCtxPtr->interfaceKeyLock);
         break;
     case START_MENU:
-        RenderInterface(&startMenu);
-        InterfaceBehaviour(&startMenu);
+        RenderInterface(consoleCtxPtr, &interfaceCtxPtr->startMenu);
+        InterfaceBehaviour(eventStateContextPtr, &interfaceCtxPtr->startMenu, &interfaceCtxPtr->interfaceKeyLock);
         break;
     case GAMEPLAY:
 
-        RenderInterface(&gameplay);
-        InterfaceBehaviour(&gameplay);
+        RenderInterface(consoleCtxPtr, &interfaceCtxPtr->gameplay);
+        InterfaceBehaviour(eventStateContextPtr, &interfaceCtxPtr->gameplay, &interfaceCtxPtr->interfaceKeyLock);
         break;
     case PAUSE:
 
-        RenderInterface(&pause);
-        InterfaceBehaviour(&pause);
+        RenderInterface(consoleCtxPtr, &interfaceCtxPtr->pause);
+        InterfaceBehaviour(eventStateContextPtr, &interfaceCtxPtr->pause, &interfaceCtxPtr->interfaceKeyLock);
         break;
     case GAMEOVER:
 
-        RenderInterface(&gameover);
-        InterfaceBehaviour(&gameover);
+        RenderInterface(consoleCtxPtr, &interfaceCtxPtr->gameover);
+        InterfaceBehaviour(eventStateContextPtr, &interfaceCtxPtr->gameover, &interfaceCtxPtr->interfaceKeyLock);
         break;
     default:
         break;
     }
 }
 
-void RenderInterface(Interface *interface_)
+void RenderInterface(ConsoleContext *consoleCtxPtr, Interface *interfacePtr)
 {
     /* Renderiza a interface.
      */
 
     // Limpa a tela caso toda a interface deva ser atualizada
-    if (interface_->update)
+    if (interfacePtr->update)
     {
-        ClearOutput();
+        ClearOutput(consoleCtxPtr);
     }
 
     // Renderiza cada texto
-    for (int i = 0; i < MAX_TEXTS; i++)
+    for (int i = 0; i < interfacePtr->textCount; i++)
     {
-        if (interface_->update || interface_->texts[i].update)
+        if (interfacePtr->update || interfacePtr->texts[i].update)
         {
-            PrintStringOnPosition(interface_->texts[i].content,
-                                  interface_->texts[i].color,
-                                  interface_->texts[i].position[0],
-                                  interface_->texts[i].position[1]);
+            PrintStringOnPosition(consoleCtxPtr,
+                                  interfacePtr->texts[i].content,
+                                  interfacePtr->texts[i].color,
+                                  interfacePtr->texts[i].position);
 
-            interface_->texts[i].update = 0;
+            interfacePtr->texts[i].update = 0;
         }
     }
 
     // Renderiza cada botão
-    for (int i = 0; i < MAX_BUTTONS; i++)
+    for (int i = 0; i < interfacePtr->buttonCount; i++)
     {
-        if (interface_->update || interface_->buttons[i].update)
+        if (interfacePtr->update || interfacePtr->buttons[i].update)
         {
-            PrintStringOnPosition(interface_->buttons[i].content,
-                                  interface_->buttons[i].color,
-                                  interface_->buttons[i].position[0],
-                                  interface_->buttons[i].position[1]);
+            PrintStringOnPosition(consoleCtxPtr,
+                                  interfacePtr->buttons[i].content,
+                                  interfacePtr->buttons[i].color,
+                                  interfacePtr->buttons[i].position);
 
-            interface_->buttons[i].update = 0;
+            interfacePtr->buttons[i].update = 0;
         }
     }
 
     // Move o cursor para o canto da tela
-    SetCursorPosition(consoleWidth - 1, consoleHeight - 1);
+    SetCursorPosition(consoleCtxPtr, CreateVector2D(consoleCtxPtr->size.x - 1, consoleCtxPtr->size.y - 1));
 
-    interface_->update = 0; // Reseta o estado de atualização da interface
+    interfacePtr->update = 0; // Reseta o estado de atualização da interface
 
-    WriteOutput();
+    WriteOutput(consoleCtxPtr);
 }
 
-void BuildMainMenuInterface()
+Interface BuildMainMenuInterface(Vector2D consoleSize)
 {
-    // Título
-    Text mainMenuTitle = CreateText("  ______   __    __  _______   __     __  ______  __     __  ________  \n"
-                                    " /      \\ |  \\  |  \\|       \\ |  \\   |  \\|      \\|  \\   |  \\|   "
-                                    "     \\\n|  $$$$$$\\| $$  | $$| $$$$$$$\\| $$   | $$ \\$$$$$$| $$   | $$|"
-                                    " $$$$$$$$\n| $$___\\$$| $$  | $$| $$__| $$| $$   | $$  | $$  | $$   | $$|"
-                                    " $$__    \n \\$$    \\ | $$  | $$| $$    $$ \\$$\\ /  $$  | $$   \\$$\\ /"
-                                    "  $$| $$  \\   \n _\\$$$$$$\\| $$  | $$| $$$$$$$\\  \\$$\\  $$   | $$    "
-                                    "\\$$\\  $$ | $$$$$   \n|  \\__| $$| $$__/ $$| $$  | $$   \\$$ $$   _| $$_"
-                                    "    \\$$ $$  | $$_____ \n \\$$    $$ \\$$    $$| $$  | $$    \\$$$   |   "
-                                    "$$ \\    \\$$$   | $$     \\\n  \\$$$$$$   \\$$$$$$  \\$$   \\$$     \\$ "
-                                    "    \\$$$$$$     \\$     \\$$$$$$$$",
-                                    0x0C,
-                                    0,
-                                    4,
-                                    0,
-                                    TOP);
+    Interface mainMenu = {
 
-    // Versão
-    Text version = CreateText(VERSION, 0x07, 0, -1, 0, BOTTOM);
-
-    // Botão de play
-    Button playButton = CreateButton("Start", 0x0C, 0, 0, UI_START, 0, CENTER);
-
-    // Botão de informações
-    Button infoButton = CreateButton("Info", 0x07, 0, 2, UI_INFO, 0, CENTER);
-
-    // Botão de saída
-    Button quitButton = CreateButton("Quit", 0x07, 0, 4, UI_QUIT, 0, CENTER);
-
-    // Menu principal
-    Interface mainMenuInit = {
-
-        .texts = {mainMenuTitle, version},
-        .buttons = {playButton, infoButton, quitButton},
+        .textCount = 2,
+        .buttonCount = 3,
         .selectedButton = 0,
         .update = 1};
 
-    mainMenu = mainMenuInit;
+    mainMenu.texts = malloc(sizeof(Text) * mainMenu.textCount);
+    mainMenu.buttons = malloc(sizeof(Button) * mainMenu.buttonCount);
+
+    mainMenu.texts[0] = CreateText("  ______   __    __  _______   __     __  ______  __     __  ________  \n"
+                                   " /      \\ |  \\  |  \\|       \\ |  \\   |  \\|      \\|  \\   |  \\|   "
+                                   "     \\\n|  $$$$$$\\| $$  | $$| $$$$$$$\\| $$   | $$ \\$$$$$$| $$   | $$|"
+                                   " $$$$$$$$\n| $$___\\$$| $$  | $$| $$__| $$| $$   | $$  | $$  | $$   | $$|"
+                                   " $$__    \n \\$$    \\ | $$  | $$| $$    $$ \\$$\\ /  $$  | $$   \\$$\\ /"
+                                   "  $$| $$  \\   \n _\\$$$$$$\\| $$  | $$| $$$$$$$\\  \\$$\\  $$   | $$    "
+                                   "\\$$\\  $$ | $$$$$   \n|  \\__| $$| $$__/ $$| $$  | $$   \\$$ $$   _| $$_"
+                                   "    \\$$ $$  | $$_____ \n \\$$    $$ \\$$    $$| $$  | $$    \\$$$   |   "
+                                   "$$ \\    \\$$$   | $$     \\\n  \\$$$$$$   \\$$$$$$  \\$$   \\$$     \\$ "
+                                   "    \\$$$$$$     \\$     \\$$$$$$$$",
+                                   0x0C,
+                                   CreateVector2D(0, 4),
+                                   consoleSize,
+                                   0,
+                                   TOP);
+
+    mainMenu.texts[1] = CreateText(VERSION, 0x07, CreateVector2D(0, -1), consoleSize, 0, BOTTOM);
+
+    mainMenu.buttons[0] = CreateButton("Start", 0x0C, CreateVector2D(0, 0), consoleSize, UI_START, 0, CENTER);
+    mainMenu.buttons[1] = CreateButton("Info", 0x07, CreateVector2D(0, 2), consoleSize, UI_INFO, 0, CENTER);
+    mainMenu.buttons[2] = CreateButton("Quit", 0x07, CreateVector2D(0, 4), consoleSize, UI_QUIT, 0, CENTER);
+
+    return  mainMenu;
 }
 
-void BuildInfoInterface()
+Interface BuildInfoInterface(Vector2D consoleSize)
 {
-    // Título
-    Text infoMenuTitle = CreateText(" ______  __    __  ________   ______  \n|      \\|  \\  |  \\|        \\ /   "
-                                    "   \\ \n \\$$$$$$| $$\\ | $$| $$$$$$$$|  $$$$$$\\\n  | $$  | $$$\\| $$| $$__ "
-                                    "   | $$  | $$\n  | $$  | $$$$\\ $$| $$  \\   | $$  | $$\n  | $$  | $$\\$$ $$|"
-                                    " $$$$$   | $$  | $$\n _| $$_ | $$ \\$$$$| $$      | $$__/ $$\n|   $$ \\| $$"
-                                    "  \\$$$| $$       \\$$    $$\n \\$$$$$$ \\$$   \\$$ \\$$        \\$$$$$$ ",
-                                    0x0A,
-                                    0,
-                                    4,
-                                    0,
-                                    TOP);
+    Interface infoMenu = {
 
-    // Informações da data
-    Text creationDateInfo = CreateText("Adaptation of my first game that was created in 2019-03-19",
-                                       0x07,
-                                       0,
-                                       0,
-                                       0,
-                                       CENTER);
-
-    // Link do github
-    Text githubInfo = CreateText("Written by Eric (ErFer7): https://github.com/ErFer7/Survive",
-                                 0x07,
-                                 0,
-                                 1,
-                                 0,
-                                 CENTER);
-
-    // Link do github
-    Text controlInfo = CreateText("Use the arrows to move and X to run",
-                                  0x07,
-                                  0,
-                                  3,
-                                  0,
-                                  CENTER);
-
-    // Botão de retorno
-    Button returnButton = CreateButton("Back", 0x0C, 0, 5, UI_RETURN, 0, CENTER);
-
-    // Menu de informações
-    Interface infoMenuInit = {
-
-        .texts = {infoMenuTitle, creationDateInfo, githubInfo, controlInfo},
-        .buttons = {returnButton},
+        .textCount = 4,
+        .buttonCount = 1,
         .selectedButton = 0,
         .update = 1};
 
-    infoMenu = infoMenuInit;
+    infoMenu.texts = malloc(sizeof(Text) * infoMenu.textCount);
+    infoMenu.buttons = malloc(sizeof(Button) * infoMenu.buttonCount);
+
+    infoMenu.texts[0] = CreateText(" ______  __    __  ________   ______  \n|      \\|  \\  |  \\|        \\ /   "
+                                   "   \\ \n \\$$$$$$| $$\\ | $$| $$$$$$$$|  $$$$$$\\\n  | $$  | $$$\\| $$| $$__ "
+                                   "   | $$  | $$\n  | $$  | $$$$\\ $$| $$  \\   | $$  | $$\n  | $$  | $$\\$$ $$|"
+                                   " $$$$$   | $$  | $$\n _| $$_ | $$ \\$$$$| $$      | $$__/ $$\n|   $$ \\| $$"
+                                   "  \\$$$| $$       \\$$    $$\n \\$$$$$$ \\$$   \\$$ \\$$        \\$$$$$$ ",
+                                   0x0A,
+                                   CreateVector2D(0, 4),
+                                   consoleSize,
+                                   0,
+                                   TOP);
+
+    infoMenu.texts[1] = CreateText("Adaptation of my first game that was created in 2019-03-19",
+                                    0x07,
+                                    CreateVector2D(0, 0),
+                                    consoleSize,
+                                    0,
+                                    CENTER);
+
+    infoMenu.texts[2] = CreateText("Written by Eric (ErFer7): https://github.com/ErFer7/Survive",
+                                   0x07,
+                                   CreateVector2D(0, 1),
+                                   consoleSize,
+                                   0,
+                                   CENTER);
+
+    infoMenu.texts[3] = CreateText("Use the arrows to move and X to run",
+                                   0x07,
+                                   CreateVector2D(0, 3),
+                                   consoleSize,
+                                   0,
+                                   CENTER);
+
+    infoMenu.buttons[0] = CreateButton("Back", 0x0C, CreateVector2D(0, 5), consoleSize, UI_RETURN, 0, CENTER);
+
+    return infoMenu;
 }
 
-void BuildStartInterface()
+Interface BuildStartInterface(Vector2D consoleSize)
 {
-    Text startMenuTitle = CreateText("  ______  ________   ______   _______  ________\n /      \\|        \\ /     "
-                                     " \\ |       \\|        \\\n|  $$$$$$\\\\$$$$$$$$|  $$$$$$\\| $$$$$$$\\\\$$$$$"
-                                     "$$$\n| $$___\\$$  | $$   | $$__| $$| $$__| $$  | $$\n \\$$    \\   | $$   | $"
-                                     "$    $$| $$    $$  | $$\n _\\$$$$$$\\  | $$   | $$$$$$$$| $$$$$$$\\  | $$\n| "
-                                     " \\__| $$  | $$   | $$  | $$| $$  | $$  | $$\n \\$$    $$  | $$   | $$  | $$|"
-                                     " $$  | $$  | $$\n  \\$$$$$$    \\$$    \\$$   \\$$ \\$$   \\$$   \\$$",
-                                     0x0C,
-                                     0,
-                                     4,
-                                     0,
-                                     TOP);
+    Interface startMenu = {
 
-    Text message = CreateText("Choose your game mode and world size", 0x07, 0, 0, 1, CENTER);
-    Text warning = CreateText("Large worlds can use a lot of memory!", 0x0E, 0, 1, 1, CENTER);
-
-    Button world128 = CreateButton("Small  ", 0x07, 0, 3, UI_START_SMALL, 0, CENTER);
-    Button world512 = CreateButton("Regular", 0x0C, 0, 4, UI_START_REGULAR, 0, CENTER);
-    Button world2048 = CreateButton("Large  ", 0x07, 0, 5, UI_START_LARGE, 0, CENTER);
-    Button world8192 = CreateButton("MEGA   ", 0x07, 0, 6, UI_START_MEGA, 0, CENTER);
-    Button classic = CreateButton("Classic", 0x07, 0, 7, UI_START_CLASSIC, 0, CENTER);
-
-    Button returnButton = CreateButton("Back", 0x07, 0, 9, UI_RETURN, 0, CENTER);
-
-    Interface startMenuInit = {
-
-        .texts = {startMenuTitle, message, warning},
-        .buttons = {world128, world512, world2048,world8192, classic, returnButton},
+        .textCount = 3,
+        .buttonCount = 6,
         .selectedButton = 1,
         .update = 1};
 
-    startMenu = startMenuInit;
-}
+    startMenu.texts = malloc(sizeof(Text) * startMenu.textCount);
+    startMenu.buttons = malloc(sizeof(Button) * startMenu.buttonCount);
 
-void BuildGameplayInterface()
-{
-    // FPS
-    Text fpsCounter = CreateText("FPS: 0000.000", 0x07, 0, 0, 1, BOTTOM_LEFT);
-
-    // Behaviour updates per second
-    Text bupsCounter = CreateText("BLT: 0000.000 ms", 0x07, 15, 0, 1, BOTTOM_LEFT);
-
-    // Ticks
-    Text tickCounter = CreateText("PLT: 0000.000 ms", 0x07, 33, 0, 1, BOTTOM_LEFT);
-
-    // Contador da pontuação
-    Text scoreCounter = CreateText("Score: 0000000000", 0x07, -24, 0, 1, BOTTOM_RIGHT);
-
-    // Interface de gameplay
-    Interface gameplayInit = {
-
-        .texts = {fpsCounter, bupsCounter, tickCounter, scoreCounter},
-        .update = 0};
-
-    gameplay = gameplayInit;
-}
-
-void BuildPauseInterface()
-{
-    // Título
-    Text pauseTitle = CreateText("$$$$$$$\\   $$$$$$\\  $$\\   $$\\  $$$$$$\\  $$$$$$$$\\ $$$$$$$\\  \n$$  __"
-                                 "$$\\ $$  __$$\\ $$ |  $$ |$$  __$$\\ $$  _____|$$  __$$\\ \n$$ |  $$ |$$ / "
-                                 " $$ |$$ |  $$ |$$ /  \\__|$$ |      $$ |  $$ |\n$$$$$$$  |$$$$$$$$ |$$ |  $"
-                                 "$ |\\$$$$$$\\  $$$$$\\    $$ |  $$ |\n$$  ____/ $$  __$$ |$$ |  $$ | \\____"
-                                 "$$\\ $$  __|   $$ |  $$ |\n$$ |      $$ |  $$ |$$ |  $$ |$$\\   $$ |$$ |   "
-                                 "   $$ |  $$ |\n$$ |      $$ |  $$ |\\$$$$$$  |\\$$$$$$  |$$$$$$$$\\ $$$$$$$"
-                                 "  |\n\\__|      \\__|  \\__| \\______/  \\______/ \\________|\\_______/ ",
-                                 0x07,
-                                 0,
-                                 4,
-                                 0,
-                                 TOP);
-
-    // Botão de continuar
-    Button resumeButton = CreateButton("Resume", 0x0C, 0, 0, UI_RESUME, 0, CENTER);
-
-    // Botão de reiniciar
-    Button restartButton = CreateButton("Restart", 0x07, 0, 2, UI_RESTART, 0, CENTER);
-
-    // Botão de retornar para o menu
-    Button menuButton = CreateButton("Menu", 0x07, 0, 4, UI_RETURN, 0, CENTER);
-
-    // Interface de pausa
-    Interface pauseInit = {
-
-        .texts = {pauseTitle},
-        .buttons = {resumeButton, restartButton, menuButton},
-        .selectedButton = 0,
-        .update = 1};
-
-    pause = pauseInit;
-}
-
-void BuildGameoverInterface()
-{
-    // Título
-    Text gameoverTitle = CreateText(" $$$$$$\\   $$$$$$\\  $$\\      $$\\ $$$$$$$$\\  $$$$$$\\  $$\\    $$\\ $$$$$$"
-                                    "$$\\ $$$$$$$\\  \n$$  __$$\\ $$  __$$\\ $$$\\    $$$ |$$  _____|$$  __$$\\ $$ "
-                                    "|   $$ |$$  _____|$$  __$$\\ \n$$ /  \\__|$$ /  $$ |$$$$\\  $$$$ |$$ |      $$"
-                                    " /  $$ |$$ |   $$ |$$ |      $$ |  $$ |\n$$ |$$$$\\ $$$$$$$$ |$$\\$$\\$$ $$ |$"
-                                    "$$$$\\    $$ |  $$ |\\$$\\  $$  |$$$$$\\    $$$$$$$  |\n$$ |\\_$$ |$$  __$$ |$"
-                                    "$ \\$$$  $$ |$$  __|   $$ |  $$ | \\$$\\$$  / $$  __|   $$  __$$< \n$$ |  $$ |"
-                                    "$$ |  $$ |$$ |\\$  /$$ |$$ |      $$ |  $$ |  \\$$$  /  $$ |      $$ |  $$ |\n"
-                                    "\\$$$$$$  |$$ |  $$ |$$ | \\_/ $$ |$$$$$$$$\\  $$$$$$  |   \\$  /   $$$$$$$$\\"
-                                    " $$ |  $$ |\n \\______/ \\__|  \\__|\\__|     \\__|\\________| \\______/     "
-                                    "\\_/    \\________|\\__|  \\__|",
+    startMenu.texts[0] = CreateText("  ______  ________   ______   _______  ________\n /      \\|        \\ /     "
+                                    " \\ |       \\|        \\\n|  $$$$$$\\\\$$$$$$$$|  $$$$$$\\| $$$$$$$\\\\$$$$$"
+                                    "$$$\n| $$___\\$$  | $$   | $$__| $$| $$__| $$  | $$\n \\$$    \\   | $$   | $"
+                                    "$    $$| $$    $$  | $$\n _\\$$$$$$\\  | $$   | $$$$$$$$| $$$$$$$\\  | $$\n| "
+                                    " \\__| $$  | $$   | $$  | $$| $$  | $$  | $$\n \\$$    $$  | $$   | $$  | $$|"
+                                    " $$  | $$  | $$\n  \\$$$$$$    \\$$    \\$$   \\$$ \\$$   \\$$   \\$$",
                                     0x0C,
-                                    0,
-                                    4,
+                                    CreateVector2D(0, 4),
+                                    consoleSize,
                                     0,
                                     TOP);
 
-    // Pontuação final
-    Text finalScore = CreateText("Score: 0000000000", 0x07, 0, 0, 0, CENTER);
+    startMenu.texts[1] = CreateText("Choose your game mode and world size",
+                                    0x07,
+                                    CreateVector2D(0, 0),
+                                    consoleSize,
+                                    1,
+                                    CENTER);
 
-    // Botão de reiniciar
-    Button restartButton = CreateButton("Restart", 0x0C, 0, 2, UI_RESTART, 0, CENTER);
+    startMenu.texts[2] = CreateText("Large worlds can use a lot of memory!",
+                                    0x0E,
+                                    CreateVector2D(0, 1),
+                                    consoleSize,
+                                    1,
+                                    CENTER);
 
-    // Botão de retornar para o menu
-    Button menuButton = CreateButton("Menu", 0x07, 0, 4, UI_RETURN, 0, CENTER);
+    startMenu.buttons[0] = CreateButton("Small  ", 0x07, CreateVector2D(0, 3), consoleSize, UI_START_SMALL, 0, CENTER);
+    startMenu.buttons[1] = CreateButton("Regular", 0x0C, CreateVector2D(0, 4), consoleSize, UI_START_REGULAR, 0, CENTER);
+    startMenu.buttons[2] = CreateButton("Large  ", 0x07, CreateVector2D(0, 5), consoleSize, UI_START_LARGE, 0, CENTER);
+    startMenu.buttons[3] = CreateButton("MEGA   ", 0x07, CreateVector2D(0, 6), consoleSize, UI_START_MEGA, 0, CENTER);
+    startMenu.buttons[4] = CreateButton("Classic", 0x07, CreateVector2D(0, 7), consoleSize, UI_START_CLASSIC, 0, CENTER);
+    startMenu.buttons[5] = CreateButton("Back", 0x07, CreateVector2D(0, 9), consoleSize, UI_RETURN, 0, CENTER);
 
-    // Interface de fim de jogo
-    Interface gameoverInit = {
+    return startMenu;
+}
 
-        .texts = {gameoverTitle, finalScore},
-        .buttons = {restartButton, menuButton},
+Interface BuildGameplayInterface(Vector2D consoleSize)
+{
+    Interface gameplay = {
+
+        .textCount = 4,
+        .buttonCount = 0,
         .selectedButton = 0,
         .update = 1};
 
-    gameover = gameoverInit;
+    gameplay.texts = malloc(sizeof(Text) * gameplay.textCount);
+
+    gameplay.texts[0] = CreateText("FPS: 0000.000", 0x07, CreateVector2D(0, 0), consoleSize, 1, BOTTOM_LEFT);
+    gameplay.texts[1] = CreateText("BLT: 0000.000 ms", 0x07, CreateVector2D(15, 0), consoleSize, 1, BOTTOM_LEFT);
+    gameplay.texts[2] = CreateText("PLT: 0000.000 ms", 0x07, CreateVector2D(33, 0), consoleSize, 1, BOTTOM_LEFT);
+    gameplay.texts[3] = CreateText("Score: 0000000000", 0x07, CreateVector2D(-25, 0), consoleSize, 1, BOTTOM_RIGHT);
+
+    return gameplay;
 }
 
-void InitInterface()
+Interface BuildPauseInterface(Vector2D consoleSize)
 {
-    BuildMainMenuInterface();
-    BuildInfoInterface();
-    BuildStartInterface();
-    BuildGameplayInterface();
-    BuildPauseInterface();
-    BuildGameoverInterface();
+    Interface pause = {
 
-    interfaceKeyLock = 0;
+        .textCount = 1,
+        .buttonCount = 3,
+        .selectedButton = 0,
+        .update = 1};
+
+    pause.texts = malloc(sizeof(Text) * pause.textCount);
+    pause.buttons = malloc(sizeof(Button) * pause.buttonCount);
+
+    pause.texts[0] = CreateText("$$$$$$$\\   $$$$$$\\  $$\\   $$\\  $$$$$$\\  $$$$$$$$\\ $$$$$$$\\  \n$$  __"
+                                "$$\\ $$  __$$\\ $$ |  $$ |$$  __$$\\ $$  _____|$$  __$$\\ \n$$ |  $$ |$$ / "
+                                " $$ |$$ |  $$ |$$ /  \\__|$$ |      $$ |  $$ |\n$$$$$$$  |$$$$$$$$ |$$ |  $"
+                                "$ |\\$$$$$$\\  $$$$$\\    $$ |  $$ |\n$$  ____/ $$  __$$ |$$ |  $$ | \\____"
+                                "$$\\ $$  __|   $$ |  $$ |\n$$ |      $$ |  $$ |$$ |  $$ |$$\\   $$ |$$ |   "
+                                "   $$ |  $$ |\n$$ |      $$ |  $$ |\\$$$$$$  |\\$$$$$$  |$$$$$$$$\\ $$$$$$$"
+                                "  |\n\\__|      \\__|  \\__| \\______/  \\______/ \\________|\\_______/ ",
+                                0x07,
+                                CreateVector2D(0, 4),
+                                consoleSize,
+                                0,
+                                TOP);
+
+    pause.buttons[0] = CreateButton("Resume", 0x0C, CreateVector2D(0, 0), consoleSize, UI_RESUME, 0, CENTER);
+    pause.buttons[1] = CreateButton("Restart", 0x07, CreateVector2D(0, 2), consoleSize, UI_RESTART, 0, CENTER);
+    pause.buttons[2] = CreateButton("Menu", 0x07, CreateVector2D(0, 4), consoleSize, UI_RETURN, 0, CENTER);
+
+    return pause;
+}
+
+Interface BuildGameoverInterface(Vector2D consoleSize)
+{
+    Interface gameover = {
+
+        .textCount = 2,
+        .buttonCount = 2,
+        .selectedButton = 0,
+        .update = 1};
+
+    gameover.texts = malloc(sizeof(Text) * gameover.textCount);
+    gameover.buttons = malloc(sizeof(Button) * gameover.buttonCount);
+
+    gameover.texts[0] = CreateText(" $$$$$$\\   $$$$$$\\  $$\\      $$\\ $$$$$$$$\\  $$$$$$\\  $$\\    $$\\ $$$$$$"
+                                   "$$\\ $$$$$$$\\  \n$$  __$$\\ $$  __$$\\ $$$\\    $$$ |$$  _____|$$  __$$\\ $$ "
+                                   "|   $$ |$$  _____|$$  __$$\\ \n$$ /  \\__|$$ /  $$ |$$$$\\  $$$$ |$$ |      $$"
+                                   " /  $$ |$$ |   $$ |$$ |      $$ |  $$ |\n$$ |$$$$\\ $$$$$$$$ |$$\\$$\\$$ $$ |$"
+                                   "$$$$\\    $$ |  $$ |\\$$\\  $$  |$$$$$\\    $$$$$$$  |\n$$ |\\_$$ |$$  __$$ |$"
+                                   "$ \\$$$  $$ |$$  __|   $$ |  $$ | \\$$\\$$  / $$  __|   $$  __$$< \n$$ |  $$ |"
+                                   "$$ |  $$ |$$ |\\$  /$$ |$$ |      $$ |  $$ |  \\$$$  /  $$ |      $$ |  $$ |\n"
+                                   "\\$$$$$$  |$$ |  $$ |$$ | \\_/ $$ |$$$$$$$$\\  $$$$$$  |   \\$  /   $$$$$$$$\\"
+                                   " $$ |  $$ |\n \\______/ \\__|  \\__|\\__|     \\__|\\________| \\______/     "
+                                   "\\_/    \\________|\\__|  \\__|",
+                                   0x0C,
+                                   CreateVector2D(0, 4),
+                                   consoleSize,
+                                   0,
+                                   TOP);
+
+    gameover.texts[1] = CreateText("Score: 0000000000", 0x07, CreateVector2D(0, 0), consoleSize, 0, CENTER);
+
+    gameover.buttons[0] = CreateButton("Restart", 0x0C, CreateVector2D(0, 2), consoleSize, UI_RESTART, 0, CENTER);
+    gameover.buttons[1] = CreateButton("Menu", 0x07, CreateVector2D(0, 4), consoleSize, UI_RETURN, 0, CENTER);
+
+    return gameover;
+}
+
+void FreeInterface(Interface *interfacePtr)
+{
+    for (int i = 0; i < interfacePtr->textCount; i++)
+    {
+        FreeText(&interfacePtr->texts[i]);
+    }
+
+    for (int i = 0; i < interfacePtr->buttonCount; i++)
+    {
+        FreeButton(&interfacePtr->buttons[i]);
+    }
+
+    free(interfacePtr->texts);
+    free(interfacePtr->buttons);
 }
