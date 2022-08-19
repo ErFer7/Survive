@@ -9,8 +9,8 @@
 #include "../include/graphics.h"
 #include "../include/interface.h"
 
-#define PLAYER_SPEED 23.5f
-#define ENEMY_SPEED 13.0f
+#define PLAYER_SPEED 30.0f
+#define ENEMY_SPEED 15.0f
 #define MAX_ANIM_FRAMES 4
 #define ANIMATION_SPEED 10.0f
 
@@ -30,8 +30,10 @@ typedef struct
     float animationSpeed;
     int isAnimated;
     unsigned int color;
-    Vector2Df velocity;
-    Vector2Df position;
+    float velocityAccumulator;
+    float velocityCoefficient;
+    Vector2D direction;
+    Vector2D position;
     float speed;
     enum EntityType type;
 
@@ -112,12 +114,12 @@ void MoveEntityOnMatrix(EntityMatrix *entityMatrixPtr, Vector2D oldPosition, Vec
 Entity *GetEntityPtrFromMatrix(EntityMatrix *entityMatrixPtr, Vector2D position);
 void SetEntityInMatrix(EntityMatrix *entityMatrixPtr, Vector2D position, Entity entity);
 void FreeEntityMatrix(EntityMatrix *entityMatrixPtr);
-Vector2Df GenerateSpawnPosition(EntityMatrix *entityMatrixPtr, float minDistanceFrom, Vector2Df anchor);
-Entity CreateEmpty(Vector2Df position);
-Entity CreatePlayer(Vector2Df position);
-Entity CreateCoin(Vector2Df position);
-Entity CreateEnemy(Vector2Df position);
-Entity CreateWall(Vector2Df position, char c);
+Vector2D GenerateSpawnPosition(EntityMatrix *entityMatrixPtr, float minDistanceFrom, Vector2D anchor);
+Entity CreateEmpty(Vector2D position);
+Entity CreatePlayer(Vector2D position);
+Entity CreateCoin(Vector2D position);
+Entity CreateEnemy(Vector2D position);
+Entity CreateWall(Vector2D position, char c);
 void StartBehaviourThread(EventStateContext *eventStateCtxPtr,
                           GameplayContext *gameplayCtxPtr,
                           ThreadsContext *threadsCtxPtr,
@@ -125,8 +127,8 @@ void StartBehaviourThread(EventStateContext *eventStateCtxPtr,
                           TimeContext *timeCtxPtr);
 void StopBehaviourThread(ThreadsContext *threadsCtxPtr);
 void *UpdateEntityBehaviour(void *behaviourThreadArgPtr);
-void PlayerBehaviour(EntityMatrix *entityMatrixPtr, float tick);
-void EnemyBehaviour(EntityMatrix *entityMatrixPtr, Entity *enemyPtr, float tick);
+void PlayerBehaviour(EntityMatrix *entityMatrixPtr);
+void EnemyBehaviour(EntityMatrix *entityMatrixPtr, Entity *enemyPtr);
 void StartPhysicsThread(EventStateContext *eventStateCtxPtr,
                         GameplayContext *gameplayCtxPtr,
                         ThreadsContext *threadsCtxPtr,

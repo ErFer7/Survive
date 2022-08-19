@@ -11,6 +11,8 @@
 #include "../include/graphics.h"
 #include "../include/interface.h"
 
+/*  Pré inicialização do contexto de gameplay
+*/
 void PreInitGameplayContext(GameplayContext *gameplayCtxPtr)
 {
     gameplayCtxPtr->entityMatrix.matrixAllocated = 0;
@@ -18,6 +20,8 @@ void PreInitGameplayContext(GameplayContext *gameplayCtxPtr)
     gameplayCtxPtr->entityMatrix.enemyPtrsAllocated = 0;
 }
 
+/*  Inicialização do contexto de gameplay
+*/
 void InitGameplayContext(GameplayContext *gameplayCtxPtr, Vector2D size, int fixedScreen, int empty)
 {
     InitEntityMatrix(&gameplayCtxPtr->entityMatrix, size);
@@ -27,6 +31,8 @@ void InitGameplayContext(GameplayContext *gameplayCtxPtr, Vector2D size, int fix
     gameplayCtxPtr->empty = empty;
 }
 
+/*  Libera o contexto de gameplay
+*/
 void FreeGameplayContext(GameplayContext *gameplayCtxPtr)
 {
     FreeEntityMatrix(&gameplayCtxPtr->entityMatrix);
@@ -46,11 +52,6 @@ void FreeEntitySemaphores(ThreadsContext *threadsCtxPtr)
 
 void InitEntityMatrix(EntityMatrix *entityMatrixPtr, Vector2D size)
 {
-    /* Inicializa uma matriz de entidades. A matriz é alocada na memória e possui uma largura e
-       altura. Existem dois ponteiros que são úteis para manter a referência do jogador e
-       moeda.
-    */
-
     entityMatrixPtr->matrix = (Entity *)malloc(size.x * size.y * sizeof(Entity));
     entityMatrixPtr->width = size.x;
     entityMatrixPtr->height = size.y;
@@ -63,17 +64,16 @@ void InitEntityMatrix(EntityMatrix *entityMatrixPtr, Vector2D size)
     {
         for (int j = 0; j < size.x; j++)
         {
-            Entity empty = CreateEmpty((Vector2Df){i, j});
+            Entity empty = CreateEmpty(CreateVector2D(j, i));
             InsertEntityOnMatrix(entityMatrixPtr, empty, (Vector2D){j, i});
         }
     }
 }
 
+/*  Insere uma entidade em uma matriz (sobescreve a entidade caso já exista uma na posição).
+*/
 void InsertEntityOnMatrix(EntityMatrix *entityMatrixPtr, Entity entity, Vector2D position)
 {
-    /* Insere uma entidade em uma matriz (sobescreve a entidade caso já exista uma na posição).
-     */
-
     SetEntityInMatrix(entityMatrixPtr, position, entity);
 
     if (entity.type == PLAYER)
@@ -116,53 +116,48 @@ void InsertEntityOnMatrix(EntityMatrix *entityMatrixPtr, Entity entity, Vector2D
     }
 }
 
+/*  Move um objeto na matriz caso as posições fornecidas sejam válidas. Sobescreve o objeto em
+    (oldPosition.x, oldPosition.y).
+*/
 void MoveEntityOnMatrix(EntityMatrix *entityMatrixPtr, Vector2D oldPosition, Vector2D newPosition)
 {
-    /* Move um objeto na matriz caso as posições fornecidas sejam válidas. Sobescreve o objeto em
-       (oldPosition.x, oldPosition.y).
-    */
+    Entity empty = CreateEmpty(oldPosition);
+    Entity *entityPtr = GetEntityPtrFromMatrix(entityMatrixPtr, oldPosition);
 
-    if (oldPosition.x != newPosition.x || oldPosition.y != newPosition.y)
+    SetEntityInMatrix(entityMatrixPtr, newPosition, *entityPtr);
+
+    if (entityPtr->type == PLAYER)
     {
-        Entity empty = CreateEmpty(VectorInt2Float(oldPosition));
-        Entity *entityPtr = GetEntityPtrFromMatrix(entityMatrixPtr, oldPosition);
-
-        SetEntityInMatrix(entityMatrixPtr, newPosition, *entityPtr);
-
-        if (entityPtr->type == PLAYER)
-        {
-            entityMatrixPtr->playerPtr = GetEntityPtrFromMatrix(entityMatrixPtr, newPosition);
-        }
-        else if (entityPtr->type == COIN)
-        {
-            for (int i = 0; i < entityMatrixPtr->coinPtrsSize; i++)
-            {
-                if (entityPtr == entityMatrixPtr->coinPtrs[i])
-                {
-                    entityMatrixPtr->coinPtrs[i] = GetEntityPtrFromMatrix(entityMatrixPtr, newPosition);
-                }
-            }
-        }
-        else if (entityPtr->type == ENEMY)
-        {
-            for (int i = 0; i < entityMatrixPtr->enemyPtrsSize; i++)
-            {
-                if (entityPtr == entityMatrixPtr->enemyPtrs[i])
-                {
-                    entityMatrixPtr->enemyPtrs[i] = GetEntityPtrFromMatrix(entityMatrixPtr, newPosition);
-                }
-            }
-        }
-
-        SetEntityInMatrix(entityMatrixPtr, oldPosition, empty);
+        entityMatrixPtr->playerPtr = GetEntityPtrFromMatrix(entityMatrixPtr, newPosition);
     }
+    else if (entityPtr->type == COIN)
+    {
+        for (int i = 0; i < entityMatrixPtr->coinPtrsSize; i++)
+        {
+            if (entityPtr == entityMatrixPtr->coinPtrs[i])
+            {
+                entityMatrixPtr->coinPtrs[i] = GetEntityPtrFromMatrix(entityMatrixPtr, newPosition);
+            }
+        }
+    }
+    else if (entityPtr->type == ENEMY)
+    {
+        for (int i = 0; i < entityMatrixPtr->enemyPtrsSize; i++)
+        {
+            if (entityPtr == entityMatrixPtr->enemyPtrs[i])
+            {
+                entityMatrixPtr->enemyPtrs[i] = GetEntityPtrFromMatrix(entityMatrixPtr, newPosition);
+            }
+        }
+    }
+
+    SetEntityInMatrix(entityMatrixPtr, oldPosition, empty);
 }
 
+/*  Retorna um ponteiro para a entidade na posição especificada.
+*/
 Entity *GetEntityPtrFromMatrix(EntityMatrix *entityMatrixPtr, Vector2D position)
 {
-    /* Retorna um ponteiro para a entidade na posição especificada.
-     */
-
     return &entityMatrixPtr->matrix[entityMatrixPtr->width * position.y + position.x];
 }
 
@@ -171,11 +166,10 @@ void SetEntityInMatrix(EntityMatrix *entityMatrixPtr, Vector2D position, Entity 
     entityMatrixPtr->matrix[entityMatrixPtr->width * position.y + position.x] = entity;
 }
 
+/*  Libera a memória da matriz.
+*/
 void FreeEntityMatrix(EntityMatrix *entityMatrixPtr)
 {
-    /* Libera a memória da matriz.
-     */
-
     if (entityMatrixPtr->matrixAllocated)
     {
         free(entityMatrixPtr->matrix);
@@ -195,9 +189,9 @@ void FreeEntityMatrix(EntityMatrix *entityMatrixPtr)
     }
 }
 
-Vector2Df GenerateSpawnPosition(EntityMatrix *entityMatrixPtr, float minDistanceFrom, Vector2Df anchor)
+Vector2D GenerateSpawnPosition(EntityMatrix *entityMatrixPtr, float minDistanceFrom, Vector2D anchor)
 {
-    Vector2Df spawn;
+    Vector2D spawn;
     Entity *entityPtrInSpawnPosition;
     float distanceFromAnchor;
 
@@ -206,14 +200,14 @@ Vector2Df GenerateSpawnPosition(EntityMatrix *entityMatrixPtr, float minDistance
         spawn.x = Randomf(1, entityMatrixPtr->width - 2);
         spawn.y = Randomf(1, entityMatrixPtr->height - 2);
 
-        entityPtrInSpawnPosition = GetEntityPtrFromMatrix(entityMatrixPtr, VectorFloat2Int(spawn));
+        entityPtrInSpawnPosition = GetEntityPtrFromMatrix(entityMatrixPtr, spawn);
         distanceFromAnchor = Distance(anchor, spawn);
     } while (entityPtrInSpawnPosition->type != EMPTY || distanceFromAnchor < minDistanceFrom);
 
     return spawn;
 }
 
-Entity CreateEmpty(Vector2Df position)
+Entity CreateEmpty(Vector2D position)
 {
     Entity empty = {
         .c = {255},
@@ -221,7 +215,9 @@ Entity CreateEmpty(Vector2Df position)
         .animationSpeed = 0.0f,
         .isAnimated = 0,
         .color = 0x00,
-        .velocity = CreateVector2Df(0.0f, 0.0f),
+        .velocityAccumulator = 0.0f,
+        .velocityCoefficient = 1.0f,
+        .direction = CreateVector2D(0, 0),
         .position = position,
         .speed = 0.0f,
         .type = EMPTY};
@@ -229,7 +225,7 @@ Entity CreateEmpty(Vector2Df position)
     return empty;
 }
 
-Entity CreatePlayer(Vector2Df position)
+Entity CreatePlayer(Vector2D position)
 {
     Entity player = {
         .c = {254},
@@ -237,7 +233,9 @@ Entity CreatePlayer(Vector2Df position)
         .animationSpeed = 0.0f,
         .isAnimated = 0,
         .color = 0x0F,
-        .velocity = CreateVector2Df(0.0f, 0.0f),
+        .velocityAccumulator = 0.0f,
+        .velocityCoefficient = 1.0f,
+        .direction = CreateVector2D(0, 0),
         .position = position,
         .speed = PLAYER_SPEED,
         .type = PLAYER};
@@ -245,7 +243,7 @@ Entity CreatePlayer(Vector2Df position)
     return player;
 }
 
-Entity CreateCoin(Vector2Df position)
+Entity CreateCoin(Vector2D position)
 {
     Entity coin = {
         .c = {45, 92, 124, 47},
@@ -253,7 +251,9 @@ Entity CreateCoin(Vector2Df position)
         .animationSpeed = ANIMATION_SPEED,
         .isAnimated = 1,
         .color = 0x0E,
-        .velocity = CreateVector2Df(0.0f, 0.0f),
+        .velocityAccumulator = 0.0f,
+        .velocityCoefficient = 1.0f,
+        .direction = CreateVector2D(0, 0),
         .position = position,
         .speed = 0.0f,
         .type = COIN};
@@ -261,7 +261,7 @@ Entity CreateCoin(Vector2Df position)
     return coin;
 }
 
-Entity CreateEnemy(Vector2Df position)
+Entity CreateEnemy(Vector2D position)
 {
     Entity enemy = {
         .c = {178, 177, 176, 178},
@@ -269,7 +269,9 @@ Entity CreateEnemy(Vector2Df position)
         .animationSpeed = ANIMATION_SPEED,
         .isAnimated = 1,
         .color = 0x0C,
-        .velocity = CreateVector2Df(0.0f, 0.0f),
+        .velocityAccumulator = 0.0f,
+        .velocityCoefficient = 1.0f,
+        .direction = CreateVector2D(0, 0),
         .position = position,
         .speed = ENEMY_SPEED,
         .type = ENEMY};
@@ -277,7 +279,7 @@ Entity CreateEnemy(Vector2Df position)
     return enemy;
 }
 
-Entity CreateWall(Vector2Df position, char c)
+Entity CreateWall(Vector2D position, char c)
 {
     Entity wall = {
         .c = {c},
@@ -285,7 +287,9 @@ Entity CreateWall(Vector2Df position, char c)
         .animationSpeed = 0.0f,
         .isAnimated = 0,
         .color = 0x07,
-        .velocity = CreateVector2Df(0.0f, 0.0f),
+        .velocityAccumulator = 0.0f,
+        .velocityCoefficient = 1.0f,
+        .direction = CreateVector2D(0, 0),
         .position = position,
         .speed = 0.0f,
         .type = WALL};
@@ -316,11 +320,10 @@ void StopBehaviourThread(ThreadsContext *threadsCtxPtr)
     pthread_join(threadsCtxPtr->behaviourThread, NULL);
 }
 
+/*  Atualiza cada objeto com base no seu comportamento.
+*/
 void *UpdateEntityBehaviour(void *behaviourThreadArgPtr)
 {
-    /* Atualiza cada objeto com base no seu comportamento.
-     */
-
     enum State *statePtr = ((BehaviourThreadArg *)behaviourThreadArgPtr)->statePtr;
     EntityMatrix *entityMatrixPtr = ((BehaviourThreadArg *)behaviourThreadArgPtr)->entityMatrixPtr;
     sem_t *behaviourSemaphorePtr = ((BehaviourThreadArg *)behaviourThreadArgPtr)->behaviourSemaphorePtr;
@@ -334,11 +337,11 @@ void *UpdateEntityBehaviour(void *behaviourThreadArgPtr)
 
         if (sem_trywait(behaviourSemaphorePtr))
         {
-            PlayerBehaviour(entityMatrixPtr, timeCtxPtr->tick);
+            PlayerBehaviour(entityMatrixPtr);
 
             for (int i = 0; i < entityMatrixPtr->enemyPtrsSize; i++)
             {
-                EnemyBehaviour(entityMatrixPtr, entityMatrixPtr->enemyPtrs[i], timeCtxPtr->tick);
+                EnemyBehaviour(entityMatrixPtr, entityMatrixPtr->enemyPtrs[i]);
             }
             sem_post(physicsSemaphorePtr);
 
@@ -356,71 +359,47 @@ void *UpdateEntityBehaviour(void *behaviourThreadArgPtr)
     return 0;
 }
 
-void PlayerBehaviour(EntityMatrix *entityMatrixPtr, float tick)
+/*  Comportamento do jogador.
+*/
+void PlayerBehaviour(EntityMatrix *entityMatrixPtr)
 {
-    /* Comportamento do jogador.
-     */
-
-    float runCoefficient = 1.0f; // Coeficiente de corrida
+    float runCoefficient = 1.0f;
+    Vector2D direction = CreateVector2D(0, 0);
 
     if (GetKeyState(0x58) & 0x8000) // Tecla X
     {
-        runCoefficient = 2.0f; // Dobra a velocidade na corrida
+        runCoefficient = 2.5f; // Dobra a velocidade na corrida
     }
 
     if (GetKeyState(VK_UP) & 0x8000) // Seta para cima
     {
-        // Adiciona velocidade para cima
-        entityMatrixPtr->playerPtr->velocity.y = -entityMatrixPtr->playerPtr->speed * runCoefficient;
+        direction.y = -1;
     }
     else if (GetKeyState(VK_DOWN) & 0x8000) // Seta para baixo
     {
-        // Adiciona velocidade para baixo
-        entityMatrixPtr->playerPtr->velocity.y = entityMatrixPtr->playerPtr->speed * runCoefficient;
+        direction.y = 1;
     }
 
     if (GetKeyState(VK_RIGHT) & 0x8000) // Seta para a direita
     {
-        // Adiciona velocidade para direita
-        entityMatrixPtr->playerPtr->velocity.x = entityMatrixPtr->playerPtr->speed * runCoefficient;
+        direction.x = 1;
     }
     else if (GetKeyState(VK_LEFT) & 0x8000) // Seta para a esquerda
     {
-        // Adiciona velocidade para esquerda
-        entityMatrixPtr->playerPtr->velocity.x = -entityMatrixPtr->playerPtr->speed * runCoefficient;
+        direction.x = -1;
     }
 
-    /* Corrige a dessincronização diagonal (Fenômeno em que a posição horizontal e vertical
-       avançam em passos diferentes.
-
-       Este bloco é executado apenas quando o movimento é na diagonal.
-    */
-    if (entityMatrixPtr->playerPtr->velocity.x != 0.0f && entityMatrixPtr->playerPtr->velocity.y != 0.0f)
-    {
-        // Obtém a posição esperada
-        Vector2Df vt = MultiplyVectorfByScalar(entityMatrixPtr->playerPtr->velocity, 1.0f / tick);
-        Vector2D expectedPosition = VectorFloat2Int(AddVectorf(entityMatrixPtr->playerPtr->position, vt));
-
-        // Corrige a velocidade vertical
-        if (expectedPosition.x == (int)entityMatrixPtr->playerPtr->position.x &&
-            expectedPosition.y != (int)entityMatrixPtr->playerPtr->position.y)
-            entityMatrixPtr->playerPtr->velocity.y = 0.0f;
-
-        // Corrige a velocidade horizontal
-        if (expectedPosition.x != (int)entityMatrixPtr->playerPtr->position.x &&
-            expectedPosition.y == (int)entityMatrixPtr->playerPtr->position.y)
-            entityMatrixPtr->playerPtr->velocity.x = 0.0f;
-    }
+    entityMatrixPtr->playerPtr->velocityCoefficient = runCoefficient;
+    entityMatrixPtr->playerPtr->direction = direction;
 }
 
-void EnemyBehaviour(EntityMatrix *entityMatrixPtr, Entity *enemyPtr, float tick)
+/*  Comportamento do inimigo.
+*/
+void EnemyBehaviour(EntityMatrix *entityMatrixPtr, Entity *enemyPtr)
 {
-    /* Comportamento do inimigo.
-     */
-
-    Vector2D position = VectorFloat2Int(enemyPtr->position);
-    Vector2D target = VectorFloat2Int(entityMatrixPtr->playerPtr->position);
-    Vector2Df direction = CreateVector2Df(0.0f, 0.0f);
+    Vector2D position = enemyPtr->position;
+    Vector2D target = entityMatrixPtr->playerPtr->position;
+    Vector2D direction = CreateVector2D(0, 0);
     int blocked = 0;
     Entity *targetEntity;
 
@@ -430,7 +409,7 @@ void EnemyBehaviour(EntityMatrix *entityMatrixPtr, Entity *enemyPtr, float tick)
 
         if (targetEntity->type == EMPTY || targetEntity->type == PLAYER)
         {
-            direction.x = 1.0f;
+            direction.x = 1;
         }
         else
         {
@@ -443,7 +422,7 @@ void EnemyBehaviour(EntityMatrix *entityMatrixPtr, Entity *enemyPtr, float tick)
 
         if (targetEntity->type == EMPTY || targetEntity->type == PLAYER)
         {
-            direction.x = -1.0f;
+            direction.x = -1;
         }
         else
         {
@@ -457,7 +436,7 @@ void EnemyBehaviour(EntityMatrix *entityMatrixPtr, Entity *enemyPtr, float tick)
 
         if (targetEntity->type == EMPTY || targetEntity->type == PLAYER)
         {
-            direction.y = 1.0f;
+            direction.y = 1;
         }
         else
         {
@@ -470,7 +449,7 @@ void EnemyBehaviour(EntityMatrix *entityMatrixPtr, Entity *enemyPtr, float tick)
 
         if (targetEntity->type == EMPTY || targetEntity->type == PLAYER)
         {
-            direction.y = -1.0f;
+            direction.y = -1;
         }
         else
         {
@@ -483,6 +462,7 @@ void EnemyBehaviour(EntityMatrix *entityMatrixPtr, Entity *enemyPtr, float tick)
         float distances[8];
         float smallestDistance = INFINITY;
         int directionIndex;
+        Vector2D adjacentPositionVector;
 
         int distanceIndex = 0;
 
@@ -492,9 +472,11 @@ void EnemyBehaviour(EntityMatrix *entityMatrixPtr, Entity *enemyPtr, float tick)
             {
                 if (j != position.x || k != position.y)
                 {
+                    adjacentPositionVector = CreateVector2D(j, k);
+
                     if (GetEntityPtrFromMatrix(entityMatrixPtr, CreateVector2D(j, k))->type == EMPTY)
                     {
-                        distances[distanceIndex] = sqrtf(powf((j - target.x), 2.0f) + powf((k - target.y), 2.0f));
+                        distances[distanceIndex] = Distance(adjacentPositionVector, target);
                     }
                     else
                     {
@@ -518,64 +500,43 @@ void EnemyBehaviour(EntityMatrix *entityMatrixPtr, Entity *enemyPtr, float tick)
         switch (directionIndex)
         {
         case 0:
-            direction.x = -1.0f;
-            direction.y = -1.0f;
+            direction.x = -1;
+            direction.y = -1;
             break;
         case 1:
-            direction.x = -1.0f;
-            direction.y = 0.0f;
+            direction.x = -1;
+            direction.y = 0;
             break;
         case 2:
-            direction.x = -1.0f;
-            direction.y = 1.0f;
+            direction.x = -1;
+            direction.y = 1;
             break;
         case 3:
-            direction.x = 0.0f;
-            direction.y = -1.0f;
+            direction.x = 0;
+            direction.y = -1;
             break;
         case 4:
-            direction.x = 0.0f;
-            direction.y = 1.0f;
+            direction.x = 0;
+            direction.y = 1;
             break;
         case 5:
-            direction.x = 1.0f;
-            direction.y = -1.0f;
+            direction.x = 1;
+            direction.y = -1;
             break;
         case 6:
-            direction.x = 1.0f;
-            direction.y = 0.0f;
+            direction.x = 1;
+            direction.y = 0;
             break;
         case 7:
-            direction.x = 1.0f;
-            direction.y = 1.0f;
+            direction.x = 1;
+            direction.y = 1;
             break;
         default:
             break;
         }
     }
 
-    enemyPtr->velocity = MultiplyVectorfByScalar(direction, enemyPtr->speed);
-
-    /* Corrige a dessincronização diagonal (Fenômeno em que a posição horizontal e vertical
-       avançam em passos diferentes)
-
-       Este bloco é executado apenas quando o movimento é na diagonal.
-    */
-    if (enemyPtr->velocity.x != 0.0f && enemyPtr->velocity.y != 0.0f)
-    {
-        Vector2Df vt = MultiplyVectorfByScalar(enemyPtr->velocity, 1.0f / tick);
-        Vector2D expectedPosition = VectorFloat2Int(AddVectorf(enemyPtr->position, vt));
-
-        // Corrige a velocidade vertical
-        if (expectedPosition.x == (int)enemyPtr->position.x &&
-            expectedPosition.y != (int)enemyPtr->position.y)
-            enemyPtr->velocity.y = 0.0f;
-
-        // Corrige a velocidade horizontal
-        if (expectedPosition.x != (int)enemyPtr->position.x &&
-            expectedPosition.y == (int)enemyPtr->position.y)
-            enemyPtr->velocity.x = 0.0f;
-    }
+    enemyPtr->direction = direction;
 }
 
 void StartPhysicsThread(EventStateContext *eventStateCtxPtr,
@@ -601,11 +562,10 @@ void StopPhysicsThread(ThreadsContext *threadsCtxPtr)
     pthread_join(threadsCtxPtr->physicsThread, NULL);
 }
 
+/*  Atualiza a física e verifica os eventos do gameplay.
+*/
 void *UpdateEntityPhysics(void *physicsThreadArgPtr)
 {
-    /* Atualiza a física e verifica os eventos do gameplay.
-     */
-
     EventStateContext *eventStateCtxPtr = ((PhysicsThreadArg *)physicsThreadArgPtr)->eventStateCtxPtr;
     GameplayContext *gameplayCtxPtr = ((PhysicsThreadArg *)physicsThreadArgPtr)->gameplayCtxPtr;
     sem_t *behaviourSemaphorePtr = ((PhysicsThreadArg *)physicsThreadArgPtr)->behaviourSemaphorePtr;
@@ -636,6 +596,8 @@ void *UpdateEntityPhysics(void *physicsThreadArgPtr)
         elapsedTime = StopChronometer(timeCtxPtr->physicsFrequency,
                                       timeCtxPtr->physicsInitialTime,
                                       &timeCtxPtr->physicsFinalTime);
+
+        // TODO: Testar uma solução sem o tick
         timeCtxPtr->physicsElapsedTime = Tick(timeCtxPtr->tick, elapsedTime);
 
         sprintf(interfaceCtxPtr->gameplay.texts[2].content, "PLT: %08.3f ms", timeCtxPtr->physicsElapsedTime);
@@ -650,61 +612,57 @@ void *UpdateEntityPhysics(void *physicsThreadArgPtr)
 void UpdatePlayerPhysics(GameplayContext *gameplayCtxPtr, Interface *gameplayInterfacePtr, float elapsedTime)
 {
     EntityMatrix *entityMatrixPtr = &gameplayCtxPtr->entityMatrix;
-    Vector2D old = VectorFloat2Int(entityMatrixPtr->playerPtr->position);
-    Vector2Df vt = MultiplyVectorfByScalar(entityMatrixPtr->playerPtr->velocity, elapsedTime / 1000.0f);
-    Vector2Df target = AddVectorf(entityMatrixPtr->playerPtr->position, vt);
+    Vector2D old = entityMatrixPtr->playerPtr->position;
 
-    // Redefine a velocidade
-    entityMatrixPtr->playerPtr->velocity = CreateVector2Df(0.0f, 0.0f);
+    entityMatrixPtr->playerPtr->velocityAccumulator += elapsedTime / 1000.0f;
 
-    // Ponteiro do objeto na posição alvo
-    Entity *entityPtrInTargetPosition = GetEntityPtrFromMatrix(entityMatrixPtr, VectorFloat2Int(target));
-
-    for (int j = (int)target.x - 1; j < (int)target.x + 2; j++)
+    if (entityMatrixPtr->playerPtr->velocityAccumulator >
+        1.0f / (PLAYER_SPEED * entityMatrixPtr->playerPtr->velocityCoefficient))
     {
-        for (int k = (int)target.y - 1; k < (int)target.y + 2; k++)
+        entityMatrixPtr->playerPtr->velocityAccumulator = 0.0f;
+        Vector2D target = AddVector(entityMatrixPtr->playerPtr->position, entityMatrixPtr->playerPtr->direction);
+        Entity *entityPtrInTargetPosition = GetEntityPtrFromMatrix(entityMatrixPtr, target);
+
+        for (int j = (int)target.x - 1; j < (int)target.x + 2; j++)
         {
-            if ((j != (int)target.x || k != (int)target.y) &&
-                (j >= 0 && j < entityMatrixPtr->width) &&
-                (k >= 0 && k < entityMatrixPtr->height))
+            for (int k = (int)target.y - 1; k < (int)target.y + 2; k++)
             {
-
-                Vector2D adjacentPosition = CreateVector2D(j, k);
-                Entity * entityPtrInAdjacentPosition = GetEntityPtrFromMatrix(entityMatrixPtr, adjacentPosition);
-                if (entityPtrInAdjacentPosition->type == COIN)
+                if ((j != (int)target.x || k != (int)target.y) &&
+                    (j >= 0 && j < entityMatrixPtr->width) &&
+                    (k >= 0 && k < entityMatrixPtr->height))
                 {
-                    gameplayCtxPtr->score++;
 
-                    // Atualiza o texto da pontuação
-                    sprintf(gameplayInterfacePtr->texts[3].content, "Score: %010d", gameplayCtxPtr->score);
-                    gameplayInterfacePtr->texts[3].update = 1;
+                    Vector2D adjacentPosition = CreateVector2D(j, k);
+                    Entity * entityPtrInAdjacentPosition = GetEntityPtrFromMatrix(entityMatrixPtr, adjacentPosition);
+                    if (entityPtrInAdjacentPosition->type == COIN)
+                    {
+                        gameplayCtxPtr->score++;
 
-                    Vector2Df spawn;
+                        // Atualiza o texto da pontuação
+                        sprintf(gameplayInterfacePtr->texts[3].content, "Score: %010d", gameplayCtxPtr->score);
+                        gameplayInterfacePtr->texts[3].update = 1;
 
-                    spawn = GenerateSpawnPosition(entityMatrixPtr , 0.0f, CreateVector2Df(0.0f, 0.0f));
-                    entityPtrInAdjacentPosition->position = spawn;
+                        Vector2D spawn;
 
-                    // Move a moeda na matriz
-                    MoveEntityOnMatrix(entityMatrixPtr, adjacentPosition, VectorFloat2Int(spawn));
+                        spawn = GenerateSpawnPosition(entityMatrixPtr , 0.0f, CreateVector2D(0, 0));
+                        entityPtrInAdjacentPosition->position = spawn;
 
-                    spawn = GenerateSpawnPosition(entityMatrixPtr, 20.0f, target);
-                    Entity enemy = CreateEnemy(spawn);
-                    InsertEntityOnMatrix(entityMatrixPtr, enemy, VectorFloat2Int(spawn));
+                        // Move a moeda na matriz
+                        MoveEntityOnMatrix(entityMatrixPtr, adjacentPosition, spawn);
+
+                        spawn = GenerateSpawnPosition(entityMatrixPtr, 20.0f, target);
+                        Entity enemy = CreateEnemy(spawn);
+                        InsertEntityOnMatrix(entityMatrixPtr, enemy, spawn);
+                    }
                 }
             }
         }
-    }
 
-    /* Move o jogador caso o objeto na posição alvo esteja vazio ou seja o próprio
-        jogador
-    */
-    if (entityPtrInTargetPosition->type == EMPTY || entityPtrInTargetPosition == entityMatrixPtr->playerPtr)
-    {
-        // Define a nova posição
-        entityMatrixPtr->playerPtr->position = target;
-
-        // Move o jogador na matriz
-        MoveEntityOnMatrix(entityMatrixPtr, old, VectorFloat2Int(target));
+        if (entityPtrInTargetPosition->type == EMPTY)
+        {
+            entityMatrixPtr->playerPtr->position = target;
+            MoveEntityOnMatrix(entityMatrixPtr, old, target);
+        }
     }
 }
 
@@ -715,32 +673,29 @@ void UpdateEnemyPhysics(EventStateContext *eventStateCtxPtr,
                         float elapsedTime)
 {
     EntityMatrix *entityMatrixPtr = &gameplayCtxPtr->entityMatrix;
-    Vector2D old = VectorFloat2Int(enemyPtr->position);
-    Vector2Df vt = MultiplyVectorfByScalar(enemyPtr->velocity, elapsedTime / 1000.0f);
-    Vector2Df target = AddVectorf(enemyPtr->position, vt);
+    Vector2D old = enemyPtr->position;
 
-    // Redefine a velocidade
-    enemyPtr->velocity = CreateVector2Df(0.0f, 0.0f);
+    enemyPtr->velocityAccumulator += elapsedTime / 1000.0f;
 
-    // Ponteiro do objeto na posição alvo
-    Entity *entityPtrInTargetPosition = GetEntityPtrFromMatrix(entityMatrixPtr, VectorFloat2Int(target));
-
-    // Se move caso o a posição alvo não tenha um objeto ou tenha o próprio inimigo
-    if (entityPtrInTargetPosition->type == EMPTY || entityPtrInTargetPosition == enemyPtr)
+    if (enemyPtr->velocityAccumulator > 1.0f / (ENEMY_SPEED * enemyPtr->velocityCoefficient))
     {
-        enemyPtr->position = target;
+        enemyPtr->velocityAccumulator = 0.0f;
+        Vector2D target = AddVector(enemyPtr->position, enemyPtr->direction);
+        Entity *entityPtrInTargetPosition = GetEntityPtrFromMatrix(entityMatrixPtr, target);
 
-        MoveEntityOnMatrix(entityMatrixPtr,
-                           old,
-                           VectorFloat2Int(target));
-    }
-    // Caso a posição tenha o jogador
-    else if (entityPtrInTargetPosition->type == PLAYER)
-    {
-        pthread_mutex_lock(&eventStateCtxPtr->eventMutex);
-        eventStateCtxPtr->event = GM_GAMEOVER;
-        pthread_mutex_unlock(&eventStateCtxPtr->eventMutex);
-        sprintf(gameoverInterfacePtr->texts[1].content, "Score: %010d", gameplayCtxPtr->score);
+        if (entityPtrInTargetPosition->type == EMPTY)
+        {
+            enemyPtr->position = target;
+            MoveEntityOnMatrix(entityMatrixPtr, old, target);
+        }
+        // Caso a posição tenha o jogador
+        else if (entityPtrInTargetPosition->type == PLAYER)
+        {
+            pthread_mutex_lock(&eventStateCtxPtr->eventMutex);
+            eventStateCtxPtr->event = GM_GAMEOVER;
+            pthread_mutex_unlock(&eventStateCtxPtr->eventMutex);
+            sprintf(gameoverInterfacePtr->texts[1].content, "Score: %010d", gameplayCtxPtr->score);
+        }
     }
 }
 
@@ -768,11 +723,10 @@ void StopRenderingThread(ThreadsContext *threadsCtxPtr)
     pthread_join(threadsCtxPtr->renderingThread, NULL);
 }
 
+/*  Rederiza as entidades.
+*/
 void *RenderEntities(void *renderThreadArgPtr)
 {
-    /* Rederiza as entidades.
-     */
-
     enum State *statePtr = ((RenderThreadArg *)renderThreadArgPtr)->statePtr;
     EntityMatrix *entityMatrixPtr = ((RenderThreadArg *)renderThreadArgPtr)->entityMatrixPtr;
     int fixedScreen = ((RenderThreadArg *)renderThreadArgPtr)->fixedScreen;
@@ -792,7 +746,7 @@ void *RenderEntities(void *renderThreadArgPtr)
 
         if (!fixedScreen)
         {
-            offset = VectorFloat2Int(AddVectorf(entityMatrixPtr->playerPtr->position, negativeConsoleCenter));
+            offset = AddVector(entityMatrixPtr->playerPtr->position, VectorFloat2Int(negativeConsoleCenter));
         }
         else
         {

@@ -48,11 +48,10 @@ void SetCursorPosition(ConsoleContext *consoleCtxPtr, Vector2D position)
     SetConsoleCursorPosition(consoleCtxPtr->outputHandle, coord);
 }
 
+/*  Coloca um string na posição (x, y) com a cor especificada (0 a 15).
+*/
 void PrintStringOnPosition(ConsoleContext *consoleCtxPtr, char *string, unsigned short color, Vector2D position)
 {
-    /* Coloca um string na posição (x, y) com a cor especificada (0 a 15).
-     */
-
     Vector2D calculated = position;
     int i = 0;
     char c;
@@ -94,8 +93,12 @@ void WriteOutput(ConsoleContext *consoleCtxPtr)
 void ClearOutput(ConsoleContext *consoleCtxPtr)
 {
     for (int i = 0; i < consoleCtxPtr->size.y; i++)
+    {
         for (int j = 0; j < consoleCtxPtr->size.x; j++)
+        {
             SetCharOnPosition(consoleCtxPtr, CreateVector2D(j, i), 32, 0x00);
+        }
+    }
 
     WriteOutput(consoleCtxPtr);
 }

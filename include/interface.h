@@ -4,7 +4,7 @@
 #include "../include/core.h"
 #include "../include/graphics.h"
 
-#define VERSION "2.17"
+#define VERSION "2.18"
 
 enum Alignment
 {
@@ -19,7 +19,6 @@ enum Alignment
     BOTTOM_RIGHT
 };
 
-// Texto
 typedef struct
 {
     char *content;
@@ -30,7 +29,6 @@ typedef struct
 
 } Text;
 
-// Botão
 typedef struct
 {
     char *content;
@@ -42,7 +40,6 @@ typedef struct
 
 } Button;
 
-// Interface
 typedef struct
 {
     Text *texts;

@@ -168,27 +168,30 @@ void FreeButton(Button *button)
     free(button->content);
 }
 
+/*  Define o comportamento de uma interface.
+*/
 void InterfaceBehaviour(EventStateContext *eventStateContextPtr, Interface *interfacePtr, int *interfaceKeyLockPtr)
 {
-    /* Define o comportamento de uma interface.
-     */
     if (!*interfaceKeyLockPtr)
     {
         if (GetKeyState(VK_RETURN) & 0x8000) // Enter
         {
-            // Adiciona o evento do botão na lista de eventos caso o botão seja válido
-            if (interfacePtr->buttons[interfacePtr->selectedButton].event != IDLE)
+            if (interfacePtr->buttonCount > 0)
             {
-                pthread_mutex_lock(&eventStateContextPtr->eventMutex);
-                if (eventStateContextPtr->event == IDLE)
+                // Adiciona o evento do botão na lista de eventos caso o botão seja válido
+                if (interfacePtr->buttons[interfacePtr->selectedButton].event != IDLE)
                 {
-                    eventStateContextPtr->event = interfacePtr->buttons[interfacePtr->selectedButton].event;
+                    pthread_mutex_lock(&eventStateContextPtr->eventMutex);
+                    if (eventStateContextPtr->event == IDLE)
+                    {
+                        eventStateContextPtr->event = interfacePtr->buttons[interfacePtr->selectedButton].event;
+                    }
+                    pthread_mutex_unlock(&eventStateContextPtr->eventMutex);
+                    interfacePtr->update = 1;
                 }
-                pthread_mutex_unlock(&eventStateContextPtr->eventMutex);
-                interfacePtr->update = 1;
-            }
 
-            *interfaceKeyLockPtr = 1;
+                *interfaceKeyLockPtr = 1;
+            }
         }
         else if (GetKeyState(VK_UP) & 0x8000) // Seta para cima
         {
@@ -274,13 +277,12 @@ void InterfaceBehaviour(EventStateContext *eventStateContextPtr, Interface *inte
     }
 }
 
+/*  Atualiza todas as interfaces com base no estado.
+*/
 void UpdateInterfaces(EventStateContext *eventStateContextPtr,
                       InterfaceContext *interfaceCtxPtr,
                       ConsoleContext *consoleCtxPtr)
 {
-    /* Atualiza todas as interfaces com base no estado.
-     */
-
     switch (eventStateContextPtr->state)
     {
     case MAIN_MENU:
@@ -317,11 +319,10 @@ void UpdateInterfaces(EventStateContext *eventStateContextPtr,
     }
 }
 
+/*  Renderiza a interface.
+*/
 void RenderInterface(ConsoleContext *consoleCtxPtr, Interface *interfacePtr)
 {
-    /* Renderiza a interface.
-     */
-
     // Limpa a tela caso toda a interface deva ser atualizada
     if (interfacePtr->update)
     {
