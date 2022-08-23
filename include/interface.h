@@ -26,7 +26,6 @@ typedef struct
     unsigned short color;
     Vector2D position;
     int update;
-
 } Text;
 
 typedef struct
@@ -37,7 +36,6 @@ typedef struct
     Vector2D position;
     enum Event event;
     int update;
-
 } Button;
 
 typedef struct
@@ -48,7 +46,6 @@ typedef struct
     int buttonCount;
     int selectedButton;
     int update;
-
 } Interface;
 
 typedef struct
@@ -65,21 +62,17 @@ typedef struct
 void InitInterfaceContext(InterfaceContext *interfaceCtxPtr, Vector2D consoleSize);
 void FreeInterfaceContext(InterfaceContext *interfaceCtxPtr);
 Vector2D CalculateAlignedPosition(char *string, Vector2D position, Vector2D consoleSize, enum Alignment alignment);
-Text CreateText(char *content,
-                unsigned short color,
-                Vector2D position,
-                Vector2D consoleSize,
-                int update,
-                enum Alignment alignment);
+Text CreateText(char *content, unsigned short color, Vector2D position, Vector2D consoleSize, enum Alignment alignment);
 void FreeText(Text *text);
 Button CreateButton(char *content,
                     unsigned short color,
                     Vector2D position,
                     Vector2D consoleSize,
                     enum Event event,
-                    int update,
                     enum Alignment alignment);
 void FreeButton(Button *button);
+void SetGameplayTextd(Text *textPtr, double value);
+void SetGameplayText(Text *textPtr, int value);
 void InterfaceBehaviour(EventStateContext *eventStateContextPtr, Interface *interfacePtr, int *interfaceKeyLockPtr);
 void UpdateInterfaces(EventStateContext *eventStateContextPtr,
                       InterfaceContext *interfaceCtxPtr,

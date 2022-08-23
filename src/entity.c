@@ -11,6 +11,14 @@
 #include "../include/graphics.h"
 #include "../include/interface.h"
 
+void PreInitThreadsContext(ThreadsContext *threadsCtxPtr)
+{
+    threadsCtxPtr->behaviourThreadRunning = 0;
+    threadsCtxPtr->physicsThreadRunning = 0;
+    threadsCtxPtr->renderingThreadRunning = 0;
+    threadsCtxPtr->semaphoresCreated = 0;
+}
+
 /*  Pré inicialização do contexto de gameplay
 */
 void PreInitGameplayContext(GameplayContext *gameplayCtxPtr)
@@ -42,12 +50,17 @@ void InitEntitySemaphores(ThreadsContext *threadsCtxPtr)
 {
     sem_init(&threadsCtxPtr->behaviourSemaphore, 0, 1);
     sem_init(&threadsCtxPtr->physicsSemaphore, 0, 0);
+    threadsCtxPtr->semaphoresCreated = 1;
 }
 
 void FreeEntitySemaphores(ThreadsContext *threadsCtxPtr)
 {
-    sem_destroy(&threadsCtxPtr->behaviourSemaphore);
-    sem_destroy(&threadsCtxPtr->physicsSemaphore);
+    if (threadsCtxPtr->semaphoresCreated)
+    {
+        sem_destroy(&threadsCtxPtr->behaviourSemaphore);
+        sem_destroy(&threadsCtxPtr->physicsSemaphore);
+        threadsCtxPtr->semaphoresCreated = 0;
+    }
 }
 
 void InitEntityMatrix(EntityMatrix *entityMatrixPtr, Vector2D size)
@@ -313,11 +326,16 @@ void StartBehaviourThread(EventStateContext *eventStateCtxPtr,
     behaviourThreadArgPtr->timeCtxPtr = timeCtxPtr;
 
     pthread_create(&threadsCtxPtr->behaviourThread, NULL, UpdateEntityBehaviour, (void *)behaviourThreadArgPtr);
+    threadsCtxPtr->behaviourThreadRunning = 1;
 }
 
 void StopBehaviourThread(ThreadsContext *threadsCtxPtr)
 {
-    pthread_join(threadsCtxPtr->behaviourThread, NULL);
+    if (threadsCtxPtr->behaviourThreadRunning)
+    {
+        pthread_join(threadsCtxPtr->behaviourThread, NULL);
+        threadsCtxPtr->behaviourThreadRunning = 0;
+    }
 }
 
 /*  Atualiza cada objeto com base no seu comportamento.
@@ -349,8 +367,8 @@ void *UpdateEntityBehaviour(void *behaviourThreadArgPtr)
                                                                timeCtxPtr->behaviourInitialTime,
                                                                &timeCtxPtr->behaviourFinalTime);
 
-            sprintf(gameplayInterfacePtr->texts[1].content, "BLT: %08.3f ms", (float)timeCtxPtr->behaviourElapsedTime);
-            gameplayInterfacePtr->texts[1].update = 1;
+            sprintf(gameplayInterfacePtr->texts[2].content, "BLT: %08.3f ms", (float)timeCtxPtr->behaviourElapsedTime);
+            gameplayInterfacePtr->texts[2].update = 1;
         }
     }
 
@@ -368,7 +386,7 @@ void PlayerBehaviour(EntityMatrix *entityMatrixPtr)
 
     if (GetKeyState(0x58) & 0x8000) // Tecla X
     {
-        runCoefficient = 2.5f; // Dobra a velocidade na corrida
+        runCoefficient = 2.0f; // Dobra a velocidade na corrida
     }
 
     if (GetKeyState(VK_UP) & 0x8000) // Seta para cima
@@ -555,11 +573,16 @@ void StartPhysicsThread(EventStateContext *eventStateCtxPtr,
     physicsThreadArgPtr->timeCtxPtr = timeCtxPtr;
 
     pthread_create(&threadsCtxPtr->physicsThread, NULL, UpdateEntityPhysics, (void *)physicsThreadArgPtr);
+    threadsCtxPtr->physicsThreadRunning = 1;
 }
 
 void StopPhysicsThread(ThreadsContext *threadsCtxPtr)
 {
-    pthread_join(threadsCtxPtr->physicsThread, NULL);
+    if (threadsCtxPtr->physicsThreadRunning)
+    {
+        pthread_join(threadsCtxPtr->physicsThread, NULL);
+        threadsCtxPtr->behaviourThreadRunning = 0;
+    }
 }
 
 /*  Atualiza a física e verifica os eventos do gameplay.
@@ -572,36 +595,47 @@ void *UpdateEntityPhysics(void *physicsThreadArgPtr)
     sem_t *physicsSemaphorePtr = ((PhysicsThreadArg *)physicsThreadArgPtr)->physicsSemaphorePtr;
     InterfaceContext *interfaceCtxPtr = ((PhysicsThreadArg *)physicsThreadArgPtr)->interfaceCtxPtr;
     TimeContext *timeCtxPtr = ((PhysicsThreadArg *)physicsThreadArgPtr)->timeCtxPtr;
-
-    double elapsedTime;
+    int incrementScore;
+    int gameover;
 
     while (eventStateCtxPtr->state == GAMEPLAY)
     {
         StartChronometer(&timeCtxPtr->physicsFrequency, &timeCtxPtr->physicsInitialTime);
 
         sem_wait(physicsSemaphorePtr);
-        UpdatePlayerPhysics(gameplayCtxPtr, &interfaceCtxPtr->gameplay, timeCtxPtr->physicsElapsedTime);
+        incrementScore = UpdatePlayerPhysics(gameplayCtxPtr, timeCtxPtr->physicsElapsedTime);
+
+        if (incrementScore)
+        {
+            gameplayCtxPtr->score++;
+            sprintf(interfaceCtxPtr->gameplay.texts[4].content, "Score: %010d", gameplayCtxPtr->score);
+            interfaceCtxPtr->gameplay.texts[4].update = 1;
+        }
 
         for (int i = 0; i < gameplayCtxPtr->entityMatrix.enemyPtrsSize; i++)
         {
-            UpdateEnemyPhysics(eventStateCtxPtr,
-                               gameplayCtxPtr,
-                               &interfaceCtxPtr->gameover,
-                               gameplayCtxPtr->entityMatrix.enemyPtrs[i],
-                               timeCtxPtr->physicsElapsedTime);
+            gameover = UpdateEnemyPhysics(gameplayCtxPtr,
+                                          gameplayCtxPtr->entityMatrix.enemyPtrs[i],
+                                          timeCtxPtr->physicsElapsedTime);
+
+            if (gameover)
+            {
+                pthread_mutex_lock(&eventStateCtxPtr->eventMutex);
+                eventStateCtxPtr->event = GM_GAMEOVER;
+                pthread_mutex_unlock(&eventStateCtxPtr->eventMutex);
+                sprintf(interfaceCtxPtr->gameover.texts[1].content, "Score: %010d", gameplayCtxPtr->score);
+                break;
+            }
         }
 
         sem_post(behaviourSemaphorePtr);
 
-        elapsedTime = StopChronometer(timeCtxPtr->physicsFrequency,
-                                      timeCtxPtr->physicsInitialTime,
-                                      &timeCtxPtr->physicsFinalTime);
+        timeCtxPtr->physicsElapsedTime = StopChronometer(timeCtxPtr->physicsFrequency,
+                                                         timeCtxPtr->physicsInitialTime,
+                                                         &timeCtxPtr->physicsFinalTime);
 
-        // TODO: Testar uma solução sem o tick
-        timeCtxPtr->physicsElapsedTime = Tick(timeCtxPtr->tick, elapsedTime);
-
-        sprintf(interfaceCtxPtr->gameplay.texts[2].content, "PLT: %08.3f ms", timeCtxPtr->physicsElapsedTime);
-        interfaceCtxPtr->gameplay.texts[2].update = 1;
+        sprintf(interfaceCtxPtr->gameplay.texts[3].content, "PLT: %08.3f ms", timeCtxPtr->physicsElapsedTime);
+        interfaceCtxPtr->gameplay.texts[3].update = 1;
     }
 
     free((PhysicsThreadArg *)physicsThreadArgPtr);
@@ -609,10 +643,11 @@ void *UpdateEntityPhysics(void *physicsThreadArgPtr)
     return 0;
 }
 
-void UpdatePlayerPhysics(GameplayContext *gameplayCtxPtr, Interface *gameplayInterfacePtr, float elapsedTime)
+int UpdatePlayerPhysics(GameplayContext *gameplayCtxPtr, float elapsedTime)
 {
     EntityMatrix *entityMatrixPtr = &gameplayCtxPtr->entityMatrix;
     Vector2D old = entityMatrixPtr->playerPtr->position;
+    int coinWasPicked = 0;
 
     entityMatrixPtr->playerPtr->velocityAccumulator += elapsedTime / 1000.0f;
 
@@ -636,12 +671,6 @@ void UpdatePlayerPhysics(GameplayContext *gameplayCtxPtr, Interface *gameplayInt
                     Entity * entityPtrInAdjacentPosition = GetEntityPtrFromMatrix(entityMatrixPtr, adjacentPosition);
                     if (entityPtrInAdjacentPosition->type == COIN)
                     {
-                        gameplayCtxPtr->score++;
-
-                        // Atualiza o texto da pontuação
-                        sprintf(gameplayInterfacePtr->texts[3].content, "Score: %010d", gameplayCtxPtr->score);
-                        gameplayInterfacePtr->texts[3].update = 1;
-
                         Vector2D spawn;
 
                         spawn = GenerateSpawnPosition(entityMatrixPtr , 0.0f, CreateVector2D(0, 0));
@@ -653,6 +682,8 @@ void UpdatePlayerPhysics(GameplayContext *gameplayCtxPtr, Interface *gameplayInt
                         spawn = GenerateSpawnPosition(entityMatrixPtr, 20.0f, target);
                         Entity enemy = CreateEnemy(spawn);
                         InsertEntityOnMatrix(entityMatrixPtr, enemy, spawn);
+
+                        coinWasPicked = 1;
                     }
                 }
             }
@@ -664,16 +695,15 @@ void UpdatePlayerPhysics(GameplayContext *gameplayCtxPtr, Interface *gameplayInt
             MoveEntityOnMatrix(entityMatrixPtr, old, target);
         }
     }
+
+    return coinWasPicked;
 }
 
-void UpdateEnemyPhysics(EventStateContext *eventStateCtxPtr,
-                        GameplayContext *gameplayCtxPtr,
-                        Interface *gameoverInterfacePtr,
-                        Entity *enemyPtr,
-                        float elapsedTime)
+int UpdateEnemyPhysics(GameplayContext *gameplayCtxPtr, Entity *enemyPtr, float elapsedTime)
 {
     EntityMatrix *entityMatrixPtr = &gameplayCtxPtr->entityMatrix;
     Vector2D old = enemyPtr->position;
+    int playerWasKilled = 0;
 
     enemyPtr->velocityAccumulator += elapsedTime / 1000.0f;
 
@@ -688,15 +718,13 @@ void UpdateEnemyPhysics(EventStateContext *eventStateCtxPtr,
             enemyPtr->position = target;
             MoveEntityOnMatrix(entityMatrixPtr, old, target);
         }
-        // Caso a posição tenha o jogador
         else if (entityPtrInTargetPosition->type == PLAYER)
         {
-            pthread_mutex_lock(&eventStateCtxPtr->eventMutex);
-            eventStateCtxPtr->event = GM_GAMEOVER;
-            pthread_mutex_unlock(&eventStateCtxPtr->eventMutex);
-            sprintf(gameoverInterfacePtr->texts[1].content, "Score: %010d", gameplayCtxPtr->score);
+            playerWasKilled = 1;
         }
     }
+
+    return playerWasKilled;
 }
 
 void StartRenderingThread(EventStateContext *eventStateCtxPtr,
@@ -716,11 +744,16 @@ void StartRenderingThread(EventStateContext *eventStateCtxPtr,
     renderThreadArgPtr->timeCtxPtr = timeCtxPtr;
 
     pthread_create(&threadsCtxPtr->renderingThread, NULL, RenderEntities, (void *)renderThreadArgPtr);
+    threadsCtxPtr->renderingThreadRunning = 1;
 }
 
 void StopRenderingThread(ThreadsContext *threadsCtxPtr)
 {
-    pthread_join(threadsCtxPtr->renderingThread, NULL);
+    if (threadsCtxPtr->renderingThreadRunning)
+    {
+        pthread_join(threadsCtxPtr->renderingThread, NULL);
+        threadsCtxPtr->renderingThreadRunning = 0;
+    }
 }
 
 /*  Rederiza as entidades.
@@ -807,11 +840,11 @@ void *RenderEntities(void *renderThreadArgPtr)
                                                            timeCtxPtr->renderingInitialTime,
                                                            &timeCtxPtr->renderingFinalTime);
 
-        sprintf(gameplayInterfacePtr->texts[0].content,
-                "FPS: %08.3f",
-                1000.0f / (float)timeCtxPtr->renderingElapsedTime);
+        sprintf(gameplayInterfacePtr->texts[1].content,
+                "%08.3f",
+                1000.0 / timeCtxPtr->renderingElapsedTime);
 
-        gameplayInterfacePtr->texts[0].update = 1;
+        gameplayInterfacePtr->texts[1].update = 1;
     }
 
     free((RenderThreadArg *)renderThreadArgPtr);

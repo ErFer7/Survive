@@ -9,8 +9,8 @@
 #include "../include/graphics.h"
 #include "../include/interface.h"
 
-#define PLAYER_SPEED 30.0f
-#define ENEMY_SPEED 15.0f
+#define PLAYER_SPEED 20.0f
+#define ENEMY_SPEED 10.0f
 #define MAX_ANIM_FRAMES 4
 #define ANIMATION_SPEED 10.0f
 
@@ -36,7 +36,6 @@ typedef struct
     Vector2D position;
     float speed;
     enum EntityType type;
-
 } Entity;
 
 typedef struct
@@ -52,7 +51,6 @@ typedef struct
     int matrixAllocated;
     int coinPtrsAllocated;
     int enemyPtrsAllocated;
-
 } EntityMatrix;
 
 typedef struct
@@ -71,6 +69,10 @@ typedef struct
     pthread_t renderingThread;
     sem_t behaviourSemaphore;
     sem_t physicsSemaphore;
+    int behaviourThreadRunning;
+    int physicsThreadRunning;
+    int renderingThreadRunning;
+    int semaphoresCreated;
 } ThreadsContext;
 
 typedef struct
@@ -103,6 +105,7 @@ typedef struct
     TimeContext *timeCtxPtr;
 } RenderThreadArg;
 
+void PreInitThreadsContext(ThreadsContext *threadsCtxPtr);
 void PreInitGameplayContext(GameplayContext *gameplayCtxPtr);
 void InitGameplayContext(GameplayContext *gameplayCtxPtr, Vector2D size, int fixedScreen, int empty);
 void FreeGameplayContext(GameplayContext *gameplayCtxPtr);
@@ -136,12 +139,8 @@ void StartPhysicsThread(EventStateContext *eventStateCtxPtr,
                         TimeContext *timeCtxPtr);
 void StopPhysicsThread(ThreadsContext *threadsCtxPtr);
 void *UpdateEntityPhysics(void *physicsThreadArgPtr);
-void UpdatePlayerPhysics(GameplayContext *gameplayCtxPtr, Interface *gameplayInterfacePtr, float elapsedTime);
-void UpdateEnemyPhysics(EventStateContext *eventStateCtxPtr,
-                        GameplayContext *gameplayCtxPtr,
-                        Interface *gameoverInterfacePtr,
-                        Entity *enemyPtr,
-                        float elapsedTime);
+int UpdatePlayerPhysics(GameplayContext *gameplayCtxPtr, float elapsedTime);
+int UpdateEnemyPhysics(GameplayContext *gameplayCtxPtr, Entity *enemyPtr, float elapsedTime);
 void StartRenderingThread(EventStateContext *eventStateCtxPtr,
                           GameplayContext *gameplayCtxPtr,
                           ThreadsContext *threadsCtxPtr,

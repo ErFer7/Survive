@@ -116,17 +116,12 @@ Vector2D CalculateAlignedPosition(char *string, Vector2D position, Vector2D cons
     return calculatedPosition;
 }
 
-Text CreateText(char *content,
-                unsigned short color,
-                Vector2D position,
-                Vector2D consoleSize,
-                int update,
-                enum Alignment alignment)
+Text CreateText(char *content, unsigned short color, Vector2D position, Vector2D consoleSize, enum Alignment alignment)
 {
     Text text = {
         .contentSize = (int)strlen(content),
         .color = color,
-        .update = update};
+        .update = 1};
 
     text.content = malloc(sizeof(char) * (text.contentSize + 1));
     memcpy(text.content, content, sizeof(char) * (text.contentSize + 1));
@@ -146,14 +141,13 @@ Button CreateButton(char *content,
                     Vector2D position,
                     Vector2D consoleSize,
                     enum Event event,
-                    int update,
                     enum Alignment alignment)
 {
     Button button = {
         .contentSize = (int)strlen(content),
         .color = color,
         .event = event,
-        .update = update};
+        .update = 1};
 
     button.content = malloc(sizeof(char) * (button.contentSize + 1));
     memcpy(button.content, content, sizeof(char) * (button.contentSize + 1));
@@ -166,6 +160,34 @@ Button CreateButton(char *content,
 void FreeButton(Button *button)
 {
     free(button->content);
+}
+
+void SetGameplayTextd(Text *textPtr, double value)
+{
+    if (value > 9999.999)
+    {
+        sprintf(textPtr->content, "> 10k");
+    }
+    else
+    {
+        sprintf(textPtr->content, "%08.3f", value);
+    }
+
+    textPtr->update = 1;
+}
+
+void SetGameplayText(Text *textPtr, int value)
+{
+    if (value > INT_MAX)
+    {
+        sprintf(textPtr->content, "OVERFLOW");
+    }
+    else
+    {
+        sprintf(textPtr->content, "%010d", value);
+    }
+
+    textPtr->update = 1;
 }
 
 /*  Define o comportamento de uma interface.
@@ -390,14 +412,13 @@ Interface BuildMainMenuInterface(Vector2D consoleSize)
                                    0x0C,
                                    CreateVector2D(0, 4),
                                    consoleSize,
-                                   0,
                                    TOP);
 
-    mainMenu.texts[1] = CreateText(VERSION, 0x07, CreateVector2D(0, -1), consoleSize, 0, BOTTOM);
+    mainMenu.texts[1] = CreateText(VERSION, 0x07, CreateVector2D(0, -1), consoleSize, BOTTOM);
 
-    mainMenu.buttons[0] = CreateButton("Start", 0x0C, CreateVector2D(0, 0), consoleSize, UI_START, 0, CENTER);
-    mainMenu.buttons[1] = CreateButton("Info", 0x07, CreateVector2D(0, 2), consoleSize, UI_INFO, 0, CENTER);
-    mainMenu.buttons[2] = CreateButton("Quit", 0x07, CreateVector2D(0, 4), consoleSize, UI_QUIT, 0, CENTER);
+    mainMenu.buttons[0] = CreateButton("Start", 0x0C, CreateVector2D(0, 0), consoleSize, UI_START, CENTER);
+    mainMenu.buttons[1] = CreateButton("Info", 0x07, CreateVector2D(0, 2), consoleSize, UI_INFO, CENTER);
+    mainMenu.buttons[2] = CreateButton("Quit", 0x07, CreateVector2D(0, 4), consoleSize, UI_QUIT, CENTER);
 
     return  mainMenu;
 }
@@ -422,31 +443,27 @@ Interface BuildInfoInterface(Vector2D consoleSize)
                                    0x0A,
                                    CreateVector2D(0, 4),
                                    consoleSize,
-                                   0,
                                    TOP);
 
     infoMenu.texts[1] = CreateText("Adaptation of my first game that was created in 2019-03-19",
                                     0x07,
                                     CreateVector2D(0, 0),
                                     consoleSize,
-                                    0,
                                     CENTER);
 
     infoMenu.texts[2] = CreateText("Written by Eric (ErFer7): https://github.com/ErFer7/Survive",
                                    0x07,
                                    CreateVector2D(0, 1),
                                    consoleSize,
-                                   0,
                                    CENTER);
 
     infoMenu.texts[3] = CreateText("Use the arrows to move and X to run",
                                    0x07,
                                    CreateVector2D(0, 3),
                                    consoleSize,
-                                   0,
                                    CENTER);
 
-    infoMenu.buttons[0] = CreateButton("Back", 0x0C, CreateVector2D(0, 5), consoleSize, UI_RETURN, 0, CENTER);
+    infoMenu.buttons[0] = CreateButton("Back", 0x0C, CreateVector2D(0, 5), consoleSize, UI_RETURN, CENTER);
 
     return infoMenu;
 }
@@ -472,29 +489,26 @@ Interface BuildStartInterface(Vector2D consoleSize)
                                     0x0C,
                                     CreateVector2D(0, 4),
                                     consoleSize,
-                                    0,
                                     TOP);
 
     startMenu.texts[1] = CreateText("Choose your game mode and world size",
                                     0x07,
                                     CreateVector2D(0, 0),
                                     consoleSize,
-                                    1,
                                     CENTER);
 
     startMenu.texts[2] = CreateText("Large worlds can use a lot of memory!",
                                     0x0E,
                                     CreateVector2D(0, 1),
                                     consoleSize,
-                                    1,
                                     CENTER);
 
-    startMenu.buttons[0] = CreateButton("Small  ", 0x07, CreateVector2D(0, 3), consoleSize, UI_START_SMALL, 0, CENTER);
-    startMenu.buttons[1] = CreateButton("Regular", 0x0C, CreateVector2D(0, 4), consoleSize, UI_START_REGULAR, 0, CENTER);
-    startMenu.buttons[2] = CreateButton("Large  ", 0x07, CreateVector2D(0, 5), consoleSize, UI_START_LARGE, 0, CENTER);
-    startMenu.buttons[3] = CreateButton("MEGA   ", 0x07, CreateVector2D(0, 6), consoleSize, UI_START_MEGA, 0, CENTER);
-    startMenu.buttons[4] = CreateButton("Classic", 0x07, CreateVector2D(0, 7), consoleSize, UI_START_CLASSIC, 0, CENTER);
-    startMenu.buttons[5] = CreateButton("Back", 0x07, CreateVector2D(0, 9), consoleSize, UI_RETURN, 0, CENTER);
+    startMenu.buttons[0] = CreateButton("Small  ", 0x07, CreateVector2D(0, 3), consoleSize, UI_START_SMALL, CENTER);
+    startMenu.buttons[1] = CreateButton("Regular", 0x0C, CreateVector2D(0, 4), consoleSize, UI_START_REGULAR, CENTER);
+    startMenu.buttons[2] = CreateButton("Large  ", 0x07, CreateVector2D(0, 5), consoleSize, UI_START_LARGE, CENTER);
+    startMenu.buttons[3] = CreateButton("MEGA   ", 0x07, CreateVector2D(0, 6), consoleSize, UI_START_MEGA, CENTER);
+    startMenu.buttons[4] = CreateButton("Classic", 0x07, CreateVector2D(0, 7), consoleSize, UI_START_CLASSIC, CENTER);
+    startMenu.buttons[5] = CreateButton("Back", 0x07, CreateVector2D(0, 9), consoleSize, UI_RETURN, CENTER);
 
     return startMenu;
 }
@@ -503,17 +517,18 @@ Interface BuildGameplayInterface(Vector2D consoleSize)
 {
     Interface gameplay = {
 
-        .textCount = 4,
+        .textCount = 5,
         .buttonCount = 0,
         .selectedButton = 0,
         .update = 1};
 
     gameplay.texts = malloc(sizeof(Text) * gameplay.textCount);
 
-    gameplay.texts[0] = CreateText("FPS: 0000.000", 0x07, CreateVector2D(0, 0), consoleSize, 1, BOTTOM_LEFT);
-    gameplay.texts[1] = CreateText("BLT: 0000.000 ms", 0x07, CreateVector2D(15, 0), consoleSize, 1, BOTTOM_LEFT);
-    gameplay.texts[2] = CreateText("PLT: 0000.000 ms", 0x07, CreateVector2D(33, 0), consoleSize, 1, BOTTOM_LEFT);
-    gameplay.texts[3] = CreateText("Score: 0000000000", 0x07, CreateVector2D(-25, 0), consoleSize, 1, BOTTOM_RIGHT);
+    gameplay.texts[0] = CreateText("FPS:", 0x07, CreateVector2D(0, 0), consoleSize, BOTTOM_LEFT);
+    gameplay.texts[1] = CreateText("0000.000", 0x07, CreateVector2D(5, 0), consoleSize, BOTTOM_LEFT);
+    gameplay.texts[2] = CreateText("BLT: 0000.000 ms", 0x07, CreateVector2D(15, 0), consoleSize, BOTTOM_LEFT);
+    gameplay.texts[3] = CreateText("PLT: 0000.000 ms", 0x07, CreateVector2D(33, 0), consoleSize, BOTTOM_LEFT);
+    gameplay.texts[4] = CreateText("Score: 0000000000", 0x07, CreateVector2D(-25, 0), consoleSize, BOTTOM_RIGHT);
 
     return gameplay;
 }
@@ -540,12 +555,11 @@ Interface BuildPauseInterface(Vector2D consoleSize)
                                 0x07,
                                 CreateVector2D(0, 4),
                                 consoleSize,
-                                0,
                                 TOP);
 
-    pause.buttons[0] = CreateButton("Resume", 0x0C, CreateVector2D(0, 0), consoleSize, UI_RESUME, 0, CENTER);
-    pause.buttons[1] = CreateButton("Restart", 0x07, CreateVector2D(0, 2), consoleSize, UI_RESTART, 0, CENTER);
-    pause.buttons[2] = CreateButton("Menu", 0x07, CreateVector2D(0, 4), consoleSize, UI_RETURN, 0, CENTER);
+    pause.buttons[0] = CreateButton("Resume", 0x0C, CreateVector2D(0, 0), consoleSize, UI_RESUME, CENTER);
+    pause.buttons[1] = CreateButton("Restart", 0x07, CreateVector2D(0, 2), consoleSize, UI_RESTART, CENTER);
+    pause.buttons[2] = CreateButton("Menu", 0x07, CreateVector2D(0, 4), consoleSize, UI_RETURN, CENTER);
 
     return pause;
 }
@@ -575,13 +589,12 @@ Interface BuildGameoverInterface(Vector2D consoleSize)
                                    0x0C,
                                    CreateVector2D(0, 4),
                                    consoleSize,
-                                   0,
                                    TOP);
 
-    gameover.texts[1] = CreateText("Score: 0000000000", 0x07, CreateVector2D(0, 0), consoleSize, 0, CENTER);
+    gameover.texts[1] = CreateText("Score: 0000000000", 0x07, CreateVector2D(0, 0), consoleSize, CENTER);
 
-    gameover.buttons[0] = CreateButton("Restart", 0x0C, CreateVector2D(0, 2), consoleSize, UI_RESTART, 0, CENTER);
-    gameover.buttons[1] = CreateButton("Menu", 0x07, CreateVector2D(0, 4), consoleSize, UI_RETURN, 0, CENTER);
+    gameover.buttons[0] = CreateButton("Restart", 0x0C, CreateVector2D(0, 2), consoleSize, UI_RESTART, CENTER);
+    gameover.buttons[1] = CreateButton("Menu", 0x07, CreateVector2D(0, 4), consoleSize, UI_RETURN, CENTER);
 
     return gameover;
 }

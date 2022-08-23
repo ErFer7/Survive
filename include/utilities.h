@@ -4,7 +4,6 @@
 
 typedef struct
 {
-    float tick;
     LARGE_INTEGER renderingFrequency;
     LARGE_INTEGER renderingInitialTime;
     LARGE_INTEGER renderingFinalTime;
@@ -19,8 +18,7 @@ typedef struct
     double physicsElapsedTime;
 } TimeContext;
 
-void InitTimeContext(TimeContext *timeCtxPtr, float tick);
+void InitTimeContext(TimeContext *timeCtxPtr);
 void StartChronometer(LARGE_INTEGER *frequency, LARGE_INTEGER *initialTime);
 double StopChronometer(LARGE_INTEGER frequency, LARGE_INTEGER initialTime, LARGE_INTEGER *finalTime);
-float Tick(float tick, double elapsedTime);
 float Randomf(int min, int max);

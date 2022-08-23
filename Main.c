@@ -21,7 +21,6 @@
 #include "include/entity.h"
 #include "include/world.h"
 
-#define TICK 120
 #define CONSOLE_WIDTH 120
 #define CONSOLE_HEIGHT 30
 
@@ -35,9 +34,10 @@ int main()
     ThreadsContext threadsCtx;
 
     InitEventStateContext(&eventStateCtx);
-    InitTimeContext(&timeCtx, TICK);
+    InitTimeContext(&timeCtx);
     InitConsoleContext(&consoleCtx, CreateVector2D(CONSOLE_WIDTH, CONSOLE_HEIGHT));
     InitInterfaceContext(&interfaceCtx, consoleCtx.size);
+    PreInitThreadsContext(&threadsCtx);
     PreInitGameplayContext(&gameplayCtx);
 
     while (eventStateCtx.state != EXIT)

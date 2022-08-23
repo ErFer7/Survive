@@ -16,13 +16,12 @@ void InitConsoleContext(ConsoleContext *consoleCtxPtr, Vector2D size)
     consoleCtxPtr->rect.Left = 0;
     consoleCtxPtr->rect.Right = (short)(consoleCtxPtr->size.x - 1);
 
-    SetConsoleWindowInfo(consoleCtxPtr->outputHandle, TRUE, &consoleCtxPtr->rect);
-
     COORD coord = {(short)consoleCtxPtr->size.x, (short)consoleCtxPtr->size.y};
 
+    SetConsoleTitle("Survive");
     SetConsoleScreenBufferSize(consoleCtxPtr->outputHandle, coord);
     SetConsoleActiveScreenBuffer(consoleCtxPtr->outputHandle);
-
+    SetConsoleWindowInfo(consoleCtxPtr->outputHandle, TRUE, &consoleCtxPtr->rect);
 
     consoleCtxPtr->buffer = malloc(consoleCtxPtr->size.x * consoleCtxPtr->size.y * sizeof(CHAR_INFO));
 }
