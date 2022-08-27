@@ -59,7 +59,7 @@ void PrintStringOnPosition(ConsoleContext *consoleCtxPtr, char *string, unsigned
     {
         c = string[i];
 
-        if (c != '\0')
+        if (c)
         {
             if (c != '\n')
             {

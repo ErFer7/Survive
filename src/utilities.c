@@ -5,20 +5,23 @@
 void InitTimeContext(TimeContext *timeCtxPtr)
 {
     timeCtxPtr->renderingElapsedTime = 0.0;
-    timeCtxPtr->behaviourElapsedTime = 0.0;
-    timeCtxPtr->physicsElapsedTime = 0.0;
+    timeCtxPtr->updateElapsedTime = 0.0;
 }
 
-void StartChronometer(LARGE_INTEGER *frequency, LARGE_INTEGER *initialTime)
+void StartStopWatch(LARGE_INTEGER *frequency, LARGE_INTEGER *initialTime)
 {
     QueryPerformanceFrequency(frequency);
     QueryPerformanceCounter(initialTime);
 }
 
-double StopChronometer(LARGE_INTEGER frequency, LARGE_INTEGER initialTime, LARGE_INTEGER *finalTime)
+/*  Retorna a diferença de tempo em microsegundos
+*/
+double StopStopWatch(LARGE_INTEGER frequency, LARGE_INTEGER initialTime)
 {
-    QueryPerformanceCounter(finalTime);
-    return (finalTime->QuadPart - initialTime.QuadPart) * 1000.0 / frequency.QuadPart;
+    LARGE_INTEGER finalTime;
+    QueryPerformanceCounter(&finalTime);
+
+    return (finalTime.QuadPart - initialTime.QuadPart) * 1000000.0 / frequency.QuadPart;
 }
 
 /*  Gera um número aleatório no intervalo especificado. O número é um float porém é gerado como

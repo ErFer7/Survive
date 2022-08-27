@@ -1,5 +1,6 @@
 #pragma once
 
+#include <uchar.h>
 #include <Windows.h>
 
 #include "../include/vector2D.h"

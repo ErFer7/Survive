@@ -13,13 +13,13 @@
 
 #include <pthread.h>
 
-#include "include/vector2D.h"
-#include "include/core.h"
-#include "include/utilities.h"
-#include "include/graphics.h"
-#include "include/interface.h"
-#include "include/entity.h"
-#include "include/world.h"
+#include "../include/vector2D.h"
+#include "../include/core.h"
+#include "../include/utilities.h"
+#include "../include/graphics.h"
+#include "../include/interface.h"
+#include "../include/entity.h"
+#include "../include/world.h"
 
 #define CONSOLE_WIDTH 120
 #define CONSOLE_HEIGHT 30
@@ -56,9 +56,7 @@ int main()
             eventStateCtx.state = GAMEPLAY;
             InitGameplayContext(&gameplayCtx, CreateVector2D(128, 128), 0, 0);
             GenerateWorld(&gameplayCtx);
-            InitEntitySemaphores(&threadsCtx);
-            StartBehaviourThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-            StartPhysicsThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
+            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
             StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
             break;
         case UI_START_REGULAR:
@@ -66,9 +64,7 @@ int main()
             eventStateCtx.state = GAMEPLAY;
             InitGameplayContext(&gameplayCtx, CreateVector2D(512, 512), 0, 0);
             GenerateWorld(&gameplayCtx);
-            InitEntitySemaphores(&threadsCtx);
-            StartBehaviourThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-            StartPhysicsThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
+            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
             StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
             break;
         case UI_START_LARGE:
@@ -76,9 +72,7 @@ int main()
             eventStateCtx.state = GAMEPLAY;
             InitGameplayContext(&gameplayCtx, CreateVector2D(2048, 2048), 0, 0);
             GenerateWorld(&gameplayCtx);
-            InitEntitySemaphores(&threadsCtx);
-            StartBehaviourThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-            StartPhysicsThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
+            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
             StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
             break;
         case UI_START_MEGA:
@@ -86,9 +80,7 @@ int main()
             eventStateCtx.state = GAMEPLAY;
             InitGameplayContext(&gameplayCtx, CreateVector2D(8192, 8192), 0, 0);
             GenerateWorld(&gameplayCtx);
-            InitEntitySemaphores(&threadsCtx);
-            StartBehaviourThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-            StartPhysicsThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
+            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
             StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
             break;
         case UI_START_CLASSIC:
@@ -96,9 +88,7 @@ int main()
             eventStateCtx.state = GAMEPLAY;
             InitGameplayContext(&gameplayCtx, CreateVector2D(120, 29), 1, 1);
             GenerateWorld(&gameplayCtx);
-            InitEntitySemaphores(&threadsCtx);
-            StartBehaviourThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-            StartPhysicsThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
+            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
             StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
             break;
         case UI_INFO:
@@ -108,25 +98,20 @@ int main()
         case UI_QUIT:
 
             eventStateCtx.state = EXIT;
-            StopBehaviourThread(&threadsCtx);
-            StopPhysicsThread(&threadsCtx);
+            StopUpdateThread(&threadsCtx);
             StopRenderingThread(&threadsCtx);
-            FreeEntitySemaphores(&threadsCtx);
             FreeGameplayContext(&gameplayCtx);
             break;
         case UI_PAUSE:
 
             eventStateCtx.state = PAUSE;
-            StopBehaviourThread(&threadsCtx);
-            StopPhysicsThread(&threadsCtx);
+            StopUpdateThread(&threadsCtx);
             StopRenderingThread(&threadsCtx);
             break;
         case UI_RESUME:
 
             eventStateCtx.state = GAMEPLAY;
-            InitEntitySemaphores(&threadsCtx);
-            StartBehaviourThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-            StartPhysicsThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
+            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
             StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
             break;
         case UI_RESTART:
@@ -138,9 +123,7 @@ int main()
             FreeGameplayContext(&gameplayCtx);
             InitGameplayContext(&gameplayCtx, tempSize, tempFixed, tempEmpty);
             GenerateWorld(&gameplayCtx);
-            InitEntitySemaphores(&threadsCtx);
-            StartBehaviourThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-            StartPhysicsThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
+            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
             StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
             break;
         case UI_RETURN:
@@ -151,10 +134,8 @@ int main()
         case GM_GAMEOVER:
 
             eventStateCtx.state = GAMEOVER;
-            StopBehaviourThread(&threadsCtx);
-            StopPhysicsThread(&threadsCtx);
+            StopUpdateThread(&threadsCtx);
             StopRenderingThread(&threadsCtx);
-            FreeEntitySemaphores(&threadsCtx);
             FreeGameplayContext(&gameplayCtx);
             break;
         default:

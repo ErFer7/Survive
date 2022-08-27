@@ -4,6 +4,7 @@
 #include "../include/core.h"
 #include "../include/graphics.h"
 
+#define MENU_TITLE @MENU_TITLE@
 #define VERSION "2.18"
 
 enum Alignment
@@ -25,7 +26,6 @@ typedef struct
     int contentSize;
     unsigned short color;
     Vector2D position;
-    int update;
 } Text;
 
 typedef struct
@@ -35,7 +35,6 @@ typedef struct
     unsigned short color;
     Vector2D position;
     enum Event event;
-    int update;
 } Button;
 
 typedef struct
@@ -45,7 +44,6 @@ typedef struct
     Button *buttons;
     int buttonCount;
     int selectedButton;
-    int update;
 } Interface;
 
 typedef struct
@@ -57,6 +55,7 @@ typedef struct
     Interface pause;
     Interface gameover;
     int interfaceKeyLock;
+    int clearBackground;
 } InterfaceContext;
 
 void InitInterfaceContext(InterfaceContext *interfaceCtxPtr, Vector2D consoleSize);
@@ -73,11 +72,14 @@ Button CreateButton(char *content,
 void FreeButton(Button *button);
 void SetGameplayTextd(Text *textPtr, double value);
 void SetGameplayText(Text *textPtr, int value);
-void InterfaceBehaviour(EventStateContext *eventStateContextPtr, Interface *interfacePtr, int *interfaceKeyLockPtr);
+void InterfaceBehaviour(EventStateContext *eventStateContextPtr,
+                        Interface *interfacePtr,
+                        int *clearBackgroundPtr,
+                        int *interfaceKeyLockPtr);
 void UpdateInterfaces(EventStateContext *eventStateContextPtr,
                       InterfaceContext *interfaceCtxPtr,
                       ConsoleContext *consoleCtxPtr);
-void RenderInterface(ConsoleContext *consoleCtxPtr, Interface *interfacePtr);
+void RenderInterface(ConsoleContext *consoleCtxPtr, Interface *interfacePtr, int *clearBackgroundPtr);
 Interface BuildMainMenuInterface(Vector2D consoleSize);
 Interface BuildInfoInterface(Vector2D consoleSize);
 Interface BuildStartInterface(Vector2D consoleSize);
