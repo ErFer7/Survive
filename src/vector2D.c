@@ -62,6 +62,26 @@ Vector2Df AddVectorf(Vector2Df v, Vector2Df w)
     return result;
 }
 
+Vector2D SubVector(Vector2D v, Vector2D w)
+{
+    Vector2D result;
+
+    result.x = v.x - w.x;
+    result.y = v.y - w.y;
+
+    return result;
+}
+
+Vector2Df SubVectorf(Vector2Df v, Vector2Df w)
+{
+    Vector2Df result;
+
+    result.x = v.x - w.x;
+    result.y = v.y - w.y;
+
+    return result;
+}
+
 Vector2D MultiplyVector(Vector2D v, Vector2D w)
 {
     Vector2D result;
@@ -102,7 +122,15 @@ Vector2Df MultiplyVectorfByScalar(Vector2Df v, float a)
     return result;
 }
 
-float Distance(Vector2Df v, Vector2Df w)
+float Distancef(Vector2Df v, Vector2Df w)
 {
     return sqrtf(powf((v.x - w.x), 2.0f) + powf((v.y - w.y), 2.0f));
+}
+
+float Distance(Vector2D v, Vector2D w)
+{
+    Vector2Df vf = VectorInt2Float(v);
+    Vector2Df wf = VectorInt2Float(w);
+
+    return Distancef(vf, wf);
 }

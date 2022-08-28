@@ -16,13 +16,12 @@ void InitConsoleContext(ConsoleContext *consoleCtxPtr, Vector2D size)
     consoleCtxPtr->rect.Left = 0;
     consoleCtxPtr->rect.Right = (short)(consoleCtxPtr->size.x - 1);
 
-    SetConsoleWindowInfo(consoleCtxPtr->outputHandle, TRUE, &consoleCtxPtr->rect);
-
     COORD coord = {(short)consoleCtxPtr->size.x, (short)consoleCtxPtr->size.y};
 
+    SetConsoleTitle("Survive");
     SetConsoleScreenBufferSize(consoleCtxPtr->outputHandle, coord);
     SetConsoleActiveScreenBuffer(consoleCtxPtr->outputHandle);
-
+    SetConsoleWindowInfo(consoleCtxPtr->outputHandle, TRUE, &consoleCtxPtr->rect);
 
     consoleCtxPtr->buffer = malloc(consoleCtxPtr->size.x * consoleCtxPtr->size.y * sizeof(CHAR_INFO));
 }
@@ -48,11 +47,10 @@ void SetCursorPosition(ConsoleContext *consoleCtxPtr, Vector2D position)
     SetConsoleCursorPosition(consoleCtxPtr->outputHandle, coord);
 }
 
+/*  Coloca um string na posição (x, y) com a cor especificada (0 a 15).
+*/
 void PrintStringOnPosition(ConsoleContext *consoleCtxPtr, char *string, unsigned short color, Vector2D position)
 {
-    /* Coloca um string na posição (x, y) com a cor especificada (0 a 15).
-     */
-
     Vector2D calculated = position;
     int i = 0;
     char c;
@@ -61,7 +59,7 @@ void PrintStringOnPosition(ConsoleContext *consoleCtxPtr, char *string, unsigned
     {
         c = string[i];
 
-        if (c != '\0')
+        if (c)
         {
             if (c != '\n')
             {
@@ -94,8 +92,12 @@ void WriteOutput(ConsoleContext *consoleCtxPtr)
 void ClearOutput(ConsoleContext *consoleCtxPtr)
 {
     for (int i = 0; i < consoleCtxPtr->size.y; i++)
+    {
         for (int j = 0; j < consoleCtxPtr->size.x; j++)
+        {
             SetCharOnPosition(consoleCtxPtr, CreateVector2D(j, i), 32, 0x00);
+        }
+    }
 
     WriteOutput(consoleCtxPtr);
 }

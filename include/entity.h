@@ -1,7 +1,6 @@
 #pragma once
 
 #include <pthread.h>
-#include <semaphore.h>
 
 #include "../include/vector2D.h"
 #include "../include/core.h"
@@ -9,8 +8,8 @@
 #include "../include/graphics.h"
 #include "../include/interface.h"
 
-#define PLAYER_SPEED 23.5f
-#define ENEMY_SPEED 13.0f
+#define PLAYER_SPEED 20.0f
+#define ENEMY_SPEED 10.0f
 #define MAX_ANIM_FRAMES 4
 #define ANIMATION_SPEED 10.0f
 
@@ -30,11 +29,13 @@ typedef struct
     float animationSpeed;
     int isAnimated;
     unsigned int color;
-    Vector2Df velocity;
-    Vector2Df position;
+    double movementAccumulator;
+    float velocityCoefficient;
+    Vector2D direction;
+    Vector2D position;
     float speed;
+    int moving;
     enum EntityType type;
-
 } Entity;
 
 typedef struct
@@ -50,7 +51,6 @@ typedef struct
     int matrixAllocated;
     int coinPtrsAllocated;
     int enemyPtrsAllocated;
-
 } EntityMatrix;
 
 typedef struct
@@ -64,32 +64,19 @@ typedef struct
 
 typedef struct
 {
-    pthread_t behaviourThread;
-    pthread_t physicsThread;
     pthread_t renderingThread;
-    sem_t behaviourSemaphore;
-    sem_t physicsSemaphore;
+    pthread_t updateThread;
+    int updateThreadRunning;
+    int renderingThreadRunning;
 } ThreadsContext;
-
-typedef struct
-{
-    enum State *statePtr;
-    EntityMatrix *entityMatrixPtr;
-    sem_t *behaviourSemaphorePtr;
-    sem_t *physicsSemaphorePtr;
-    Interface *gameplayInterfacePtr;
-    TimeContext *timeCtxPtr;
-} BehaviourThreadArg;
 
 typedef struct
 {
     EventStateContext *eventStateCtxPtr;
     GameplayContext *gameplayCtxPtr;
-    sem_t *behaviourSemaphorePtr;
-    sem_t *physicsSemaphorePtr;
     InterfaceContext *interfaceCtxPtr;
     TimeContext *timeCtxPtr;
-} PhysicsThreadArg;
+} UpdateThreadArg;
 
 typedef struct
 {
@@ -101,45 +88,38 @@ typedef struct
     TimeContext *timeCtxPtr;
 } RenderThreadArg;
 
+void PreInitThreadsContext(ThreadsContext *threadsCtxPtr);
 void PreInitGameplayContext(GameplayContext *gameplayCtxPtr);
 void InitGameplayContext(GameplayContext *gameplayCtxPtr, Vector2D size, int fixedScreen, int empty);
 void FreeGameplayContext(GameplayContext *gameplayCtxPtr);
-void InitEntitySemaphores(ThreadsContext *threadsCtxPtr);
-void FreeEntitySemaphores(ThreadsContext *threadsCtxPtr);
 void InitEntityMatrix(EntityMatrix *entityMatrixPtr, Vector2D size);
 void InsertEntityOnMatrix(EntityMatrix *entityMatrixPtr, Entity entity, Vector2D position);
 void MoveEntityOnMatrix(EntityMatrix *entityMatrixPtr, Vector2D oldPosition, Vector2D newPosition);
 Entity *GetEntityPtrFromMatrix(EntityMatrix *entityMatrixPtr, Vector2D position);
 void SetEntityInMatrix(EntityMatrix *entityMatrixPtr, Vector2D position, Entity entity);
 void FreeEntityMatrix(EntityMatrix *entityMatrixPtr);
-Vector2Df GenerateSpawnPosition(EntityMatrix *entityMatrixPtr, float minDistanceFrom, Vector2Df anchor);
-Entity CreateEmpty(Vector2Df position);
-Entity CreatePlayer(Vector2Df position);
-Entity CreateCoin(Vector2Df position);
-Entity CreateEnemy(Vector2Df position);
-Entity CreateWall(Vector2Df position, char c);
-void StartBehaviourThread(EventStateContext *eventStateCtxPtr,
-                          GameplayContext *gameplayCtxPtr,
-                          ThreadsContext *threadsCtxPtr,
-                          InterfaceContext *interfaceCtxPtr,
-                          TimeContext *timeCtxPtr);
-void StopBehaviourThread(ThreadsContext *threadsCtxPtr);
-void *UpdateEntityBehaviour(void *behaviourThreadArgPtr);
-void PlayerBehaviour(EntityMatrix *entityMatrixPtr, float tick);
-void EnemyBehaviour(EntityMatrix *entityMatrixPtr, Entity *enemyPtr, float tick);
-void StartPhysicsThread(EventStateContext *eventStateCtxPtr,
-                        GameplayContext *gameplayCtxPtr,
-                        ThreadsContext *threadsCtxPtr,
-                        InterfaceContext *interfaceCtxPtr,
-                        TimeContext *timeCtxPtr);
-void StopPhysicsThread(ThreadsContext *threadsCtxPtr);
-void *UpdateEntityPhysics(void *physicsThreadArgPtr);
-void UpdatePlayerPhysics(GameplayContext *gameplayCtxPtr, Interface *gameplayInterfacePtr, float elapsedTime);
-void UpdateEnemyPhysics(EventStateContext *eventStateCtxPtr,
-                        GameplayContext *gameplayCtxPtr,
-                        Interface *gameoverInterfacePtr,
-                        Entity *enemyPtr,
-                        float elapsedTime);
+Vector2D GenerateSpawnPosition(EntityMatrix *entityMatrixPtr, float minDistanceFrom, Vector2D anchor);
+Entity CreateEmpty(Vector2D position);
+Entity CreatePlayer(Vector2D position);
+Entity CreateCoin(Vector2D position);
+Entity CreateEnemy(Vector2D position);
+Entity CreateWall(Vector2D position, char c);
+void StartUpdateThread(EventStateContext *eventStateCtxPtr,
+                       GameplayContext *gameplayCtxPtr,
+                       ThreadsContext *threadsCtxPtr,
+                       InterfaceContext *interfaceCtxPtr,
+                       TimeContext *timeCtxPtr);
+void StopUpdateThread(ThreadsContext *threadsCtxPtr);
+void *Update(void *updateThreadArgPtr);
+void UpdateEntityBehaviour(EntityMatrix *entityMatrixPtr, Interface *gameplayInterfacePtr, TimeContext *timeCtxPtr);
+void PlayerBehaviour(EntityMatrix *entityMatrixPtr);
+void EnemyBehaviour(EntityMatrix *entityMatrixPtr, Entity *enemyPtr);
+void UpdateEntityPhysics(EventStateContext *eventStateCtxPtr,
+                         GameplayContext *gameplayCtxPtr,
+                         InterfaceContext *interfaceCtxPtr,
+                         TimeContext *timeCtxPtr);
+int UpdatePlayerPhysics(GameplayContext *gameplayCtxPtr, double elapsedTime);
+int UpdateEnemyPhysics(GameplayContext *gameplayCtxPtr, Entity *enemyPtr, double elapsedTime);
 void StartRenderingThread(EventStateContext *eventStateCtxPtr,
                           GameplayContext *gameplayCtxPtr,
                           ThreadsContext *threadsCtxPtr,
