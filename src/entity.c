@@ -203,7 +203,7 @@ Vector2D GenerateSpawnPosition(EntityMatrix *entityMatrixPtr, float minDistanceF
 Entity CreateEmpty(Vector2D position)
 {
     Entity empty = {
-        .c = {255},
+        .c = "\xFF",
         .animationFrame = 0.0f,
         .animationSpeed = 0.0f,
         .isAnimated = 0,
@@ -222,7 +222,7 @@ Entity CreateEmpty(Vector2D position)
 Entity CreatePlayer(Vector2D position)
 {
     Entity player = {
-        .c = {254},
+        .c = "\xFE",
         .animationFrame = 0.0f,
         .animationSpeed = 0.0f,
         .isAnimated = 0,
@@ -241,7 +241,7 @@ Entity CreatePlayer(Vector2D position)
 Entity CreateCoin(Vector2D position)
 {
     Entity coin = {
-        .c = {45, 92, 124, 47},
+        .c = "\x2D\x5C\x7C\x2F",
         .animationFrame = 0.0f,
         .animationSpeed = ANIMATION_SPEED,
         .isAnimated = 1,
@@ -260,7 +260,7 @@ Entity CreateCoin(Vector2D position)
 Entity CreateEnemy(Vector2D position)
 {
     Entity enemy = {
-        .c = {178, 177, 176, 178},
+        .c = "\xB2\xB1\xB0\xB2",
         .animationFrame = 0.0f,
         .animationSpeed = ANIMATION_SPEED,
         .isAnimated = 1,
@@ -580,7 +580,7 @@ void UpdateEntityPhysics(EventStateContext *eventStateCtxPtr,
 
         if (gameover)
         {
-            SetGameplayText(&interfaceCtxPtr->gameover.texts[2], gameplayCtxPtr->score);
+            SetGameplayText(&interfaceCtxPtr->gameover.texts[4], gameplayCtxPtr->score);
             pthread_mutex_lock(&eventStateCtxPtr->eventMutex);
             eventStateCtxPtr->event = GM_GAMEOVER;
             pthread_mutex_unlock(&eventStateCtxPtr->eventMutex);

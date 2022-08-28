@@ -46,10 +46,14 @@ $(DBG_PATH)/%.o: $(SRC_PATH)/%.c*
 $(TARGET_DEBUG): $(OBJ_DEBUG)
 	$(CC) $(CFLAGS) $(DBGFLAGS) $(OBJ_DEBUG) -o $@
 
-CLEAN_CMD :=@rm -f $(CLEAN_LIST)
-
+CLEAN_CMD := @rm -f $(CLEAN_LIST)
 ifeq ($(OS),Windows_NT)
 	CLEAN_CMD := @del /f /s /q bin\* debug\* obj\*
+endif
+
+DISTCLEAN_CMD := @rm -f $(DISTCLEAN_LIST)
+ifeq ($(OS),Windows_NT)
+	DISTCLEAN_CMD := @del /f /s /q debug\*.o obj\*
 endif
 
 # phony rules
@@ -67,4 +71,4 @@ clean:
 .PHONY: distclean
 distclean:
 	@echo CLEAN $(DISTCLEAN_LIST)
-	@rm -f $(DISTCLEAN_LIST)
+	$(DISTCLEAN_CMD)

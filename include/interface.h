@@ -4,7 +4,6 @@
 #include "../include/core.h"
 #include "../include/graphics.h"
 
-#define MENU_TITLE @MENU_TITLE@
 #define VERSION "2.18"
 
 enum Alignment
@@ -61,6 +60,7 @@ typedef struct
 void InitInterfaceContext(InterfaceContext *interfaceCtxPtr, Vector2D consoleSize);
 void FreeInterfaceContext(InterfaceContext *interfaceCtxPtr);
 Vector2D CalculateAlignedPosition(char *string, Vector2D position, Vector2D consoleSize, enum Alignment alignment);
+Text CreateBox(Vector2D size, unsigned short color, Vector2D position, Vector2D consoleSize, enum Alignment alignment);
 Text CreateText(char *content, unsigned short color, Vector2D position, Vector2D consoleSize, enum Alignment alignment);
 void FreeText(Text *text);
 Button CreateButton(char *content,

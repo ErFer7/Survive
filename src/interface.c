@@ -117,6 +117,82 @@ Vector2D CalculateAlignedPosition(char *string, Vector2D position, Vector2D cons
     return calculatedPosition;
 }
 
+Text CreateBox(Vector2D size, unsigned short color, Vector2D position, Vector2D consoleSize, enum Alignment alignment)
+{
+    Text text = {
+        .contentSize = size.y * (size.x + 1) + 1,
+        .color = color};
+
+    text.content = malloc(sizeof(char) * text.contentSize);
+
+    char *line = malloc(sizeof(char) * (size.x + 1));
+
+    for (int i = 0; i < size.x; i++)
+    {
+        if (i == 0)
+        {
+            line[i] = '\xC9';
+        }
+        else if (i == size.x -1)
+        {
+            line[i] = '\xBB';
+        }
+        else
+        {
+            line[i] = '\xCD';
+        }
+    }
+
+    line[size.x] = '\x0A';
+
+    memcpy(text.content, line, sizeof(char) * (size.x + 1));
+
+    for (int i = 0; i < size.x; i++)
+    {
+        if (i == 0)
+        {
+            line[i] = '\xBA';
+        }
+        else if (i == size.x - 1)
+        {
+            line[i] = '\xBA';
+        }
+        else
+        {
+            line[i] = '\x20';
+        }
+    }
+
+    for (int i = 1; i < size.y - 1; i++)
+    {
+        memcpy(&text.content[i * (size.x + 1)], line, sizeof(char) * (size.x + 1));
+    }
+
+    for (int i = 0; i < size.x; i++)
+    {
+        if (i == 0)
+        {
+            line[i] = '\xC8';
+        }
+        else if (i == size.x -1)
+        {
+            line[i] = '\xBC';
+        }
+        else
+        {
+            line[i] = '\xCD';
+        }
+    }
+
+    memcpy(&text.content[(size.y - 1) * (size.x + 1)], line, sizeof(char) * (size.x + 1));
+    free(line);
+
+    text.content[text.contentSize - 1] = '\x00';
+    text.position = CalculateAlignedPosition(text.content, position, consoleSize, alignment);
+
+    return text;
+}
+
 Text CreateText(char *content, unsigned short color, Vector2D position, Vector2D consoleSize, enum Alignment alignment)
 {
     Text text = {
@@ -389,29 +465,37 @@ Interface BuildMainMenuInterface(Vector2D consoleSize)
 {
     Interface mainMenu = {
 
-        .textCount = 2,
+        .textCount = 3,
         .buttonCount = 3,
         .selectedButton = 0};
 
     mainMenu.texts = malloc(sizeof(Text) * mainMenu.textCount);
     mainMenu.buttons = malloc(sizeof(Button) * mainMenu.buttonCount);
 
-    mainMenu.texts[0] = CreateText("  ______   __    __  _______   __     __  ______  __     __  ________  \n"
-                                   " /      \\ |  \\  |  \\|       \\ |  \\   |  \\|      \\|  \\   |  \\|   "
-                                   "     \\\n|  $$$$$$\\| $$  | $$| $$$$$$$\\| $$   | $$ \\$$$$$$| $$   | $$|"
-                                   " $$$$$$$$\n| $$___\\$$| $$  | $$| $$__| $$| $$   | $$  | $$  | $$   | $$|"
-                                   " $$__    \n \\$$    \\ | $$  | $$| $$    $$ \\$$\\ /  $$  | $$   \\$$\\ /"
-                                   "  $$| $$  \\   \n _\\$$$$$$\\| $$  | $$| $$$$$$$\\  \\$$\\  $$   | $$    "
-                                   "\\$$\\  $$ | $$$$$   \n|  \\__| $$| $$__/ $$| $$  | $$   \\$$ $$   _| $$_"
-                                   "    \\$$ $$  | $$_____ \n \\$$    $$ \\$$    $$| $$  | $$    \\$$$   |   "
-                                   "$$ \\    \\$$$   | $$     \\\n  \\$$$$$$   \\$$$$$$  \\$$   \\$$     \\$ "
-                                   "    \\$$$$$$     \\$     \\$$$$$$$$",
+    mainMenu.texts[0] = CreateBox(CreateVector2D(70, 10), 0x0C, CreateVector2D(0, 2), consoleSize, TOP);
+    mainMenu.texts[1] = CreateText("\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB\xBB\x20\x20\x20\xDB\xDB\xBB\xDB\xDB\xDB"
+                                   "\xDB\xDB\xDB\xBB\x20\xDB\xDB\xBB\x20\x20\x20\xDB\xDB\xBB\xDB\xDB\xBB\xDB\xDB\xBB"
+                                   "\x20\x20\x20\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\x0A\xDB\xDB\xC9\xCD\xCD"
+                                   "\xCD\xCD\xBC\xDB\xDB\xBA\x20\x20\x20\xDB\xDB\xBA\xDB\xDB\xC9\xCD\xCD\xDB\xDB\xBB"
+                                   "\xDB\xDB\xBA\x20\x20\x20\xDB\xDB\xBA\xDB\xDB\xBA\xDB\xDB\xBA\x20\x20\x20\xDB\xDB"
+                                   "\xBA\xDB\xDB\xC9\xCD\xCD\xCD\xCD\xBC\x0A\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB"
+                                   "\xBA\x20\x20\x20\xDB\xDB\xBA\xDB\xDB\xDB\xDB\xDB\xDB\xC9\xBC\xDB\xDB\xBA\x20\x20"
+                                   "\x20\xDB\xDB\xBA\xDB\xDB\xBA\xDB\xDB\xBA\x20\x20\x20\xDB\xDB\xBA\xDB\xDB\xDB\xDB"
+                                   "\xDB\xBB\x20\x20\x0A\xC8\xCD\xCD\xCD\xCD\xDB\xDB\xBA\xDB\xDB\xBA\x20\x20\x20\xDB"
+                                   "\xDB\xBA\xDB\xDB\xC9\xCD\xCD\xDB\xDB\xBB\xC8\xDB\xDB\xBB\x20\xDB\xDB\xC9\xBC\xDB"
+                                   "\xDB\xBA\xC8\xDB\xDB\xBB\x20\xDB\xDB\xC9\xBC\xDB\xDB\xC9\xCD\xCD\xBC\x20\x20\x0A"
+                                   "\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBA\xC8\xDB\xDB\xDB\xDB\xDB\xDB\xC9\xBC\xDB\xDB\xBA"
+                                   "\x20\x20\xDB\xDB\xBA\x20\xC8\xDB\xDB\xDB\xDB\xC9\xBC\x20\xDB\xDB\xBA\x20\xC8\xDB"
+                                   "\xDB\xDB\xDB\xC9\xBC\x20\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\x0A\xC8\xCD\xCD\xCD\xCD"
+                                   "\xCD\xCD\xBC\x20\xC8\xCD\xCD\xCD\xCD\xCD\xBC\x20\xC8\xCD\xBC\x20\x20\xC8\xCD\xBC"
+                                   "\x20\x20\xC8\xCD\xCD\xCD\xBC\x20\x20\xC8\xCD\xBC\x20\x20\xC8\xCD\xCD\xCD\xBC\x20"
+                                   "\x20\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xBC\x0A",
                                    0x0C,
                                    CreateVector2D(0, 4),
                                    consoleSize,
                                    TOP);
 
-    mainMenu.texts[1] = CreateText(VERSION, 0x07, CreateVector2D(0, -1), consoleSize, BOTTOM);
+    mainMenu.texts[2] = CreateText(VERSION, 0x0B, CreateVector2D(0, -1), consoleSize, BOTTOM);
 
     mainMenu.buttons[0] = CreateButton("Start", 0x0C, CreateVector2D(0, 0), consoleSize, UI_START, CENTER);
     mainMenu.buttons[1] = CreateButton("Info", 0x07, CreateVector2D(0, 2), consoleSize, UI_INFO, CENTER);
@@ -424,36 +508,42 @@ Interface BuildInfoInterface(Vector2D consoleSize)
 {
     Interface infoMenu = {
 
-        .textCount = 4,
+        .textCount = 5,
         .buttonCount = 1,
         .selectedButton = 0};
 
     infoMenu.texts = malloc(sizeof(Text) * infoMenu.textCount);
     infoMenu.buttons = malloc(sizeof(Button) * infoMenu.buttonCount);
 
-    infoMenu.texts[0] = CreateText(" ______  __    __  ________   ______  \n|      \\|  \\  |  \\|        \\ /   "
-                                   "   \\ \n \\$$$$$$| $$\\ | $$| $$$$$$$$|  $$$$$$\\\n  | $$  | $$$\\| $$| $$__ "
-                                   "   | $$  | $$\n  | $$  | $$$$\\ $$| $$  \\   | $$  | $$\n  | $$  | $$\\$$ $$|"
-                                   " $$$$$   | $$  | $$\n _| $$_ | $$ \\$$$$| $$      | $$__/ $$\n|   $$ \\| $$"
-                                   "  \\$$$| $$       \\$$    $$\n \\$$$$$$ \\$$   \\$$ \\$$        \\$$$$$$ ",
+    infoMenu.texts[0] = CreateBox(CreateVector2D(70, 10), 0x0A, CreateVector2D(0, 2), consoleSize, TOP);
+    infoMenu.texts[1] = CreateText("\xDB\xDB\xBB\xDB\xDB\xDB\xBB\x20\x20\x20\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xDB"
+                                   "\xBB\x20\xDB\xDB\xDB\xDB\xDB\xDB\xBB\x20\x0A\xDB\xDB\xBA\xDB\xDB\xDB\xDB\xBB\x20"
+                                   "\x20\xDB\xDB\xBA\xDB\xDB\xC9\xCD\xCD\xCD\xCD\xBC\xDB\xDB\xC9\xCD\xCD\xCD\xDB\xDB"
+                                   "\xBB\x0A\xDB\xDB\xBA\xDB\xDB\xC9\xDB\xDB\xBB\x20\xDB\xDB\xBA\xDB\xDB\xDB\xDB\xDB"
+                                   "\xBB\x20\x20\xDB\xDB\xBA\x20\x20\x20\xDB\xDB\xBA\x0A\xDB\xDB\xBA\xDB\xDB\xBA\xC8"
+                                   "\xDB\xDB\xBB\xDB\xDB\xBA\xDB\xDB\xC9\xCD\xCD\xBC\x20\x20\xDB\xDB\xBA\x20\x20\x20"
+                                   "\xDB\xDB\xBA\x0A\xDB\xDB\xBA\xDB\xDB\xBA\x20\xC8\xDB\xDB\xDB\xDB\xBA\xDB\xDB\xBA"
+                                   "\x20\x20\x20\x20\x20\xC8\xDB\xDB\xDB\xDB\xDB\xDB\xC9\xBC\x0A\xC8\xCD\xBC\xC8\xCD"
+                                   "\xBC\x20\x20\xC8\xCD\xCD\xCD\xBC\xC8\xCD\xBC\x20\x20\x20\x20\x20\x20\xC8\xCD\xCD"
+                                   "\xCD\xCD\xCD\xBC\x20\x0A",
                                    0x0A,
                                    CreateVector2D(0, 4),
                                    consoleSize,
                                    TOP);
 
-    infoMenu.texts[1] = CreateText("Adaptation of my first game that was created in 2019-03-19",
+    infoMenu.texts[2] = CreateText("Adaptation of my first game that was created in 2019-03-19",
                                     0x07,
                                     CreateVector2D(0, 0),
                                     consoleSize,
                                     CENTER);
 
-    infoMenu.texts[2] = CreateText("Written by Eric (ErFer7): https://github.com/ErFer7/Survive",
+    infoMenu.texts[3] = CreateText("Written by Eric (ErFer7): https://github.com/ErFer7/Survive",
                                    0x07,
                                    CreateVector2D(0, 1),
                                    consoleSize,
                                    CENTER);
 
-    infoMenu.texts[3] = CreateText("Use the arrows to move and X to run",
+    infoMenu.texts[4] = CreateText("Use the arrows to move and X to run",
                                    0x07,
                                    CreateVector2D(0, 3),
                                    consoleSize,
@@ -468,31 +558,39 @@ Interface BuildStartInterface(Vector2D consoleSize)
 {
     Interface startMenu = {
 
-        .textCount = 3,
+        .textCount = 4,
         .buttonCount = 6,
         .selectedButton = 1};
 
     startMenu.texts = malloc(sizeof(Text) * startMenu.textCount);
     startMenu.buttons = malloc(sizeof(Button) * startMenu.buttonCount);
 
-    startMenu.texts[0] = CreateText("  ______  ________   ______   _______  ________\n /      \\|        \\ /     "
-                                    " \\ |       \\|        \\\n|  $$$$$$\\\\$$$$$$$$|  $$$$$$\\| $$$$$$$\\\\$$$$$"
-                                    "$$$\n| $$___\\$$  | $$   | $$__| $$| $$__| $$  | $$\n \\$$    \\   | $$   | $"
-                                    "$    $$| $$    $$  | $$\n _\\$$$$$$\\  | $$   | $$$$$$$$| $$$$$$$\\  | $$\n| "
-                                    " \\__| $$  | $$   | $$  | $$| $$  | $$  | $$\n \\$$    $$  | $$   | $$  | $$|"
-                                    " $$  | $$  | $$\n  \\$$$$$$    \\$$    \\$$   \\$$ \\$$   \\$$   \\$$",
+    startMenu.texts[0] = CreateBox(CreateVector2D(70, 10), 0x0C, CreateVector2D(0, 2), consoleSize, TOP);
+    startMenu.texts[1] = CreateText("\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\x20\xDB\xDB"
+                                    "\xDB\xDB\xDB\xBB\x20\xDB\xDB\xDB\xDB\xDB\xDB\xBB\x20\xDB\xDB\xDB\xDB\xDB\xDB\xDB"
+                                    "\xDB\xBB\x0A\xDB\xDB\xC9\xCD\xCD\xCD\xCD\xBC\xC8\xCD\xCD\xDB\xDB\xC9\xCD\xCD\xBC"
+                                    "\xDB\xDB\xC9\xCD\xCD\xDB\xDB\xBB\xDB\xDB\xC9\xCD\xCD\xDB\xDB\xBB\xC8\xCD\xCD\xDB"
+                                    "\xDB\xC9\xCD\xCD\xBC\x0A\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\x20\x20\x20\xDB\xDB\xBA"
+                                    "\x20\x20\x20\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBA\xDB\xDB\xDB\xDB\xDB\xDB\xC9\xBC\x20"
+                                    "\x20\x20\xDB\xDB\xBA\x20\x20\x20\x0A\xC8\xCD\xCD\xCD\xCD\xDB\xDB\xBA\x20\x20\x20"
+                                    "\xDB\xDB\xBA\x20\x20\x20\xDB\xDB\xC9\xCD\xCD\xDB\xDB\xBA\xDB\xDB\xC9\xCD\xCD\xDB"
+                                    "\xDB\xBB\x20\x20\x20\xDB\xDB\xBA\x20\x20\x20\x0A\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBA"
+                                    "\x20\x20\x20\xDB\xDB\xBA\x20\x20\x20\xDB\xDB\xBA\x20\x20\xDB\xDB\xBA\xDB\xDB\xBA"
+                                    "\x20\x20\xDB\xDB\xBA\x20\x20\x20\xDB\xDB\xBA\x20\x20\x20\x0A\xC8\xCD\xCD\xCD\xCD"
+                                    "\xCD\xCD\xBC\x20\x20\x20\xC8\xCD\xBC\x20\x20\x20\xC8\xCD\xBC\x20\x20\xC8\xCD\xBC"
+                                    "\xC8\xCD\xBC\x20\x20\xC8\xCD\xBC\x20\x20\x20\xC8\xCD\xBC\x20\x20\x20\x0A",
                                     0x0C,
                                     CreateVector2D(0, 4),
                                     consoleSize,
                                     TOP);
 
-    startMenu.texts[1] = CreateText("Choose your game mode and world size",
+    startMenu.texts[2] = CreateText("Choose your game mode and world size",
                                     0x07,
                                     CreateVector2D(0, 0),
                                     consoleSize,
                                     CENTER);
 
-    startMenu.texts[2] = CreateText("Large worlds can use a lot of memory!",
+    startMenu.texts[3] = CreateText("Large worlds can use a lot of memory!",
                                     0x0E,
                                     CreateVector2D(0, 1),
                                     consoleSize,
@@ -539,42 +637,22 @@ Interface BuildPauseInterface(Vector2D consoleSize)
     pause.texts = malloc(sizeof(Text) * pause.textCount);
     pause.buttons = malloc(sizeof(Button) * pause.buttonCount);
 
-    pause.texts[0] = CreateText("----------------------------------------------------------------------\n"
-                                "|                                                                    |\n"
-                                "|                                                                    |\n"
-                                "|                                                                    |\n"
-                                "|                                                                    |\n"
-                                "|                                                                    |\n"
-                                "|                                                                    |\n"
-                                "|                                                                    |\n"
-                                "|                                                                    |\n"
-                                "|                                                                    |\n"
-                                "|                                                                    |\n"
-                                "----------------------------------------------------------------------",
-                                0x08,
-                                CreateVector2D(0, 2),
-                                consoleSize,
-                                TOP);
+    pause.texts[0] = CreateBox(CreateVector2D(70, 10), 0x07, CreateVector2D(0, 2), consoleSize, TOP);
+    pause.texts[1] = CreateBox(CreateVector2D(70, 7), 0x08, CreateVector2D(0, 3), consoleSize, CENTER);
 
-    pause.texts[1] = CreateText("----------------------------------------------------------------------\n"
-                                "|                                                                    |\n"
-                                "|                                                                    |\n"
-                                "|                                                                    |\n"
-                                "|                                                                    |\n"
-                                "|                                                                    |\n"
-                                "----------------------------------------------------------------------",
-                                0x08,
-                                CreateVector2D(0, 2),
-                                consoleSize,
-                                CENTER);
-
-    pause.texts[2] = CreateText("$$$$$$$\\   $$$$$$\\  $$\\   $$\\  $$$$$$\\  $$$$$$$$\\ $$$$$$$\\  \n$$  __"
-                                "$$\\ $$  __$$\\ $$ |  $$ |$$  __$$\\ $$  _____|$$  __$$\\ \n$$ |  $$ |$$ / "
-                                " $$ |$$ |  $$ |$$ /  \\__|$$ |      $$ |  $$ |\n$$$$$$$  |$$$$$$$$ |$$ |  $"
-                                "$ |\\$$$$$$\\  $$$$$\\    $$ |  $$ |\n$$  ____/ $$  __$$ |$$ |  $$ | \\____"
-                                "$$\\ $$  __|   $$ |  $$ |\n$$ |      $$ |  $$ |$$ |  $$ |$$\\   $$ |$$ |   "
-                                "   $$ |  $$ |\n$$ |      $$ |  $$ |\\$$$$$$  |\\$$$$$$  |$$$$$$$$\\ $$$$$$$"
-                                "  |\n\\__|      \\__|  \\__| \\______/  \\______/ \\________|\\_______/ ",
+    pause.texts[2] = CreateText("\xDB\xDB\xDB\xDB\xDB\xDB\xBB\x20\x20\xDB\xDB\xDB\xDB\xDB\xBB\x20\xDB\xDB\xBB\x20"
+                                "\x20\x20\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xDB"
+                                "\xBB\x0A\xDB\xDB\xC9\xCD\xCD\xDB\xDB\xBB\xDB\xDB\xC9\xCD\xCD\xDB\xDB\xBB\xDB\xDB"
+                                "\xBA\x20\x20\x20\xDB\xDB\xBA\xDB\xDB\xC9\xCD\xCD\xCD\xCD\xBC\xDB\xDB\xC9\xCD\xCD"
+                                "\xCD\xCD\xBC\x0A\xDB\xDB\xDB\xDB\xDB\xDB\xC9\xBC\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBA"
+                                "\xDB\xDB\xBA\x20\x20\x20\xDB\xDB\xBA\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB\xDB"
+                                "\xDB\xDB\xBB\x20\x20\x0A\xDB\xDB\xC9\xCD\xCD\xCD\xBC\x20\xDB\xDB\xC9\xCD\xCD\xDB"
+                                "\xDB\xBA\xDB\xDB\xBA\x20\x20\x20\xDB\xDB\xBA\xC8\xCD\xCD\xCD\xCD\xDB\xDB\xBA\xDB"
+                                "\xDB\xC9\xCD\xCD\xBC\x20\x20\x0A\xDB\xDB\xBA\x20\x20\x20\x20\x20\xDB\xDB\xBA\x20"
+                                "\x20\xDB\xDB\xBA\xC8\xDB\xDB\xDB\xDB\xDB\xDB\xC9\xBC\xDB\xDB\xDB\xDB\xDB\xDB\xDB"
+                                "\xBA\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\x0A\xC8\xCD\xBC\x20\x20\x20\x20\x20\xC8\xCD"
+                                "\xBC\x20\x20\xC8\xCD\xBC\x20\xC8\xCD\xCD\xCD\xCD\xCD\xBC\x20\xC8\xCD\xCD\xCD\xCD"
+                                "\xCD\xCD\xBC\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xBC\x0A",
                                 0x07,
                                 CreateVector2D(0, 4),
                                 consoleSize,
@@ -591,30 +669,45 @@ Interface BuildGameoverInterface(Vector2D consoleSize)
 {
     Interface gameover = {
 
-        .textCount = 3,
+        .textCount = 5,
         .buttonCount = 2,
         .selectedButton = 0};
 
     gameover.texts = malloc(sizeof(Text) * gameover.textCount);
     gameover.buttons = malloc(sizeof(Button) * gameover.buttonCount);
 
-    gameover.texts[0] = CreateText(" $$$$$$\\   $$$$$$\\  $$\\      $$\\ $$$$$$$$\\  $$$$$$\\  $$\\    $$\\ $$$$$$"
-                                   "$$\\ $$$$$$$\\  \n$$  __$$\\ $$  __$$\\ $$$\\    $$$ |$$  _____|$$  __$$\\ $$ "
-                                   "|   $$ |$$  _____|$$  __$$\\ \n$$ /  \\__|$$ /  $$ |$$$$\\  $$$$ |$$ |      $$"
-                                   " /  $$ |$$ |   $$ |$$ |      $$ |  $$ |\n$$ |$$$$\\ $$$$$$$$ |$$\\$$\\$$ $$ |$"
-                                   "$$$$\\    $$ |  $$ |\\$$\\  $$  |$$$$$\\    $$$$$$$  |\n$$ |\\_$$ |$$  __$$ |$"
-                                   "$ \\$$$  $$ |$$  __|   $$ |  $$ | \\$$\\$$  / $$  __|   $$  __$$< \n$$ |  $$ |"
-                                   "$$ |  $$ |$$ |\\$  /$$ |$$ |      $$ |  $$ |  \\$$$  /  $$ |      $$ |  $$ |\n"
-                                   "\\$$$$$$  |$$ |  $$ |$$ | \\_/ $$ |$$$$$$$$\\  $$$$$$  |   \\$  /   $$$$$$$$\\"
-                                   " $$ |  $$ |\n \\______/ \\__|  \\__|\\__|     \\__|\\________| \\______/     "
-                                   "\\_/    \\________|\\__|  \\__|",
+    gameover.texts[0] = CreateBox(CreateVector2D(80, 10), 0x0C, CreateVector2D(0, 2), consoleSize, TOP);
+    gameover.texts[1] = CreateBox(CreateVector2D(80, 7), 0x08, CreateVector2D(0, 3), consoleSize, CENTER);
+
+    gameover.texts[2] = CreateText("\x20\xDB\xDB\xDB\xDB\xDB\xDB\xBB\x20\x20\xDB\xDB\xDB\xDB\xDB\xBB\x20\xDB\xDB\xDB"
+                                   "\xBB\x20\x20\x20\xDB\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\x20\xDB\xDB\xDB"
+                                   "\xDB\xDB\xDB\xBB\x20\xDB\xDB\xBB\x20\x20\x20\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB"
+                                   "\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xBB\x20\x0A\xDB\xDB\xC9\xCD\xCD\xCD\xCD\xBC\x20"
+                                   "\xDB\xDB\xC9\xCD\xCD\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xBB\x20\xDB\xDB\xDB\xDB\xBA\xDB"
+                                   "\xDB\xC9\xCD\xCD\xCD\xCD\xBC\xDB\xDB\xC9\xCD\xCD\xCD\xDB\xDB\xBB\xDB\xDB\xBA\x20"
+                                   "\x20\x20\xDB\xDB\xBA\xDB\xDB\xC9\xCD\xCD\xCD\xCD\xBC\xDB\xDB\xC9\xCD\xCD\xDB\xDB"
+                                   "\xBB\x0A\xDB\xDB\xBA\x20\x20\xDB\xDB\xDB\xBB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBA\xDB"
+                                   "\xDB\xC9\xDB\xDB\xDB\xDB\xC9\xDB\xDB\xBA\xDB\xDB\xDB\xDB\xDB\xBB\x20\x20\xDB\xDB"
+                                   "\xBA\x20\x20\x20\xDB\xDB\xBA\xDB\xDB\xBA\x20\x20\x20\xDB\xDB\xBA\xDB\xDB\xDB\xDB"
+                                   "\xDB\xBB\x20\x20\xDB\xDB\xDB\xDB\xDB\xDB\xC9\xBC\x0A\xDB\xDB\xBA\x20\x20\x20\xDB"
+                                   "\xDB\xBA\xDB\xDB\xC9\xCD\xCD\xDB\xDB\xBA\xDB\xDB\xBA\xC8\xDB\xDB\xC9\xBC\xDB\xDB"
+                                   "\xBA\xDB\xDB\xC9\xCD\xCD\xBC\x20\x20\xDB\xDB\xBA\x20\x20\x20\xDB\xDB\xBA\xC8\xDB"
+                                   "\xDB\xBB\x20\xDB\xDB\xC9\xBC\xDB\xDB\xC9\xCD\xCD\xBC\x20\x20\xDB\xDB\xC9\xCD\xCD"
+                                   "\xDB\xDB\xBB\x0A\xC8\xDB\xDB\xDB\xDB\xDB\xDB\xC9\xBC\xDB\xDB\xBA\x20\x20\xDB\xDB"
+                                   "\xBA\xDB\xDB\xBA\x20\xC8\xCD\xBC\x20\xDB\xDB\xBA\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xBB"
+                                   "\xC8\xDB\xDB\xDB\xDB\xDB\xDB\xC9\xBC\x20\xC8\xDB\xDB\xDB\xDB\xC9\xBC\x20\xDB\xDB"
+                                   "\xDB\xDB\xDB\xDB\xDB\xBB\xDB\xDB\xBA\x20\x20\xDB\xDB\xBA\x0A\x20\xC8\xCD\xCD\xCD"
+                                   "\xCD\xCD\xBC\x20\xC8\xCD\xBC\x20\x20\xC8\xCD\xBC\xC8\xCD\xBC\x20\x20\x20\x20\x20"
+                                   "\xC8\xCD\xBC\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xBC\x20\xC8\xCD\xCD\xCD\xCD\xCD\xBC\x20"
+                                   "\x20\x20\xC8\xCD\xCD\xCD\xBC\x20\x20\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xBC\xC8\xCD\xBC"
+                                   "\x20\x20\xC8\xCD\xBC",
                                    0x0C,
                                    CreateVector2D(0, 4),
                                    consoleSize,
                                    TOP);
 
-    gameover.texts[1] = CreateText("Score:", 0x07, CreateVector2D(-6, 0), consoleSize, CENTER);
-    gameover.texts[2] = CreateText("0000000000", 0x07, CreateVector2D(3, 0), consoleSize, CENTER);
+    gameover.texts[3] = CreateText("Score:", 0x07, CreateVector2D(-6, 0), consoleSize, CENTER);
+    gameover.texts[4] = CreateText("0000000000", 0x07, CreateVector2D(3, 0), consoleSize, CENTER);
 
     gameover.buttons[0] = CreateButton("Restart", 0x0C, CreateVector2D(0, 2), consoleSize, UI_RESTART, CENTER);
     gameover.buttons[1] = CreateButton("Menu", 0x07, CreateVector2D(0, 4), consoleSize, UI_RETURN, CENTER);
