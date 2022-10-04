@@ -18,6 +18,7 @@
 #include "../include/interface.h"
 #include "../include/entity.h"
 #include "../include/world.h"
+#include "../include/wrappers.h"
 
 #define CONSOLE_WIDTH 120
 #define CONSOLE_HEIGHT 30
@@ -52,42 +53,67 @@ int main()
         case UI_START_SMALL:
 
             eventStateCtx.state = GAMEPLAY;
-            InitGameplayContext(&gameplayCtx, CreateVector2D(128, 128), 0, 0);
-            GenerateWorld(&gameplayCtx);
-            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-            StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
+            StartGameplay(&gameplayCtx,
+                          CreateVector2D(128, 128),
+                          0,
+                          0,
+                          &eventStateCtx,
+                          &threadsCtx,
+                          &consoleCtx,
+                          &interfaceCtx,
+                          &timeCtx);
             break;
         case UI_START_REGULAR:
 
             eventStateCtx.state = GAMEPLAY;
-            InitGameplayContext(&gameplayCtx, CreateVector2D(512, 512), 0, 0);
-            GenerateWorld(&gameplayCtx);
-            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-            StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
+            StartGameplay(&gameplayCtx,
+                          CreateVector2D(512, 512),
+                          0,
+                          0,
+                          &eventStateCtx,
+                          &threadsCtx,
+                          &consoleCtx,
+                          &interfaceCtx,
+                          &timeCtx);
             break;
         case UI_START_LARGE:
 
             eventStateCtx.state = GAMEPLAY;
-            InitGameplayContext(&gameplayCtx, CreateVector2D(2048, 2048), 0, 0);
-            GenerateWorld(&gameplayCtx);
-            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-            StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
+            StartGameplay(&gameplayCtx,
+                          CreateVector2D(2048, 2048),
+                          0,
+                          0,
+                          &eventStateCtx,
+                          &threadsCtx,
+                          &consoleCtx,
+                          &interfaceCtx,
+                          &timeCtx);
             break;
         case UI_START_MEGA:
 
             eventStateCtx.state = GAMEPLAY;
-            InitGameplayContext(&gameplayCtx, CreateVector2D(8192, 8192), 0, 0);
-            GenerateWorld(&gameplayCtx);
-            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-            StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
+            StartGameplay(&gameplayCtx,
+                          CreateVector2D(8192, 8192),
+                          0,
+                          0,
+                          &eventStateCtx,
+                          &threadsCtx,
+                          &consoleCtx,
+                          &interfaceCtx,
+                          &timeCtx);
             break;
         case UI_START_CLASSIC:
 
             eventStateCtx.state = GAMEPLAY;
-            InitGameplayContext(&gameplayCtx, CreateVector2D(120, 29), 1, 1);
-            GenerateWorld(&gameplayCtx);
-            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-            StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
+            StartGameplay(&gameplayCtx,
+                          CreateVector2D(120, 29),
+                          1,
+                          1,
+                          &eventStateCtx,
+                          &threadsCtx,
+                          &consoleCtx,
+                          &interfaceCtx,
+                          &timeCtx);
             break;
         case UI_INFO:
 

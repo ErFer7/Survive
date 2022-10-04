@@ -4,7 +4,7 @@
 #include "../include/core.h"
 #include "../include/graphics.h"
 
-#define VERSION "2.18"
+#define VERSION "2.18.1"
 
 enum Alignment
 {
