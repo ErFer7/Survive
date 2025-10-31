@@ -13,7 +13,8 @@
 
 #include "../include/vector2D.h"
 #include "../include/core.h"
-#include "../include/utilities.h"
+#include "../include/platform/chronometer.h"
+#include "../include/platform/random.h"
 #include "../include/graphics.h"
 #include "../include/interface.h"
 #include "../include/entity.h"
@@ -26,14 +27,14 @@
 int main()
 {
     EventStateContext eventStateCtx;
-    TimeContext timeCtx;
+    Chronometer gameplay_chronometer;
+    Chronometer rendering_chronometer;
     ConsoleContext consoleCtx;
     InterfaceContext interfaceCtx;
     GameplayContext gameplayCtx;
     ThreadsContext threadsCtx;
 
     InitEventStateContext(&eventStateCtx);
-    InitTimeContext(&timeCtx);
     InitConsoleContext(&consoleCtx, CreateVector2D(CONSOLE_WIDTH, CONSOLE_HEIGHT));
     InitInterfaceContext(&interfaceCtx, consoleCtx.size);
     PreInitThreadsContext(&threadsCtx);
@@ -61,7 +62,7 @@ int main()
                           &threadsCtx,
                           &consoleCtx,
                           &interfaceCtx,
-                          &timeCtx);
+                          &chronometer);
             break;
         case UI_START_REGULAR:
 
@@ -74,7 +75,7 @@ int main()
                           &threadsCtx,
                           &consoleCtx,
                           &interfaceCtx,
-                          &timeCtx);
+                          &chronometer);
             break;
         case UI_START_LARGE:
 
@@ -87,7 +88,7 @@ int main()
                           &threadsCtx,
                           &consoleCtx,
                           &interfaceCtx,
-                          &timeCtx);
+                          &chronometer);
             break;
         case UI_START_MEGA:
 
@@ -100,7 +101,7 @@ int main()
                           &threadsCtx,
                           &consoleCtx,
                           &interfaceCtx,
-                          &timeCtx);
+                          &chronometer);
             break;
         case UI_START_CLASSIC:
 
@@ -113,7 +114,7 @@ int main()
                           &threadsCtx,
                           &consoleCtx,
                           &interfaceCtx,
-                          &timeCtx);
+                          &chronometer);
             break;
         case UI_INFO:
 
@@ -135,8 +136,8 @@ int main()
         case UI_RESUME:
 
             eventStateCtx.state = GAMEPLAY;
-            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-            StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
+            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &chronometer);
+            StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &chronometer);
             break;
         case UI_RESTART:
 
@@ -147,8 +148,8 @@ int main()
             FreeGameplayContext(&gameplayCtx);
             InitGameplayContext(&gameplayCtx, tempSize, tempFixed, tempEmpty);
             GenerateWorld(&gameplayCtx);
-            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-            StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
+            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &chronometer);
+            StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &chronometer);
             break;
         case UI_RETURN:
 
