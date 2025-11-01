@@ -3,168 +3,167 @@
 /***
  *    ███████╗██╗   ██╗██████╗ ██╗   ██╗██╗██╗   ██╗███████╗
  *    ██╔════╝██║   ██║██╔══██╗██║   ██║██║██║   ██║██╔════╝
- *    ███████╗██║   ██║██████╔╝██║   ██║██║██║   ██║█████╗  
- *    ╚════██║██║   ██║██╔══██╗╚██╗ ██╔╝██║╚██╗ ██╔╝██╔══╝  
+ *    ███████╗██║   ██║██████╔╝██║   ██║██║██║   ██║█████╗
+ *    ╚════██║██║   ██║██╔══██╗╚██╗ ██╔╝██║╚██╗ ██╔╝██╔══╝
  *    ███████║╚██████╔╝██║  ██║ ╚████╔╝ ██║ ╚████╔╝ ███████╗
- *    ╚══════╝ ╚═════╝ ╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═══╝  ╚══════╝                         
+ *    ╚══════╝ ╚═════╝ ╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═══╝  ╚══════╝
  */
 
 #include <pthread.h>
 
-#include "../include/vector2D.h"
 #include "../include/core.h"
+#include "../include/entity.h"
+#include "../include/interface.h"
 #include "../include/platform/chronometer.h"
 #include "../include/platform/random.h"
-#include "../include/graphics.h"
-#include "../include/interface.h"
-#include "../include/entity.h"
+#include "../include/platform/terminal.h"
+#include "../include/vector2D.h"
 #include "../include/world.h"
 #include "../include/wrappers.h"
 
 #define CONSOLE_WIDTH 120
 #define CONSOLE_HEIGHT 30
 
-int main()
-{
+int main() {
     EventStateContext eventStateCtx;
     Chronometer gameplay_chronometer;
     Chronometer rendering_chronometer;
-    ConsoleContext consoleCtx;
+    TerminalContext terminal_context;
     InterfaceContext interfaceCtx;
     GameplayContext gameplayCtx;
     ThreadsContext threadsCtx;
 
     InitEventStateContext(&eventStateCtx);
-    InitConsoleContext(&consoleCtx, CreateVector2D(CONSOLE_WIDTH, CONSOLE_HEIGHT));
-    InitInterfaceContext(&interfaceCtx, consoleCtx.size);
+    init_terminal_context(&terminal_context, CreateVector2D(CONSOLE_WIDTH, CONSOLE_HEIGHT));
+    InitInterfaceContext(&interfaceCtx, terminal_context.size);
     PreInitThreadsContext(&threadsCtx);
     PreInitGameplayContext(&gameplayCtx);
 
-    while (eventStateCtx.state != EXIT)
-    {
-        UpdateInterfaces(&eventStateCtx, &interfaceCtx, &consoleCtx);
+    while (eventStateCtx.state != EXIT) {
+        UpdateInterfaces(&eventStateCtx, &interfaceCtx, &terminal_context);
 
         pthread_mutex_lock(&eventStateCtx.eventMutex);
-        switch (eventStateCtx.event)
-        {
-        case UI_START:
+        switch (eventStateCtx.event) {
+            case UI_START:
 
-            eventStateCtx.state = START_MENU;
-            break;
-        case UI_START_SMALL:
+                eventStateCtx.state = START_MENU;
+                break;
+            case UI_START_SMALL:
 
-            eventStateCtx.state = GAMEPLAY;
-            StartGameplay(&gameplayCtx,
-                          CreateVector2D(128, 128),
-                          0,
-                          0,
-                          &eventStateCtx,
-                          &threadsCtx,
-                          &consoleCtx,
-                          &interfaceCtx,
-                          &chronometer);
-            break;
-        case UI_START_REGULAR:
+                eventStateCtx.state = GAMEPLAY;
+                StartGameplay(&gameplayCtx,
+                              CreateVector2D(128, 128),
+                              0,
+                              0,
+                              &eventStateCtx,
+                              &threadsCtx,
+                              &terminal_context,
+                              &interfaceCtx,
+                              &chronometer);
+                break;
+            case UI_START_REGULAR:
 
-            eventStateCtx.state = GAMEPLAY;
-            StartGameplay(&gameplayCtx,
-                          CreateVector2D(512, 512),
-                          0,
-                          0,
-                          &eventStateCtx,
-                          &threadsCtx,
-                          &consoleCtx,
-                          &interfaceCtx,
-                          &chronometer);
-            break;
-        case UI_START_LARGE:
+                eventStateCtx.state = GAMEPLAY;
+                StartGameplay(&gameplayCtx,
+                              CreateVector2D(512, 512),
+                              0,
+                              0,
+                              &eventStateCtx,
+                              &threadsCtx,
+                              &terminal_context,
+                              &interfaceCtx,
+                              &chronometer);
+                break;
+            case UI_START_LARGE:
 
-            eventStateCtx.state = GAMEPLAY;
-            StartGameplay(&gameplayCtx,
-                          CreateVector2D(2048, 2048),
-                          0,
-                          0,
-                          &eventStateCtx,
-                          &threadsCtx,
-                          &consoleCtx,
-                          &interfaceCtx,
-                          &chronometer);
-            break;
-        case UI_START_MEGA:
+                eventStateCtx.state = GAMEPLAY;
+                StartGameplay(&gameplayCtx,
+                              CreateVector2D(2048, 2048),
+                              0,
+                              0,
+                              &eventStateCtx,
+                              &threadsCtx,
+                              &terminal_context,
+                              &interfaceCtx,
+                              &chronometer);
+                break;
+            case UI_START_MEGA:
 
-            eventStateCtx.state = GAMEPLAY;
-            StartGameplay(&gameplayCtx,
-                          CreateVector2D(8192, 8192),
-                          0,
-                          0,
-                          &eventStateCtx,
-                          &threadsCtx,
-                          &consoleCtx,
-                          &interfaceCtx,
-                          &chronometer);
-            break;
-        case UI_START_CLASSIC:
+                eventStateCtx.state = GAMEPLAY;
+                StartGameplay(&gameplayCtx,
+                              CreateVector2D(8192, 8192),
+                              0,
+                              0,
+                              &eventStateCtx,
+                              &threadsCtx,
+                              &terminal_context,
+                              &interfaceCtx,
+                              &chronometer);
+                break;
+            case UI_START_CLASSIC:
 
-            eventStateCtx.state = GAMEPLAY;
-            StartGameplay(&gameplayCtx,
-                          CreateVector2D(120, 29),
-                          1,
-                          1,
-                          &eventStateCtx,
-                          &threadsCtx,
-                          &consoleCtx,
-                          &interfaceCtx,
-                          &chronometer);
-            break;
-        case UI_INFO:
+                eventStateCtx.state = GAMEPLAY;
+                StartGameplay(&gameplayCtx,
+                              CreateVector2D(120, 29),
+                              1,
+                              1,
+                              &eventStateCtx,
+                              &threadsCtx,
+                              &terminal_context,
+                              &interfaceCtx,
+                              &chronometer);
+                break;
+            case UI_INFO:
 
-            eventStateCtx.state = INFO_MENU;
-            break;
-        case UI_QUIT:
+                eventStateCtx.state = INFO_MENU;
+                break;
+            case UI_QUIT:
 
-            eventStateCtx.state = EXIT;
-            StopUpdateThread(&threadsCtx);
-            StopRenderingThread(&threadsCtx);
-            FreeGameplayContext(&gameplayCtx);
-            break;
-        case UI_PAUSE:
+                eventStateCtx.state = EXIT;
+                StopUpdateThread(&threadsCtx);
+                StopRenderingThread(&threadsCtx);
+                FreeGameplayContext(&gameplayCtx);
+                break;
+            case UI_PAUSE:
 
-            eventStateCtx.state = PAUSE;
-            StopUpdateThread(&threadsCtx);
-            StopRenderingThread(&threadsCtx);
-            break;
-        case UI_RESUME:
+                eventStateCtx.state = PAUSE;
+                StopUpdateThread(&threadsCtx);
+                StopRenderingThread(&threadsCtx);
+                break;
+            case UI_RESUME:
 
-            eventStateCtx.state = GAMEPLAY;
-            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &chronometer);
-            StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &chronometer);
-            break;
-        case UI_RESTART:
+                eventStateCtx.state = GAMEPLAY;
+                StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &chronometer);
+                StartRenderingThread(
+                    &eventStateCtx, &gameplayCtx, &threadsCtx, &terminal_context, &interfaceCtx, &chronometer);
+                break;
+            case UI_RESTART:
 
-            eventStateCtx.state = GAMEPLAY;
-            Vector2D tempSize = gameplayCtx.worldSize;
-            int tempFixed = gameplayCtx.fixedScreen;
-            int tempEmpty = gameplayCtx.empty;
-            FreeGameplayContext(&gameplayCtx);
-            InitGameplayContext(&gameplayCtx, tempSize, tempFixed, tempEmpty);
-            GenerateWorld(&gameplayCtx);
-            StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &chronometer);
-            StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &chronometer);
-            break;
-        case UI_RETURN:
+                eventStateCtx.state = GAMEPLAY;
+                Vector2D tempSize = gameplayCtx.worldSize;
+                int tempFixed = gameplayCtx.fixedScreen;
+                int tempEmpty = gameplayCtx.empty;
+                FreeGameplayContext(&gameplayCtx);
+                InitGameplayContext(&gameplayCtx, tempSize, tempFixed, tempEmpty);
+                GenerateWorld(&gameplayCtx);
+                StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &chronometer);
+                StartRenderingThread(
+                    &eventStateCtx, &gameplayCtx, &threadsCtx, &terminal_context, &interfaceCtx, &chronometer);
+                break;
+            case UI_RETURN:
 
-            eventStateCtx.state = MAIN_MENU;
-            FreeGameplayContext(&gameplayCtx);
-            break;
-        case GM_GAMEOVER:
+                eventStateCtx.state = MAIN_MENU;
+                FreeGameplayContext(&gameplayCtx);
+                break;
+            case GM_GAMEOVER:
 
-            eventStateCtx.state = GAMEOVER;
-            StopUpdateThread(&threadsCtx);
-            StopRenderingThread(&threadsCtx);
-            FreeGameplayContext(&gameplayCtx);
-            break;
-        default:
-            break;
+                eventStateCtx.state = GAMEOVER;
+                StopUpdateThread(&threadsCtx);
+                StopRenderingThread(&threadsCtx);
+                FreeGameplayContext(&gameplayCtx);
+                break;
+            default:
+                break;
         }
 
         eventStateCtx.event = IDLE;
@@ -172,7 +171,7 @@ int main()
     }
 
     FreeEventStateContext(&eventStateCtx);
-    FreeConsoleContext(&consoleCtx);
+    free_terminal_context(&terminal_context);
     FreeInterfaceContext(&interfaceCtx);
 
     return 0;

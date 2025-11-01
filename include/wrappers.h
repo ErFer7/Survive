@@ -12,6 +12,6 @@ void StartGameplay(GameplayContext *gameplayCtxPtr,
                    int empty,
                    EventStateContext *eventStateCtxPtr,
                    ThreadsContext *threadsCtxPtr,
-                   ConsoleContext *consoleCtxPtr,
+                   TerminalContext *console_context,
                    InterfaceContext *interfaceCtxPtr,
                    TimeContext *timeCtxPtr);

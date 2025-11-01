@@ -13,7 +13,7 @@ void StartGameplay(GameplayContext *gameplayCtxPtr,
                    int empty,
                    EventStateContext *eventStateCtxPtr,
                    ThreadsContext *threadsCtxPtr,
-                   ConsoleContext *consoleCtxPtr,
+                   TerminalContext *consoleCtxPtr,
                    InterfaceContext *interfaceCtxPtr,
                    TimeContext *timeCtxPtr)
                    {

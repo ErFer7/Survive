@@ -369,7 +369,7 @@ void InterfaceBehaviour(EventStateContext *eventStateContextPtr,
 */
 void UpdateInterfaces(EventStateContext *eventStateContextPtr,
                       InterfaceContext *interfaceCtxPtr,
-                      ConsoleContext *consoleCtxPtr)
+                      TerminalContext *consoleCtxPtr)
 {
     switch (eventStateContextPtr->state)
     {
@@ -427,7 +427,7 @@ void UpdateInterfaces(EventStateContext *eventStateContextPtr,
 
 /*  Renderiza a interface.
 */
-void RenderInterface(ConsoleContext *consoleCtxPtr, Interface *interfacePtr, int *clearBackgroundPtr)
+void RenderInterface(TerminalContext *consoleCtxPtr, Interface *interfacePtr, int *clearBackgroundPtr)
 {
     // Limpa a tela caso toda a interface deva ser atualizada
     if (*clearBackgroundPtr)
