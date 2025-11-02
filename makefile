@@ -1,7 +1,7 @@
 # tool macros
 CC ?= gcc
-CFLAGS := -O3 -s -DNDEBUG -fopenmp
-DBGFLAGS := -O3 -g -Wall -fopenmp
+CFLAGS := -O3 -s -DNDEBUG -fopenmp -lncurses
+DBGFLAGS := -O3 -g -Wall -fopenmp -lncurses
 COBJFLAGS := $(CFLAGS) -c
 
 # path macros

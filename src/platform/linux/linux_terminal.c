@@ -33,7 +33,7 @@ void print(TerminalContext *console_context, char *string, unsigned short color,
     int i = 0;
     char c;
 
-    attron(COLOR_PAIR(color_pair_index));
+    attron(COLOR_PAIR(color));
 
     while ((c = string[i++])) {
         if (c != '\n') {
@@ -55,3 +55,18 @@ void print(TerminalContext *console_context, char *string, unsigned short color,
 void write_terminal(TerminalContext *terminal_context) { refresh(); }
 
 void clear_terminal(TerminalContext *terminal_context) { clear(); }
+
+void poll_input(void *input_polling_thread_arg) {
+    EventStateContext *event_state_context = ((InputPollingThreadArg *)input_polling_thread_arg)->event_state_context;
+    TerminalContext *terminal_context = ((InputPollingThreadArg *)input_polling_thread_arg)->terminal_context;
+
+    // TODO: Refactor this
+    while (event_state_context->state != EXIT) {
+        terminal_context->pressed_keys[0] = getch();
+        terminal_context->pressed_keys[1] = getch();
+    }
+}
+
+int is_key_pressed(TerminalContext *terminal_context, int key) {
+    return terminal_context->pressed_keys[0] == key || terminal_context->pressed_keys[1] == key;
+}

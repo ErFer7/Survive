@@ -309,7 +309,7 @@ void PlayerBehaviour(EntityMatrix *entityMatrixPtr) {
     float runCoefficient = 1.0f;
     Vector2D direction = CreateVector2D(0, 0);
 
-    if (GetKeyState(0x58) & 0x8000)  // Tecla X
+    if (is_key_pressed(TerminalContext * terminal_context, int key))  // Tecla X
     {
         runCoefficient = 2.0f;  // Dobra a velocidade na corrida
     }
