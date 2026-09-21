@@ -1,13 +1,11 @@
 #pragma once
 
-typedef struct
-{
+typedef struct {
     float x;
     float y;
 } Vector2Df;
 
-typedef struct
-{
+typedef struct {
     int x;
     int y;
 } Vector2D;

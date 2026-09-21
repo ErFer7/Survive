@@ -1,10 +1,10 @@
 #include "../include/wrappers.h"
 
+#include "../include/core.h"
 #include "../include/entity.h"
-#include "../include/vector2D.h"
 #include "../include/graphics.h"
 #include "../include/interface.h"
-#include "../include/core.h"
+#include "../include/vector2D.h"
 #include "../include/world.h"
 
 void StartGameplay(GameplayContext *gameplayCtxPtr,
@@ -15,23 +15,13 @@ void StartGameplay(GameplayContext *gameplayCtxPtr,
                    ThreadsContext *threadsCtxPtr,
                    ConsoleContext *consoleCtxPtr,
                    InterfaceContext *interfaceCtxPtr,
-                   TimeContext *timeCtxPtr)
-                   {
-                        // 120 caracteres é o limite do bom gosto né...
+                   TimeContext *timeCtxPtr) {
+    // 120 caracteres é o limite do bom gosto né...
 
-                        InitGameplayContext(gameplayCtxPtr, size, fixedScreen, empty);
-                        GenerateWorld(gameplayCtxPtr);
+    InitGameplayContext(gameplayCtxPtr, size, fixedScreen, empty);
+    GenerateWorld(gameplayCtxPtr);
 
-                        StartUpdateThread(eventStateCtxPtr,
-                                          gameplayCtxPtr,
-                                          threadsCtxPtr,
-                                          interfaceCtxPtr,
-                                          timeCtxPtr);
+    StartUpdateThread(eventStateCtxPtr, gameplayCtxPtr, threadsCtxPtr, interfaceCtxPtr, timeCtxPtr);
 
-                        StartRenderingThread(eventStateCtxPtr,
-                                             gameplayCtxPtr,
-                                             threadsCtxPtr,
-                                             consoleCtxPtr,
-                                             interfaceCtxPtr,
-                                             timeCtxPtr);
-                   }
+    StartRenderingThread(eventStateCtxPtr, gameplayCtxPtr, threadsCtxPtr, consoleCtxPtr, interfaceCtxPtr, timeCtxPtr);
+}

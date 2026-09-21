@@ -2,8 +2,7 @@
 
 #include <Windows.h>
 
-typedef struct
-{
+typedef struct {
     LARGE_INTEGER renderingFrequency;
     LARGE_INTEGER renderingInitialTime;
     double renderingElapsedTime;

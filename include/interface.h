@@ -1,34 +1,21 @@
 #pragma once
 
-#include "../include/vector2D.h"
 #include "../include/core.h"
 #include "../include/graphics.h"
+#include "../include/vector2D.h"
 
 #define VERSION "2.18.1"
 
-enum Alignment
-{
-    TOP_LEFT,
-    TOP,
-    TOP_RIGHT,
-    LEFT,
-    CENTER,
-    RIGHT,
-    BOTTOM_LEFT,
-    BOTTOM,
-    BOTTOM_RIGHT
-};
+enum Alignment { TOP_LEFT, TOP, TOP_RIGHT, LEFT, CENTER, RIGHT, BOTTOM_LEFT, BOTTOM, BOTTOM_RIGHT };
 
-typedef struct
-{
+typedef struct {
     char *content;
     int contentSize;
     unsigned short color;
     Vector2D position;
 } Text;
 
-typedef struct
-{
+typedef struct {
     char *content;
     int contentSize;
     unsigned short color;
@@ -36,8 +23,7 @@ typedef struct
     enum Event event;
 } Button;
 
-typedef struct
-{
+typedef struct {
     Text *texts;
     int textCount;
     Button *buttons;
@@ -45,8 +31,7 @@ typedef struct
     int selectedButton;
 } Interface;
 
-typedef struct
-{
+typedef struct {
     Interface mainMenu;
     Interface startMenu;
     Interface infoMenu;

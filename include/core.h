@@ -2,8 +2,7 @@
 
 #include <pthread.h>
 
-enum Event
-{
+enum Event {
     IDLE,
     UI_START,
     UI_START_SMALL,
@@ -20,19 +19,9 @@ enum Event
     GM_GAMEOVER
 };
 
-enum State
-{
-    MAIN_MENU,
-    INFO_MENU,
-    START_MENU,
-    GAMEPLAY,
-    PAUSE,
-    GAMEOVER,
-    EXIT
-};
+enum State { MAIN_MENU, INFO_MENU, START_MENU, GAMEPLAY, PAUSE, GAMEOVER, EXIT };
 
-typedef struct
-{
+typedef struct {
     enum Event event;
     enum State state;
     pthread_mutex_t eventMutex;

@@ -2,22 +2,19 @@
 
 #include <Windows.h>
 
-void InitTimeContext(TimeContext *timeCtxPtr)
-{
+void InitTimeContext(TimeContext *timeCtxPtr) {
     timeCtxPtr->renderingElapsedTime = 0.0;
     timeCtxPtr->updateElapsedTime = 0.0;
 }
 
-void StartStopWatch(LARGE_INTEGER *frequency, LARGE_INTEGER *initialTime)
-{
+void StartStopWatch(LARGE_INTEGER *frequency, LARGE_INTEGER *initialTime) {
     QueryPerformanceFrequency(frequency);
     QueryPerformanceCounter(initialTime);
 }
 
 /*  Retorna a diferença de tempo em microsegundos
-*/
-double StopStopWatch(LARGE_INTEGER frequency, LARGE_INTEGER initialTime)
-{
+ */
+double StopStopWatch(LARGE_INTEGER frequency, LARGE_INTEGER initialTime) {
     LARGE_INTEGER finalTime;
     QueryPerformanceCounter(&finalTime);
 
@@ -27,7 +24,4 @@ double StopStopWatch(LARGE_INTEGER frequency, LARGE_INTEGER initialTime)
 /*  Gera um número aleatório no intervalo especificado. O número é um float porém é gerado como
     inteiro.
 */
-float Randomf(int min, int max)
-{
-    return (float)((rand() % (max - min + 1)) + min);
-}
+float Randomf(int min, int max) { return (float)((rand() % (max - min + 1)) + min); }

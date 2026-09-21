@@ -1,12 +1,11 @@
 #pragma once
 
-#include <uchar.h>
 #include <Windows.h>
+#include <uchar.h>
 
 #include "../include/vector2D.h"
 
-typedef struct
-{
+typedef struct {
     Vector2D size;
     HANDLE outputHandle;
     SMALL_RECT rect;

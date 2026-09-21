@@ -1,13 +1,12 @@
 #include "../include/core.h"
 
+#include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
-#include <pthread.h>
 
 /*  Inicializa o contexto de eventos e estados
-*/
-void InitEventStateContext(EventStateContext *eventStateCtx)
-{
+ */
+void InitEventStateContext(EventStateContext *eventStateCtx) {
     srand((unsigned)time(NULL));
 
     eventStateCtx->event = IDLE;
@@ -16,8 +15,5 @@ void InitEventStateContext(EventStateContext *eventStateCtx)
 }
 
 /*  Libera o contexto de eventos e estados
-*/
-void FreeEventStateContext(EventStateContext *eventStateCtx)
-{
-    pthread_mutex_destroy(&eventStateCtx->eventMutex);
-}
+ */
+void FreeEventStateContext(EventStateContext *eventStateCtx) { pthread_mutex_destroy(&eventStateCtx->eventMutex); }

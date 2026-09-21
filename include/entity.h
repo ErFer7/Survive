@@ -2,28 +2,20 @@
 
 #include <pthread.h>
 
-#include "../include/vector2D.h"
 #include "../include/core.h"
-#include "../include/utilities.h"
 #include "../include/graphics.h"
 #include "../include/interface.h"
+#include "../include/utilities.h"
+#include "../include/vector2D.h"
 
 #define PLAYER_SPEED 20.0f
 #define ENEMY_SPEED 10.0f
 #define MAX_ANIM_FRAMES 4
 #define ANIMATION_SPEED 10.0f
 
-enum EntityType
-{
-    EMPTY,
-    WALL,
-    PLAYER,
-    COIN,
-    ENEMY
-};
+enum EntityType { EMPTY, WALL, PLAYER, COIN, ENEMY };
 
-typedef struct
-{
+typedef struct {
     char c[MAX_ANIM_FRAMES];
     float animationFrame;
     float animationSpeed;
@@ -38,8 +30,7 @@ typedef struct
     enum EntityType type;
 } Entity;
 
-typedef struct
-{
+typedef struct {
     Entity *matrix;
     Entity *playerPtr;
     Entity **coinPtrs;
@@ -53,8 +44,7 @@ typedef struct
     int enemyPtrsAllocated;
 } EntityMatrix;
 
-typedef struct
-{
+typedef struct {
     EntityMatrix entityMatrix;
     int score;
     int fixedScreen;
@@ -62,24 +52,21 @@ typedef struct
     int empty;
 } GameplayContext;
 
-typedef struct
-{
+typedef struct {
     pthread_t renderingThread;
     pthread_t updateThread;
     int updateThreadRunning;
     int renderingThreadRunning;
 } ThreadsContext;
 
-typedef struct
-{
+typedef struct {
     EventStateContext *eventStateCtxPtr;
     GameplayContext *gameplayCtxPtr;
     InterfaceContext *interfaceCtxPtr;
     TimeContext *timeCtxPtr;
 } UpdateThreadArg;
 
-typedef struct
-{
+typedef struct {
     enum State *statePtr;
     EntityMatrix *entityMatrixPtr;
     int fixedScreen;
