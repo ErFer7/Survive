@@ -212,7 +212,7 @@ void SetGameplayText(Text *textPtr, int value) {
 
 /*  Define o comportamento de uma interface.
  */
-void InterfaceBehaviour(EventStateContext *eventStateContextPtr,
+void InterfaceBehaviour(EventState *eventStateContextPtr,
                         Interface *interfacePtr,
                         int *clearBackgroundPtr,
                         int *interfaceKeyLockPtr) {
@@ -302,7 +302,7 @@ void InterfaceBehaviour(EventStateContext *eventStateContextPtr,
 
 /*  Atualiza todas as interfaces com base no estado.
  */
-void UpdateInterfaces(EventStateContext *eventStateContextPtr,
+void UpdateInterfaces(EventState *eventStateContextPtr,
                       InterfaceContext *interfaceCtxPtr,
                       ConsoleContext *consoleCtxPtr) {
     switch (eventStateContextPtr->state) {

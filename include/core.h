@@ -2,30 +2,50 @@
 
 #include <pthread.h>
 
+// UI: User interface
+// IN: Internal
+// GP: Gameplay
 enum Event {
-    IDLE,
     UI_START,
-    UI_START_SMALL,
-    UI_START_REGULAR,
-    UI_START_LARGE,
-    UI_START_MEGA,
-    UI_START_CLASSIC,
+    UI_GENERATE,
     UI_INFO,
     UI_QUIT,
     UI_PAUSE,
     UI_RESUME,
     UI_RESTART,
     UI_RETURN,
-    GM_GAMEOVER
+    IN_GENERATED,
+    IN_RESTARTED,
+    IN_PAUSED,
+    IN_RESUMED,
+    GP_GAMEOVER,
+    IN_FINISHED,
+    IN_FREED
 };
 
-enum State { MAIN_MENU, INFO_MENU, START_MENU, GAMEPLAY, PAUSE, GAMEOVER, EXIT };
+enum State {
+    MAIN_MENU,
+    INFO_MENU,
+    START_MENU,
+    GENERATING,
+    GAMEPLAY,
+    PAUSING,
+    PAUSE,
+    RESUMING,
+    RESTARTING,
+    RETURNING,
+    GAMEOVER,
+    FINISHING,
+    EXITING,
+    EXIT
+};
 
 typedef struct {
-    enum Event event;
     enum State state;
-    pthread_mutex_t eventMutex;
-} EventStateContext;
+    pthread_mutex_t event_mutex;
+} EventState;
 
-void InitEventStateContext(EventStateContext *eventStateCtx);
-void FreeEventStateContext(EventStateContext *eventStateCtx);
+void init_event_state(EventState *event_state);
+void free_event_state(EventState *event_state);
+
+void update_state(EventState *event_state, enum Event event);

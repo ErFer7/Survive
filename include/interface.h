@@ -57,11 +57,11 @@ Button CreateButton(char *content,
 void FreeButton(Button *button);
 void SetGameplayTextd(Text *textPtr, double value);
 void SetGameplayText(Text *textPtr, int value);
-void InterfaceBehaviour(EventStateContext *eventStateContextPtr,
+void InterfaceBehaviour(EventState *eventStateContextPtr,
                         Interface *interfacePtr,
                         int *clearBackgroundPtr,
                         int *interfaceKeyLockPtr);
-void UpdateInterfaces(EventStateContext *eventStateContextPtr,
+void UpdateInterfaces(EventState *eventStateContextPtr,
                       InterfaceContext *interfaceCtxPtr,
                       ConsoleContext *consoleCtxPtr);
 void RenderInterface(ConsoleContext *consoleCtxPtr, Interface *interfacePtr, int *clearBackgroundPtr);

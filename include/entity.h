@@ -60,7 +60,7 @@ typedef struct {
 } ThreadsContext;
 
 typedef struct {
-    EventStateContext *eventStateCtxPtr;
+    EventState *eventStateCtxPtr;
     GameplayContext *gameplayCtxPtr;
     InterfaceContext *interfaceCtxPtr;
     TimeContext *timeCtxPtr;
@@ -91,7 +91,7 @@ Entity CreatePlayer(Vector2D position);
 Entity CreateCoin(Vector2D position);
 Entity CreateEnemy(Vector2D position);
 Entity CreateWall(Vector2D position, char c);
-void StartUpdateThread(EventStateContext *eventStateCtxPtr,
+void StartUpdateThread(EventState *eventStateCtxPtr,
                        GameplayContext *gameplayCtxPtr,
                        ThreadsContext *threadsCtxPtr,
                        InterfaceContext *interfaceCtxPtr,
@@ -101,13 +101,13 @@ void *Update(void *updateThreadArgPtr);
 void UpdateEntityBehaviour(EntityMatrix *entityMatrixPtr, Interface *gameplayInterfacePtr, TimeContext *timeCtxPtr);
 void PlayerBehaviour(EntityMatrix *entityMatrixPtr);
 void EnemyBehaviour(EntityMatrix *entityMatrixPtr, Entity *enemyPtr);
-void UpdateEntityPhysics(EventStateContext *eventStateCtxPtr,
+void UpdateEntityPhysics(EventState *eventStateCtxPtr,
                          GameplayContext *gameplayCtxPtr,
                          InterfaceContext *interfaceCtxPtr,
                          TimeContext *timeCtxPtr);
 int UpdatePlayerPhysics(GameplayContext *gameplayCtxPtr, double elapsedTime);
 int UpdateEnemyPhysics(GameplayContext *gameplayCtxPtr, Entity *enemyPtr, double elapsedTime);
-void StartRenderingThread(EventStateContext *eventStateCtxPtr,
+void StartRenderingThread(EventState *eventStateCtxPtr,
                           GameplayContext *gameplayCtxPtr,
                           ThreadsContext *threadsCtxPtr,
                           ConsoleContext *consoleCtxPtr,

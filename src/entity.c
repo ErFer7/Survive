@@ -246,7 +246,7 @@ Entity CreateWall(Vector2D position, char c) {
     return wall;
 }
 
-void StartUpdateThread(EventStateContext *eventStateCtxPtr,
+void StartUpdateThread(EventState *eventStateCtxPtr,
                        GameplayContext *gameplayCtxPtr,
                        ThreadsContext *threadsCtxPtr,
                        InterfaceContext *interfaceCtxPtr,
@@ -270,7 +270,7 @@ void StopUpdateThread(ThreadsContext *threadsCtxPtr) {
 }
 
 void *Update(void *updateThreadArgPtr) {
-    EventStateContext *eventStateCtxPtr = ((UpdateThreadArg *)updateThreadArgPtr)->eventStateCtxPtr;
+    EventState *eventStateCtxPtr = ((UpdateThreadArg *)updateThreadArgPtr)->eventStateCtxPtr;
     GameplayContext *gameplayCtxPtr = ((UpdateThreadArg *)updateThreadArgPtr)->gameplayCtxPtr;
     InterfaceContext *interfaceCtxPtr = ((UpdateThreadArg *)updateThreadArgPtr)->interfaceCtxPtr;
     TimeContext *timeCtxPtr = ((UpdateThreadArg *)updateThreadArgPtr)->timeCtxPtr;
@@ -466,7 +466,7 @@ void EnemyBehaviour(EntityMatrix *entityMatrixPtr, Entity *enemyPtr) {
 
 /*  Atualiza a física e verifica os eventos do gameplay.
  */
-void UpdateEntityPhysics(EventStateContext *eventStateCtxPtr,
+void UpdateEntityPhysics(EventState *eventStateCtxPtr,
                          GameplayContext *gameplayCtxPtr,
                          InterfaceContext *interfaceCtxPtr,
                          TimeContext *timeCtxPtr) {
@@ -568,7 +568,7 @@ int UpdateEnemyPhysics(GameplayContext *gameplayCtxPtr, Entity *enemyPtr, double
     return playerWasKilled;
 }
 
-void StartRenderingThread(EventStateContext *eventStateCtxPtr,
+void StartRenderingThread(EventState *eventStateCtxPtr,
                           GameplayContext *gameplayCtxPtr,
                           ThreadsContext *threadsCtxPtr,
                           ConsoleContext *consoleCtxPtr,

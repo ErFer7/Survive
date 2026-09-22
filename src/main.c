@@ -24,152 +24,34 @@
 #define CONSOLE_HEIGHT 30
 
 int main() {
-    EventStateContext eventStateCtx;
-    TimeContext timeCtx;
-    ConsoleContext consoleCtx;
-    InterfaceContext interfaceCtx;
-    GameplayContext gameplayCtx;
-    ThreadsContext threadsCtx;
+    EventState event_state;
 
-    InitEventStateContext(&eventStateCtx);
-    InitTimeContext(&timeCtx);
-    InitConsoleContext(&consoleCtx, CreateVector2D(CONSOLE_WIDTH, CONSOLE_HEIGHT));
-    InitInterfaceContext(&interfaceCtx, consoleCtx.size);
-    PreInitThreadsContext(&threadsCtx);
-    PreInitGameplayContext(&gameplayCtx);
+    init_event_state(&event_state);
 
-    while (eventStateCtx.state != EXIT) {
-        UpdateInterfaces(&eventStateCtx, &interfaceCtx, &consoleCtx);
+    while (event_state.state != EXIT) {
+        // For every state: update_scene()
 
-        pthread_mutex_lock(&eventStateCtx.eventMutex);
-        switch (eventStateCtx.event) {
-            case UI_START:
-
-                eventStateCtx.state = START_MENU;
-                break;
-            case UI_START_SMALL:
-
-                eventStateCtx.state = GAMEPLAY;
-                StartGameplay(&gameplayCtx,
-                              CreateVector2D(128, 128),
-                              0,
-                              0,
-                              &eventStateCtx,
-                              &threadsCtx,
-                              &consoleCtx,
-                              &interfaceCtx,
-                              &timeCtx);
-                break;
-            case UI_START_REGULAR:
-
-                eventStateCtx.state = GAMEPLAY;
-                StartGameplay(&gameplayCtx,
-                              CreateVector2D(512, 512),
-                              0,
-                              0,
-                              &eventStateCtx,
-                              &threadsCtx,
-                              &consoleCtx,
-                              &interfaceCtx,
-                              &timeCtx);
-                break;
-            case UI_START_LARGE:
-
-                eventStateCtx.state = GAMEPLAY;
-                StartGameplay(&gameplayCtx,
-                              CreateVector2D(2048, 2048),
-                              0,
-                              0,
-                              &eventStateCtx,
-                              &threadsCtx,
-                              &consoleCtx,
-                              &interfaceCtx,
-                              &timeCtx);
-                break;
-            case UI_START_MEGA:
-
-                eventStateCtx.state = GAMEPLAY;
-                StartGameplay(&gameplayCtx,
-                              CreateVector2D(8192, 8192),
-                              0,
-                              0,
-                              &eventStateCtx,
-                              &threadsCtx,
-                              &consoleCtx,
-                              &interfaceCtx,
-                              &timeCtx);
-                break;
-            case UI_START_CLASSIC:
-
-                eventStateCtx.state = GAMEPLAY;
-                StartGameplay(&gameplayCtx,
-                              CreateVector2D(120, 29),
-                              1,
-                              1,
-                              &eventStateCtx,
-                              &threadsCtx,
-                              &consoleCtx,
-                              &interfaceCtx,
-                              &timeCtx);
-                break;
-            case UI_INFO:
-
-                eventStateCtx.state = INFO_MENU;
-                break;
-            case UI_QUIT:
-
-                eventStateCtx.state = EXIT;
-                StopUpdateThread(&threadsCtx);
-                StopRenderingThread(&threadsCtx);
-                FreeGameplayContext(&gameplayCtx);
-                break;
-            case UI_PAUSE:
-
-                eventStateCtx.state = PAUSE;
-                StopUpdateThread(&threadsCtx);
-                StopRenderingThread(&threadsCtx);
-                break;
-            case UI_RESUME:
-
-                eventStateCtx.state = GAMEPLAY;
-                StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-                StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
-                break;
-            case UI_RESTART:
-
-                eventStateCtx.state = GAMEPLAY;
-                Vector2D tempSize = gameplayCtx.worldSize;
-                int tempFixed = gameplayCtx.fixedScreen;
-                int tempEmpty = gameplayCtx.empty;
-                FreeGameplayContext(&gameplayCtx);
-                InitGameplayContext(&gameplayCtx, tempSize, tempFixed, tempEmpty);
-                GenerateWorld(&gameplayCtx);
-                StartUpdateThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &interfaceCtx, &timeCtx);
-                StartRenderingThread(&eventStateCtx, &gameplayCtx, &threadsCtx, &consoleCtx, &interfaceCtx, &timeCtx);
-                break;
-            case UI_RETURN:
-
-                eventStateCtx.state = MAIN_MENU;
-                FreeGameplayContext(&gameplayCtx);
-                break;
-            case GM_GAMEOVER:
-
-                eventStateCtx.state = GAMEOVER;
-                StopUpdateThread(&threadsCtx);
-                StopRenderingThread(&threadsCtx);
-                FreeGameplayContext(&gameplayCtx);
-                break;
+        switch (event_state.state) {
+            case MAIN_MENU:
+            case INFO_MENU:
+            case START_MENU:
+            case GENERATING:
+            case GAMEPLAY:
+            case PAUSING:
+            case PAUSE:
+            case RESUMING:
+            case RESTARTING:
+            case RETURNING:
+            case GAMEOVER:
+            case FINISHING:
+            case EXITING:
+            case EXIT:
             default:
                 break;
         }
-
-        eventStateCtx.event = IDLE;
-        pthread_mutex_unlock(&eventStateCtx.eventMutex);
     }
 
-    FreeEventStateContext(&eventStateCtx);
-    FreeConsoleContext(&consoleCtx);
-    FreeInterfaceContext(&interfaceCtx);
+    free_event_state(&event_state);
 
     return 0;
 }
