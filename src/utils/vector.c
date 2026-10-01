@@ -111,7 +111,12 @@ VectorF multiply_vector_f_by_scalar(VectorF v, float a) {
     return result;
 }
 
-float distance_f(VectorF v, VectorF w) { return sqrtf(powf((v.x - w.x), 2.0f) + powf((v.y - w.y), 2.0f)); }
+float distance_f(VectorF v, VectorF w) {
+    float x_diff = (v.x - w.x);
+    float y_diff = (v.y - w.y);
+
+    return sqrtf(x_diff * x_diff + y_diff * y_diff);
+}
 
 float distance(Vector v, Vector w) {
     VectorF vf = vector_int2float(v);

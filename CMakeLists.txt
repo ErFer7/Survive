@@ -24,7 +24,8 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/*.c")
 set(INCLUDE "${CMAKE_CURRENT_LIST_DIR}/include/")
 
 add_executable(survive ${SOURCES})
-target_include_directories(survive PUBLIC ${INCLUDE})
+target_include_directories(survive PUBLIC ${INCLUDE}
+                           ${notcurses_SOURCE_DIR}/include)
 target_link_libraries(survive PUBLIC notcurses)
 
 option(ENABLE_DEBUG "Enable debug options" OFF)
