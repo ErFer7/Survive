@@ -38,8 +38,13 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane) {
               TOP,
               parent_size);
 
-    init_text(
-        &menu_scene->interface.texts[1], VERSION, strlen(VERSION), BLUE, create_vector(0, -1), BOTTOM, parent_size);
+    init_text(&menu_scene->interface.texts[1],
+              VERSION,
+              strlen(VERSION),
+              BLUE,
+              create_vector(0, -1),
+              BOTTOM,
+              parent_size);
 }
 
 void enter_menu_scene(void *menu_scene) {}

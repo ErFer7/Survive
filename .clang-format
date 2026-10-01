@@ -8,4 +8,4 @@ AllowAllParametersOfDeclarationOnNextLine: false
 DerivePointerAlignment: false
 PointerAlignment: Right
 PackConstructorInitializers: CurrentLine
-AllowAllArgumentsOnNextLine: true
+AllowAllArgumentsOnNextLine: false

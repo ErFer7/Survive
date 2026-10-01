@@ -3,20 +3,13 @@
 #include "scenes/scene_context.h"
 
 int main() {
-    notcurses_options nc_options;
+    SceneContext scene_context;
 
-    nc_options.termtype = nullptr;
-    nc_options.loglevel = NCLOGLEVEL_PANIC;
-    nc_options.margin_t = 0;
-    nc_options.margin_r = 0;
-    nc_options.margin_b = 0;
-    nc_options.margin_l = 0;
-    nc_options.flags = 0;
+    notcurses_options nc_options;
+    memset(&nc_options, 0, sizeof(notcurses_options));
 
     struct notcurses *nc = notcurses_init(&nc_options, stdout);
     struct ncplane *stdplane = notcurses_stdplane(nc);
-
-    SceneContext scene_context;
 
     init_scene_context(&scene_context, stdplane);
 
