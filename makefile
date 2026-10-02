@@ -20,9 +20,14 @@ release:
 run:
 	./build/survive
 
+# TODO: Fix this insanity
 .PHONY: gdb
 gdb:
-	gdb ./build/survive
+	@kitty sh -c "tty > /tmp/survive_tty && sleep infinity" & \
+	while [ ! -f /tmp/survive_tty ]; do sleep 0.05; done; \
+	TTY=$$(cat /tmp/survive_tty); \
+	rm -f /tmp/survive_tty; \
+	gdb -ex "set inferior-tty $$TTY" ./build/survive
 
 .PHONY: valgrind
 valgrind:

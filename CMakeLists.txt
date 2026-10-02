@@ -26,7 +26,7 @@ set(INCLUDE "${CMAKE_CURRENT_LIST_DIR}/include/")
 add_executable(survive ${SOURCES})
 target_include_directories(survive PUBLIC ${INCLUDE}
                            ${notcurses_SOURCE_DIR}/include)
-target_link_libraries(survive PUBLIC notcurses)
+target_link_libraries(survive PUBLIC notcurses m)
 
 option(ENABLE_DEBUG "Enable debug options" OFF)
 if (ENABLE_DEBUG)
