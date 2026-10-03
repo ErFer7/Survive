@@ -21,7 +21,7 @@ static const char *INFO =
     "~Hefer\n \n"
     "https://github.com/ErFer7/Survive";
 
-static const char *BACK_BUTTON = " Back ";
+static const char *INFO_BACK_BUTTON = " Back ";
 
 struct InfoScene {
     Scene base;

@@ -16,6 +16,7 @@ typedef struct Scene Scene;
 
 typedef struct MenuScene MenuScene;
 typedef struct InfoScene InfoScene;
+typedef struct StartScene StartScene;
 
 typedef struct SceneContext SceneContext;
 typedef struct SceneTransition SceneTransition;

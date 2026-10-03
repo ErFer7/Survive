@@ -4,6 +4,7 @@
 
 #include "scenes/info_scene.h"
 #include "scenes/menu_scene.h"
+#include "scenes/start_scene.h"
 #include "system/periodic_thread.h"
 
 struct SceneContext {
@@ -12,6 +13,7 @@ struct SceneContext {
     PeriodicThread update_thread;
     PeriodicThread render_thread;
     MenuScene menu_scene;
+    StartScene start_scene;
     InfoScene info_scene;
 };
 

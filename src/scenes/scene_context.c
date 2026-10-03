@@ -4,6 +4,7 @@
 
 #include "constants.h"
 #include "scenes/menu_scene.h"
+#include "scenes/start_scene.h"
 #include "system/periodic_thread.h"
 #include "types.h"
 
@@ -25,6 +26,7 @@ void init_scene_context(SceneContext *scene_context) {
                          scene_context);
 
     init_menu_scene(&scene_context->menu_scene, stdplane, scene_context);
+    init_start_scene(&scene_context->start_scene, stdplane, scene_context);
     init_info_scene(&scene_context->info_scene, stdplane, scene_context);
 
     scene_context->current_scene = (Scene *)&scene_context->menu_scene;
@@ -53,7 +55,7 @@ void render_scene(void *scene_context) {
     notcurses_render(context->not_curses);
 }
 
-void transition(void *scene_transition) { // FIX: aghjfah
+void transition(void *scene_transition) {  // FIX: aghjfah
     SceneTransition *transition = (SceneTransition *)scene_transition;
     SceneContext *scene_context = transition->scene_context;
     Scene *next_scene = transition->next_scene;
@@ -72,6 +74,7 @@ void quit(void *scene_context) {
 
 void free_scene_context(SceneContext *scene_context) {
     free_menu_scene(&scene_context->menu_scene);
+    free_start_scene(&scene_context->start_scene);
     free_info_scene(&scene_context->info_scene);
     notcurses_stop(scene_context->not_curses);
     free_periodic_thread(&scene_context->update_thread);

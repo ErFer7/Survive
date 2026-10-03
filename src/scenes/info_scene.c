@@ -15,6 +15,8 @@ void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneC
     ncplane_dim_yx(parent_plane, &rows, &columns);
     Vector parent_size = create_vector(columns, rows);
 
+    SceneTransition menu_transition = {scene_context, (Scene *)&scene_context->menu_scene};
+
     init_scene(&info_scene->base,
                &enter_info_scene,
                &update_info_scene,
@@ -41,11 +43,9 @@ void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneC
               CENTER,
               parent_size);
 
-    SceneTransition menu_transition = {scene_context, (Scene *)&scene_context->menu_scene};
-
     init_button(&info_scene->interface.buttons[0],
-                BACK_BUTTON,
-                strlen(BACK_BUTTON),
+                INFO_BACK_BUTTON,
+                strlen(INFO_BACK_BUTTON),
                 GREEN,
                 HYPER_DARK_GRAY,
                 create_vector(0, 10),
