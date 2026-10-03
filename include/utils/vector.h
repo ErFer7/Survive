@@ -1,14 +1,16 @@
 #pragma once
 
-typedef struct {
+#include "types.h"
+
+struct VectorF {
     float x;
     float y;
-} VectorF;
+};
 
-typedef struct {
+struct Vector {
     int x;
     int y;
-} Vector;
+};
 
 Vector create_vector(int x, int y);
 VectorF create_vector_f(float x, float y);

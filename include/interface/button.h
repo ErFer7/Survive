@@ -1,14 +1,12 @@
 #pragma once
 
-#include "text.h"
+#include "interface/text.h"
 
-typedef struct _Interface CallArguments;
-
-typedef struct {
+struct Button {
     Text text;
-    CallArguments *call_arguments;
-    void (*call)(CallArguments *);
-} Button;
+    void *call_arg;
+    void (*call)(void *);
+};
 
 void init_button(Button *button,
                  const char *content,
@@ -18,9 +16,9 @@ void init_button(Button *button,
                  Vector position,
                  enum Alignment alignment,
                  Vector parent_size,
-                 const CallArguments *call_arguments,
-                 size_t call_arguments_size,
-                 void (*call)(CallArguments *));
+                 void *call_arg,
+                 size_t call_arg_size,
+                 void (*call)(void *));
 void draw_button(Button *button, struct ncplane *plane);
 void toggle_selection(Button *button);
 void trigger(Button *button);

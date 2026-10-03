@@ -1,20 +1,29 @@
 #pragma once
 
 #include <notcurses/notcurses.h>
-#include <pthread.h>
 
-#include "../events.h"
-#include "menu_scene.h"
-#include "scene.h"
+#include "scenes/info_scene.h"
+#include "scenes/menu_scene.h"
+#include "system/periodic_thread.h"
 
-typedef struct {
+struct SceneContext {
     Scene *current_scene;
-    pthread_mutex_t event_mutex;
+    struct notcurses *not_curses;
+    PeriodicThread update_thread;
+    PeriodicThread render_thread;
     MenuScene menu_scene;
-} SceneContext;
+    InfoScene info_scene;
+};
 
-void init_scene_context(SceneContext *scene_context, struct ncplane *stdplane);
-void handle_event(SceneContext *scene_context, enum Event event);
-void update_scene(SceneContext *scene_context);
-int is_exiting(SceneContext *scene_context);
+struct SceneTransition {
+    SceneContext *scene_context;
+    Scene *next_scene;
+};
+
+void init_scene_context(SceneContext *scene_context);
+void run(SceneContext *scene_context);
+void update_scene(void *scene_context);
+void render_scene(void *scene_context);
+void transition(void *scene_transition);
+void quit(void *scene_context);
 void free_scene_context(SceneContext *scene_context);

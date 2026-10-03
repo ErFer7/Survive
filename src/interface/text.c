@@ -6,7 +6,7 @@ void init_text(Text *text,
                const char *content,
                size_t length,
                unsigned int foreground_color,
-               unsigned int background_color,
+               Color background_color,
                Vector position,
                enum Alignment alignment,
                Vector parent_size) {
@@ -69,14 +69,6 @@ void draw_text(Text *text, struct ncplane *plane) {
     ncplane_set_fg_default(plane);
     ncplane_set_bg_default(plane);
 }
-
-unsigned int get_background_color(Text *text) { return text->background_color; }
-
-void set_background_color(Text *text, unsigned int background_color) { text->background_color = background_color; }
-
-unsigned int get_foreground_color(Text *text) { return text->foreground_color; }
-
-void set_foreground_color(Text *text, unsigned int foreground_color) { text->foreground_color = foreground_color; }
 
 void free_text(Text *text) {
     free(text->content);

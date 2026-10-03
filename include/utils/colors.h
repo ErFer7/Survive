@@ -2,7 +2,7 @@
 
 // Colors: https://wixdaq.github.io/Tokyo-Night-Website/palette.html
 
-enum Colors {
+enum Color {
     RED = 0xF7768E,              // #F7768E
     ORANGE = 0xFF9E64,           // #FF9E64
     YELLOW = 0xE0AF68,           // #E0AF68
