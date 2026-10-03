@@ -9,7 +9,7 @@ void handle_interface_input(int *selected_button,
                             Button *buttons,
                             unsigned int button_count,
                             void (*escape_handler)(void *),
-                            void **escape_handler_arg,
+                            void *escape_handler_arg,
                             struct notcurses *not_curses) {
     unsigned int key = notcurses_get_nblock(not_curses, nullptr);
 
@@ -21,7 +21,7 @@ void handle_interface_input(int *selected_button,
 
     switch (key) {
         case NCKEY_ESC:
-            escape_handler(*escape_handler_arg);
+            escape_handler(escape_handler_arg);
             *key_held_cooldown = KEY_HELD_COOLDOWN;
             break;
         case NCKEY_ENTER:

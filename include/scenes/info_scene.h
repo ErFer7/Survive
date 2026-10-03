@@ -16,7 +16,7 @@ static const char *INFO_TITLE =
 
 static const char *INFO =
     "Adaptation of my first game that was created in 2019-03-19.\n"
-    "This game is written entirely in C.\n \n"
+    "Written in C 💙.\n \n"
     "Use the arrows to control the player and press X to run.\n \n"
     "~Hefer\n \n"
     "https://github.com/ErFer7/Survive";

@@ -43,7 +43,7 @@ void handle_interface_input(int *selected_button,
                             Button *buttons,
                             unsigned int button_count,
                             void (*escape_handler)(void *),
-                            void **escape_handler_arg,
+                            void *escape_handler_arg,
                             struct notcurses *not_curses);
 
 void draw_interface(struct ncplane *plane,
