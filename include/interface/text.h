@@ -3,7 +3,7 @@
 #include <notcurses/notcurses.h>
 
 #include "alignment.h"
-#include "utils/colors.h"
+#include "utils/color.h"
 
 struct Text {
     char *content;

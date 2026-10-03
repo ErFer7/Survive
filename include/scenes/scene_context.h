@@ -2,6 +2,7 @@
 
 #include <notcurses/notcurses.h>
 
+#include "scenes/gameplay_scene.h"
 #include "scenes/info_scene.h"
 #include "scenes/menu_scene.h"
 #include "scenes/start_scene.h"
@@ -15,6 +16,7 @@ struct SceneContext {
     MenuScene menu_scene;
     StartScene start_scene;
     InfoScene info_scene;
+    GameplayScene gameplay_scene;
 };
 
 struct SceneTransition {

@@ -5,7 +5,7 @@
 #include "interface/button.h"
 #include "interface/text.h"
 #include "scenes/scene_context.h"
-#include "utils/colors.h"
+#include "utils/color.h"
 #include "utils/vector.h"
 
 void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, SceneContext *scene_context) {

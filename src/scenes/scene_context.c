@@ -55,7 +55,7 @@ void render_scene(void *scene_context) {
     notcurses_render(context->not_curses);
 }
 
-void transition(void *scene_transition) {  // FIX: aghjfah
+void transition(void *scene_transition) {
     SceneTransition *transition = (SceneTransition *)scene_transition;
     SceneContext *scene_context = transition->scene_context;
     Scene *next_scene = transition->next_scene;

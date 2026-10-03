@@ -6,7 +6,7 @@
 #include "interface/text.h"
 #include "scenes/scene_context.h"
 #include "types.h"
-#include "utils/colors.h"
+#include "utils/color.h"
 #include "utils/vector.h"
 
 void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneContext *scene_context) {

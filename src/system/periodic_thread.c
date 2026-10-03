@@ -14,14 +14,6 @@ void init_periodic_thread(PeriodicThread *periodic_thread, long period_ms, void 
     pthread_create(&periodic_thread->thread, nullptr, &run_periodic_thread, periodic_thread);
 }
 
-void start_periodic_thread(PeriodicThread *periodic_thread) { periodic_thread->status = RUNNING; }
-
-void join_periodic_thread(PeriodicThread *periodic_thread) { pthread_join(periodic_thread->thread, nullptr); }
-
-void suspend_periodic_thread(PeriodicThread *periodic_thread) { periodic_thread->status = SUSPENDED; }
-
-void stop_periodic_thread(PeriodicThread *periodic_thread) { periodic_thread->status = FINISHED; }
-
 void *run_periodic_thread(void *periodic_thread) {
     PeriodicThread *thread = (PeriodicThread *)periodic_thread;
 

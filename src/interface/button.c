@@ -23,20 +23,12 @@ void init_button(Button *button,
     button->call = call;
 }
 
-void draw_button(Button *button, struct ncplane *plane) { draw_text(&button->text, plane); }
-
 void toggle_selection(Button *button) {
     unsigned int new_background_color = get_foreground_color(&button->text);
     unsigned int new_foreground_color = get_background_color(&button->text);
 
     set_foreground_color(&button->text, new_foreground_color);
     set_background_color(&button->text, new_background_color);
-}
-
-void trigger(Button *button) {
-    if (button->call != nullptr) {  // TODO: Remove
-        button->call(button->call_arg);
-    }
 }
 
 void free_button(Button *button) {
