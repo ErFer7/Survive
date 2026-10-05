@@ -16,6 +16,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
     Vector parent_size = create_vector(columns, rows);
 
     SceneTransition menu_transition = {scene_context, (Scene *)&scene_context->menu_scene};
+    SceneTransition gameplay_transition = {scene_context, (Scene *)&scene_context->gameplay_scene};
 
     init_scene(&start_scene->base,
                &enter_start_scene,
@@ -60,9 +61,9 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 create_vector(0, 3),
                 CENTER,
                 parent_size,
-                nullptr,
-                0,
-                nullptr);
+                &gameplay_transition,
+                sizeof(SceneTransition),
+                &transition);
 
     init_button(&start_scene->interface.buttons[1],
                 REGULAR_BUTTON,
@@ -141,13 +142,15 @@ void update_start_scene(void *scene_context) {
     SceneContext *context = (SceneContext *)scene_context;
     StartScene *start_scene = (StartScene *)context->current_scene;
 
+    unsigned int key = notcurses_get_nblock(context->not_curses, nullptr);
+
     handle_interface_input(&start_scene->interface.selected_button,
                            &start_scene->interface.key_held_cooldown,
                            start_scene->interface.buttons,
                            sizeof(start_scene->interface.buttons) / sizeof(Button),
                            start_scene->interface.escape_handler,
                            start_scene->interface.escape_handler_arg,
-                           context->not_curses);
+                           key);
 }
 
 void draw_start_scene(void *start_scene) {

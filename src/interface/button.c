@@ -36,5 +36,6 @@ void free_button(Button *button) {
 
     if (button->call_arg != nullptr) {
         free(button->call_arg);
+        button->call_arg = nullptr;
     }
 }

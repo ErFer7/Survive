@@ -28,6 +28,7 @@ void init_scene_context(SceneContext *scene_context) {
     init_menu_scene(&scene_context->menu_scene, stdplane, scene_context);
     init_start_scene(&scene_context->start_scene, stdplane, scene_context);
     init_info_scene(&scene_context->info_scene, stdplane, scene_context);
+    init_gameplay_scene(&scene_context->gameplay_scene, stdplane, scene_context);
 
     scene_context->current_scene = (Scene *)&scene_context->menu_scene;
     scene_context->current_scene->enter(scene_context->current_scene);
@@ -76,6 +77,7 @@ void free_scene_context(SceneContext *scene_context) {
     free_menu_scene(&scene_context->menu_scene);
     free_start_scene(&scene_context->start_scene);
     free_info_scene(&scene_context->info_scene);
+    free_gameplay_scene(&scene_context->gameplay_scene);
     notcurses_stop(scene_context->not_curses);
     free_periodic_thread(&scene_context->update_thread);
     free_periodic_thread(&scene_context->render_thread);

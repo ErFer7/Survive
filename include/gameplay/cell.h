@@ -8,7 +8,12 @@ struct Cell {
     Color color;
 };
 
-static inline void init_cell(Cell *cell, char character, Color color) {
-    cell->character = character;
-    cell->color = color;
+static const Cell DEFAULT_CELL = {' ', HYPER_DARK_GRAY};
+
+static inline Cell create_cell(char character, Color color) {
+    Cell cell = {character, color};
+
+    return cell;
 }
+
+static inline Cell create_default_cell() { return DEFAULT_CELL; }

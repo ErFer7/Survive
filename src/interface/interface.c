@@ -10,15 +10,23 @@ void handle_interface_input(int *selected_button,
                             unsigned int button_count,
                             void (*escape_handler)(void *),
                             void *escape_handler_arg,
-                            struct notcurses *not_curses) {
-    unsigned int key = notcurses_get_nblock(not_curses, nullptr);
-
+                            int key) {
     if (*key_held_cooldown > 0) {
         (*key_held_cooldown)--;
 
         return;
     }
 
+    if (*selected_button == -1) {
+        if (key == NCKEY_ESC) {
+            escape_handler(escape_handler_arg);
+            *key_held_cooldown = KEY_HELD_COOLDOWN;
+        }
+
+        return;
+    }
+
+    // PERFORMANCE: Simplify this check
     switch (key) {
         case NCKEY_ESC:
             escape_handler(escape_handler_arg);
@@ -83,5 +91,8 @@ void free_interface(Text *texts,
         free_button(&buttons[i]);
     }
 
-    free(escape_handler_arg);
+    if (escape_handler_arg != nullptr) {
+        free(escape_handler_arg);
+        escape_handler_arg = nullptr;
+    }
 }

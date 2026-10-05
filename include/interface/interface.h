@@ -71,7 +71,7 @@ void handle_interface_input(int *selected_button,
                             unsigned int button_count,
                             void (*escape_handler)(void *),
                             void *escape_handler_arg,
-                            struct notcurses *not_curses);
+                            int key);
 
 void draw_interface(struct ncplane *plane,
                     Color background_color,

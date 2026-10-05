@@ -71,6 +71,13 @@ void draw_text(Text *text, struct ncplane *plane) {
 }
 
 void free_text(Text *text) {
-    free(text->content);
-    free(text->lines);
+    if (text->content != nullptr) {
+        free(text->content);
+        text->content = nullptr;
+    }
+
+    if (text->lines != nullptr) {
+        free(text->lines);
+        text->lines = nullptr;
+    }
 }

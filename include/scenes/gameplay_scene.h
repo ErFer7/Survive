@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gameplay/view.h"
 #include "gameplay/world.h"
 #include "interface/interface.h"
 #include "scene.h"
@@ -18,6 +19,7 @@ struct GameplayScene {
     Scene base;
     GameplayInterface interface;
     World world;
+    View view;
 };
 
 void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_plane, SceneContext *scene_context);
