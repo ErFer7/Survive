@@ -89,9 +89,6 @@ void enter_gameplay_scene(void *gameplay_scene) {
     GameplayScene *scene = (GameplayScene *)gameplay_scene;
 
     init_world(&scene->world, create_vector(512, 512));
-    create_player(&scene->world, create_vector(200, 200));
-
-    create_wall(&scene->world, create_vector(204, 204));
 
     unsigned int rows;
     unsigned int columns;
@@ -109,21 +106,18 @@ void update_gameplay_scene(void *scene_context) {
     SceneContext *context = (SceneContext *)scene_context;
     GameplayScene *gameplay_scene = (GameplayScene *)context->current_scene;
 
-    unsigned int key_a = notcurses_get_nblock(context->not_curses, nullptr);
-    unsigned int key_b = notcurses_get_nblock(context->not_curses, nullptr);
-
     handle_interface_input(&gameplay_scene->interface.selected_button,
                            &gameplay_scene->interface.key_held_cooldown,
                            nullptr,
                            0,
                            gameplay_scene->interface.escape_handler,
                            gameplay_scene->interface.escape_handler_arg,
-                           key_a);
+                           &context->input_state);
 
-    handle_world_input(&gameplay_scene->world, key_a, key_b);
+    handle_world_input(&gameplay_scene->world, &context->input_state);
     update_entities(&gameplay_scene->world);
 
-    move_view(&gameplay_scene->view, gameplay_scene->world.player.position);
+    update_view_position(&gameplay_scene->view, &gameplay_scene->world, gameplay_scene->world.player.position);
 }
 
 void draw_gameplay_scene(void *gameplay_scene) {

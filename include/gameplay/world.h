@@ -6,51 +6,57 @@
 #include "utils/vector.h"
 
 static const Color BACKGROUND_COLOR = HYPER_DARK_GRAY;
-static const Color WALL_COLOR = WHITE;
 
 static const char BACKGROUND_CHARACTER = ' ';
-static const char WALL_CHARACTER = '#';
+
+static const utf8_char OPAQUE_WALL_CHARACTER = UTF8("█");
+static const utf8_char DARK_WALL_CHARACTER = UTF8("▓");
+static const utf8_char MEDIUM_WALL_CHARACTER = UTF8("▒");
+static const utf8_char FAINT_WALL_CHARACTER = UTF8("░");
+static const Color WALL_COLOR = WHITE;
 
 struct World {
-    Cell *matrix;
+    nccell *matrix;
     Vector size;
     Entity player;
-    Cell **coins;
+    nccell **coins;
     Entity *enemies;
 };
 
 void init_world(World *world, Vector size);
+void generate_walls(World *world);
+void generate_terrain(World *world);
 
-static inline Cell *get_cell_ref_xy(World *world, int row, int column) {
+static inline nccell *get_cell_ref_xy(World *world, int row, int column) {
     return &world->matrix[world->size.x * row + column];
 }
 
-static inline void set_cell_xy(World *world, int row, int column, Cell cell) {
+static inline void set_cell_xy(World *world, int row, int column, nccell cell) {
     world->matrix[world->size.x * row + column] = cell;
 }
 
-static inline Cell *get_cell_ref_vec(World *world, Vector position) {
+static inline nccell *get_cell_ref_vec(World *world, Vector position) {
     return &world->matrix[world->size.x * position.y + position.x];
 }
 
-static inline void set_cell_vec(World *world, Vector position, Cell cell) {
+static inline void set_cell_vec(World *world, Vector position, nccell cell) {
     world->matrix[world->size.x * position.y + position.x] = cell;
 }
 
-static inline Cell *get_cell_ref_i(World *world, unsigned int index) { return &world->matrix[index]; }
+static inline nccell *get_cell_ref_i(World *world, unsigned int index) { return &world->matrix[index]; }
 
-static inline void set_cell_i(World *world, unsigned int index, Cell cell) { world->matrix[index] = cell; }
+static inline void set_cell_i(World *world, unsigned int index, nccell cell) { world->matrix[index] = cell; }
 
 static inline void create_player(World *world, Vector position) {
     world->player = create_player_entity(get_cell_ref_vec(world, position), position);
 }
 
-static inline void create_wall(World *world, Vector position) {
-    set_cell_vec(world, position, create_cell(WALL_CHARACTER, WALL_COLOR));
+static inline void create_wall(World *world, Vector position, const utf8_char wall_character) {
+    set_cell_vec(world, position, create_cell(wall_character, WALL_COLOR));
 }
 
-static inline void handle_world_input(World *world, int key_a, int key_b) {
-    handle_player_input(&world->player, key_a, key_b);
+static inline void handle_world_input(World *world, InputState *input_state) {
+    handle_player_input(&world->player, input_state);
 }
 
 void update_entities(World *world);

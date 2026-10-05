@@ -5,11 +5,12 @@
 #include "gameplay/entity.h"
 #include "gameplay/player.h"
 #include "stdlib.h"
+#include "utils/perlin_noise.h"
 
 void init_world(World *world, Vector size) {
     world->size = size;
 
-    size_t raw_size = sizeof(Cell) * size.x * size.y;
+    size_t raw_size = sizeof(nccell) * size.x * size.y;
 
     world->matrix = malloc(raw_size);
 
@@ -19,6 +20,45 @@ void init_world(World *world, Vector size) {
 
     world->coins = nullptr;
     world->enemies = nullptr;
+
+    generate_walls(world);
+    generate_terrain(world);
+
+    create_player(world, create_vector(200, 200));
+}
+
+void generate_walls(World *world) {
+    for (unsigned int row = 0; row < world->size.y; row++) {
+        create_wall(world, create_vector(0, row), OPAQUE_WALL_CHARACTER);
+        create_wall(world, create_vector(world->size.x - 1, row), OPAQUE_WALL_CHARACTER);
+    }
+
+    for (unsigned int columns = 0; columns < world->size.x; columns++) {
+        create_wall(world, create_vector(columns, 0), OPAQUE_WALL_CHARACTER);
+        create_wall(world, create_vector(columns, world->size.y - 1), OPAQUE_WALL_CHARACTER);
+    }
+}
+
+void generate_terrain(World *world) {
+    int seed = rand();
+
+#pragma omp parallel for collapse(2)
+    for (unsigned int row = 0; row < world->size.y; row++) {
+        for (unsigned int column = 0; column < world->size.x; column++) {
+            Vector position = create_vector(column, row);
+            float noise = perlin_noise((float)column * 0.1, (float)row * 0.1, 0.65, 5, seed);
+
+            if (noise > 0.7 && noise <= 0.775) {
+                create_wall(world, position, FAINT_WALL_CHARACTER);
+            } else if (noise > 0.775 && noise <= 0.85) {
+                create_wall(world, position, MEDIUM_WALL_CHARACTER);
+            } else if (noise > 0.85 && noise <= 0.925) {
+                create_wall(world, position, DARK_WALL_CHARACTER);
+            } else if (noise > 0.925) {
+                create_wall(world, position, OPAQUE_WALL_CHARACTER);
+            }
+        }
+    }
 }
 
 void update_entities(World *world) {
@@ -28,7 +68,7 @@ void update_entities(World *world) {
 
     if (check_and_reset_movement_accumulator(&world->player)) {
         Vector new_position = add_vector(world->player.position, world->player.direction);
-        Cell *new_cell = get_cell_ref_vec(world, new_position);
+        nccell *new_cell = get_cell_ref_vec(world, new_position);
 
         move_entity(&world->player, new_cell, new_position);
     }

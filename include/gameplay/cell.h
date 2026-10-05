@@ -1,19 +1,18 @@
 #pragma once
 
+#include <notcurses/notcurses.h>
+
 #include "types.h"
 #include "utils/color.h"
 
-struct Cell {
-    char character;
-    Color color;
-};
+static const nccell DEFAULT_CELL = NCCELL_TRIVIAL_INITIALIZER;
 
-static const Cell DEFAULT_CELL = {' ', HYPER_DARK_GRAY};
+static inline nccell create_cell(utf8_char character, Color color) {
+    nccell cell = NCCELL_CHAR_INITIALIZER(character);
 
-static inline Cell create_cell(char character, Color color) {
-    Cell cell = {character, color};
+    nccell_set_fg_rgb(&cell, color);
 
     return cell;
 }
 
-static inline Cell create_default_cell() { return DEFAULT_CELL; }
+static inline nccell create_default_cell() { return DEFAULT_CELL; }

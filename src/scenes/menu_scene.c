@@ -94,15 +94,13 @@ void update_menu_scene(void *scene_context) {
     SceneContext *context = (SceneContext *)scene_context;
     MenuScene *menu_scene = (MenuScene *)context->current_scene;
 
-    unsigned int key = notcurses_get_nblock(context->not_curses, nullptr);
-
     handle_interface_input(&menu_scene->interface.selected_button,
                            &menu_scene->interface.key_held_cooldown,
                            menu_scene->interface.buttons,
                            sizeof(menu_scene->interface.buttons) / sizeof(Button),
                            menu_scene->interface.escape_handler,
                            menu_scene->interface.escape_handler_arg,
-                           key);
+                           &context->input_state);
 }
 
 void draw_menu_scene(void *menu_scene) {

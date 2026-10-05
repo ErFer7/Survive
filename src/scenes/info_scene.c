@@ -72,15 +72,13 @@ void update_info_scene(void *scene_context) {
     SceneContext *context = (SceneContext *)scene_context;
     InfoScene *info_scene = (InfoScene *)context->current_scene;
 
-    unsigned int key = notcurses_get_nblock(context->not_curses, nullptr);
-
     handle_interface_input(&info_scene->interface.selected_button,
                            &info_scene->interface.key_held_cooldown,
                            info_scene->interface.buttons,
                            sizeof(info_scene->interface.buttons) / sizeof(Button),
                            info_scene->interface.escape_handler,
                            info_scene->interface.escape_handler_arg,
-                           key);
+                           &context->input_state);
 }
 
 void draw_info_scene(void *info_scene) {

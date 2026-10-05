@@ -2,16 +2,18 @@
 
 #include <notcurses/notcurses.h>
 
-void handle_player_input(Entity *player, int key_a, int key_b) {
-    if (key_a == NCKEY_UP || key_b == NCKEY_UP) {
+#include "system/input.h"
+
+void handle_player_input(Entity *player, InputState *input_state) {
+    if (is_key_pressed(input_state, KEY_UP)) {
         player->direction.y = -1;
-    } else if (key_a == NCKEY_DOWN || key_b == NCKEY_DOWN) {
+    } else if (is_key_pressed(input_state, KEY_DOWN)) {
         player->direction.y = 1;
     }
 
-    if (key_a == NCKEY_RIGHT || key_b == NCKEY_RIGHT) {
+    if (is_key_pressed(input_state, KEY_RIGHT)) {
         player->direction.x = 1;
-    } else if (key_a == NCKEY_LEFT || key_b == NCKEY_LEFT) {
+    } else if (is_key_pressed(input_state, KEY_LEFT)) {
         player->direction.x = -1;
     }
 }

@@ -37,11 +37,34 @@ void draw_world_on_view(View *view, World *world) {
 
     for (int row = origin_row; row < view->position.y + half_height; row++) {
         for (int column = origin_column; column < view->position.x + half_width; column++) {
-            Cell *cell = get_cell_ref_xy(world, row, column);
+            nccell *cell = get_cell_ref_xy(world, row, column);
 
-            ncplane_set_fg_rgb(view->plane, cell->color);
-            ncplane_putchar_yx(view->plane, row - origin_row, column - origin_column, cell->character);
-            ncplane_set_bg_default(view->plane);
+            ncplane_putc_yx(view->plane, row - origin_row, column - origin_column, cell);
         }
+    }
+}
+
+// PERFORMANCE: Optimize this
+void update_view_position(View *view, World *world, Vector position) {
+    unsigned int rows = 0;
+    unsigned int columns = 0;
+
+    ncplane_dim_yx(view->plane, &rows, &columns);
+
+    int half_height = (int)rows / 2;
+    int half_width = (int)columns / 2;
+
+    int origin_row = position.y - half_height;
+    int origin_column = position.x - half_width;
+
+    int last_row = position.y + half_height;
+    int last_column = position.x + half_width;
+
+    if (origin_row >= 0 && last_row < world->size.y - 1) {
+        view->position.y = position.y;
+    }
+
+    if (origin_column >= 0 && last_column < world->size.x - 1) {
+        view->position.x = position.x;
     }
 }

@@ -142,15 +142,13 @@ void update_start_scene(void *scene_context) {
     SceneContext *context = (SceneContext *)scene_context;
     StartScene *start_scene = (StartScene *)context->current_scene;
 
-    unsigned int key = notcurses_get_nblock(context->not_curses, nullptr);
-
     handle_interface_input(&start_scene->interface.selected_button,
                            &start_scene->interface.key_held_cooldown,
                            start_scene->interface.buttons,
                            sizeof(start_scene->interface.buttons) / sizeof(Button),
                            start_scene->interface.escape_handler,
                            start_scene->interface.escape_handler_arg,
-                           key);
+                           &context->input_state);
 }
 
 void draw_start_scene(void *start_scene) {

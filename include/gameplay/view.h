@@ -14,6 +14,6 @@ struct View {
 void init_view(View *view, Vector initial_position, Vector size, Vector parent_size, struct ncplane *parent_plane);
 void draw_world_on_view(View *view, World *world);
 
-static inline void move_view(View *view, Vector position) { view->position = position; }
+void update_view_position(View *view, World *world, Vector position);
 
 static inline void free_view(View *view) { ncplane_destroy(view->plane); }

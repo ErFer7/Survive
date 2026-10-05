@@ -3,6 +3,7 @@
 #include "interface/button.h"
 #include "notcurses/nckeys.h"
 #include "notcurses/notcurses.h"
+#include "system/input.h"
 
 void handle_interface_input(int *selected_button,
                             int *key_held_cooldown,
@@ -10,7 +11,7 @@ void handle_interface_input(int *selected_button,
                             unsigned int button_count,
                             void (*escape_handler)(void *),
                             void *escape_handler_arg,
-                            int key) {
+                            InputState *input_state) {
     if (*key_held_cooldown > 0) {
         (*key_held_cooldown)--;
 
@@ -18,7 +19,7 @@ void handle_interface_input(int *selected_button,
     }
 
     if (*selected_button == -1) {
-        if (key == NCKEY_ESC) {
+        if (is_key_pressed(input_state, KEY_ESC)) {
             escape_handler(escape_handler_arg);
             *key_held_cooldown = KEY_HELD_COOLDOWN;
         }
@@ -27,16 +28,16 @@ void handle_interface_input(int *selected_button,
     }
 
     // PERFORMANCE: Simplify this check
-    switch (key) {
-        case NCKEY_ESC:
+    switch (get_key_pressed(input_state)) {
+        case KEY_ESC:
             escape_handler(escape_handler_arg);
             *key_held_cooldown = KEY_HELD_COOLDOWN;
             break;
-        case NCKEY_ENTER:
+        case KEY_ENTER:
             trigger(&buttons[*selected_button]);
             *key_held_cooldown = KEY_HELD_COOLDOWN;
             break;
-        case NCKEY_UP:
+        case KEY_UP:
             if (*selected_button > 0) {
                 toggle_selection(&buttons[*selected_button]);
                 (*selected_button)--;
@@ -45,7 +46,7 @@ void handle_interface_input(int *selected_button,
             *key_held_cooldown = KEY_HELD_COOLDOWN;
 
             break;
-        case NCKEY_DOWN:
+        case KEY_DOWN:
             if (*selected_button < button_count - 1) {
                 toggle_selection(&buttons[*selected_button]);
                 (*selected_button)++;

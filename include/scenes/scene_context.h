@@ -6,13 +6,16 @@
 #include "scenes/info_scene.h"
 #include "scenes/menu_scene.h"
 #include "scenes/start_scene.h"
+#include "system/input.h"
 #include "system/periodic_thread.h"
 
 struct SceneContext {
     Scene *current_scene;
     struct notcurses *not_curses;
+    pthread_mutex_t transition_render_mutex;
     PeriodicThread update_thread;
     PeriodicThread render_thread;
+    InputState input_state;
     MenuScene menu_scene;
     StartScene start_scene;
     InfoScene info_scene;
