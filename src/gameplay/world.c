@@ -21,10 +21,10 @@ void init_world(World *world, Vector size) {
     world->coins = nullptr;
     world->enemies = nullptr;
 
-    generate_walls(world);
     generate_terrain(world);
+    generate_walls(world);
 
-    create_player(world, create_vector(200, 200));
+    create_player(world, create_vector(size.x / 2, size.y / 2));
 }
 
 void generate_walls(World *world) {

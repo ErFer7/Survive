@@ -60,11 +60,11 @@ void update_view_position(View *view, World *world, Vector position) {
     int last_row = position.y + half_height;
     int last_column = position.x + half_width;
 
-    if (origin_row >= 0 && last_row < world->size.y - 1) {
+    if (origin_row >= 0 && last_row <= world->size.y) {
         view->position.y = position.y;
     }
 
-    if (origin_column >= 0 && last_column < world->size.x - 1) {
+    if (origin_column >= 0 && last_column <= world->size.x) {
         view->position.x = position.x;
     }
 }

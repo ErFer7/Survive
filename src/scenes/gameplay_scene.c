@@ -95,9 +95,9 @@ void enter_gameplay_scene(void *gameplay_scene) {
 
     ncplane_dim_yx(scene->base.plane, &rows, &columns);
     Vector plane_size = create_vector(columns, rows);
-    Vector view_size = create_vector(columns - 2, rows);
+    Vector view_size = create_vector(columns - 2, rows - 2);
 
-    init_view(&scene->view, create_vector(200, 200), view_size, plane_size, scene->base.plane);
+    init_view(&scene->view, create_vector(256, 256), view_size, plane_size, scene->base.plane);
 
     ncplane_move_yx(scene->base.plane, 0, 0);
 }
@@ -142,6 +142,8 @@ void exit_gameplay_scene(void *gameplay_scene) {
     ncplane_move_yx(scene->base.plane, -9999, -9999);
 }
 
+// NOTE: There is no need to free the world here, since this will be triggered after a exiting the gameplay scene
+// anyway
 void free_gameplay_scene(GameplayScene *gameplay_scene) {
     free_scene(&gameplay_scene->base);
     free_interface(gameplay_scene->interface.texts,
@@ -149,5 +151,4 @@ void free_gameplay_scene(GameplayScene *gameplay_scene) {
                    nullptr,
                    0,
                    gameplay_scene->interface.escape_handler_arg);
-    free_world(&gameplay_scene->world);
 }
