@@ -83,23 +83,39 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               parent_size);
 
     init_gameplay_interface(&gameplay_scene->interface, HYPER_DARK_GRAY, nullptr, 0, nullptr);
+
+    init_view(&gameplay_scene->view,
+              create_vector(0, 0),
+              create_vector(columns - 2, rows - 2),
+              parent_size,
+              gameplay_scene->base.plane);
+
+    init_world(&gameplay_scene->world);
 }
 
-void enter_gameplay_scene(void *gameplay_scene) {
+void enter_gameplay_scene(void *gameplay_scene, void *args) {
     GameplayScene *scene = (GameplayScene *)gameplay_scene;
+    GameplaySceneArgs scene_args;
 
-    init_world(&scene->world, create_vector(512, 512));
+    deserialize_gameplay_scene_transition_args(&scene_args, args);
 
-    unsigned int rows;
-    unsigned int columns;
+    if (scene_args.reset) {
+        free_world(&scene->world);
 
-    ncplane_dim_yx(scene->base.plane, &rows, &columns);
-    Vector plane_size = create_vector(columns, rows);
-    Vector view_size = create_vector(columns - 2, rows - 2);
+        generate_world(&scene->world,
+                       create_vector(scene_args.world_width, scene_args.world_height),
+                       scene_args.enable_terrain_generation);
 
-    init_view(&scene->view, create_vector(256, 256), view_size, plane_size, scene->base.plane);
+        unsigned int rows;
+        unsigned int columns;
 
-    ncplane_move_yx(scene->base.plane, 0, 0);
+        ncplane_dim_yx(scene->base.plane, &rows, &columns);
+        Vector plane_size = create_vector(columns, rows);
+        Vector view_size = create_vector(columns - 2, rows - 2);
+
+        update_view_position(&scene->view, scene->world.player.position);
+        ncplane_move_yx(scene->base.plane, 0, 0);
+    }
 }
 
 void update_gameplay_scene(void *scene_context) {
@@ -117,7 +133,7 @@ void update_gameplay_scene(void *scene_context) {
     handle_world_input(&gameplay_scene->world, &context->input_state);
     update_entities(&gameplay_scene->world);
 
-    update_view_position(&gameplay_scene->view, &gameplay_scene->world, gameplay_scene->world.player.position);
+    update_view_position(&gameplay_scene->view, gameplay_scene->world.player.position);
 }
 
 void draw_gameplay_scene(void *gameplay_scene) {
@@ -136,7 +152,6 @@ void draw_gameplay_scene(void *gameplay_scene) {
 void exit_gameplay_scene(void *gameplay_scene) {
     GameplayScene *scene = (GameplayScene *)gameplay_scene;
 
-    free_view(&scene->view);
     free_world(&scene->world);
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);
@@ -151,4 +166,5 @@ void free_gameplay_scene(GameplayScene *gameplay_scene) {
                    nullptr,
                    0,
                    gameplay_scene->interface.escape_handler_arg);
+    free_view(&gameplay_scene->view);
 }

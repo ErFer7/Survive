@@ -23,12 +23,17 @@ struct World {
     Entity *enemies;
 };
 
-void init_world(World *world, Vector size);
+void init_world(World *world);
+void generate_world(World *world, Vector size, bool enable_terrain_generation);
 void generate_walls(World *world);
 void generate_terrain(World *world);
 
 static inline nccell *get_cell_ref_xy(World *world, int row, int column) {
-    return &world->matrix[world->size.x * row + column];
+    if (row >= 0 && row < world->size.y && column >= 0 && column < world->size.x) {
+        return &world->matrix[world->size.x * row + column];
+    }
+
+    return nullptr;
 }
 
 static inline void set_cell_xy(World *world, int row, int column, nccell cell) {
@@ -36,14 +41,24 @@ static inline void set_cell_xy(World *world, int row, int column, nccell cell) {
 }
 
 static inline nccell *get_cell_ref_vec(World *world, Vector position) {
-    return &world->matrix[world->size.x * position.y + position.x];
+    if (position.y >= 0 && position.y < world->size.y && position.x >= 0 && position.x < world->size.x) {
+        return &world->matrix[world->size.x * position.y + position.x];
+    }
+
+    return nullptr;
 }
 
 static inline void set_cell_vec(World *world, Vector position, nccell cell) {
     world->matrix[world->size.x * position.y + position.x] = cell;
 }
 
-static inline nccell *get_cell_ref_i(World *world, unsigned int index) { return &world->matrix[index]; }
+static inline nccell *get_cell_ref_i(World *world, unsigned int index) {
+    if (index < world->size.x * world->size.y) {
+        return &world->matrix[index];
+    }
+
+    return nullptr;
+}
 
 static inline void set_cell_i(World *world, unsigned int index, nccell cell) { world->matrix[index] = cell; }
 

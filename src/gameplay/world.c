@@ -7,7 +7,16 @@
 #include "stdlib.h"
 #include "utils/perlin_noise.h"
 
-void init_world(World *world, Vector size) {
+void init_world(World *world);
+
+void init_world(World *world) {
+    world->size = create_vector(0, 0);
+    world->matrix = nullptr;
+    world->coins = nullptr;
+    world->enemies = nullptr;
+}
+
+void generate_world(World *world, Vector size, bool enable_terrain_generation) {
     world->size = size;
 
     size_t raw_size = sizeof(nccell) * size.x * size.y;
@@ -21,7 +30,10 @@ void init_world(World *world, Vector size) {
     world->coins = nullptr;
     world->enemies = nullptr;
 
-    generate_terrain(world);
+    if (enable_terrain_generation) {
+        generate_terrain(world);
+    }
+
     generate_walls(world);
 
     create_player(world, create_vector(size.x / 2, size.y / 2));

@@ -5,7 +5,7 @@
 #include "types.h"
 
 struct Scene {
-    void (*enter)(void *);
+    void (*enter)(void *, void *);
     void (*update)(void *);
     void (*draw)(void *);
     void (*exit)(void *);
@@ -14,7 +14,7 @@ struct Scene {
 };
 
 void init_scene(Scene *scene,
-                void (*enter)(void *),
+                void (*enter)(void *, void *),
                 void (*update)(void *),
                 void (*draw)(void *),
                 void (*exit)(void *),

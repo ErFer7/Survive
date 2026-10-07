@@ -3,7 +3,7 @@
 #include "utils/vector.h"
 
 void init_scene(Scene *scene,
-                void (*enter)(void *),
+                void (*enter)(void *, void *),
                 void (*update)(void *),
                 void (*draw)(void *),
                 void (*exit)(void *),

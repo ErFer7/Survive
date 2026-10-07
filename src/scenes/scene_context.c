@@ -37,7 +37,7 @@ void init_scene_context(SceneContext *scene_context) {
     init_gameplay_scene(&scene_context->gameplay_scene, stdplane, scene_context);
 
     scene_context->current_scene = (Scene *)&scene_context->menu_scene;
-    scene_context->current_scene->enter(scene_context->current_scene);
+    scene_context->current_scene->enter(scene_context->current_scene, nullptr);
 }
 
 void run(SceneContext *scene_context) {
@@ -77,7 +77,7 @@ void transition(void *scene_transition) {
 
     scene_context->current_scene->exit(scene_context->current_scene);
     scene_context->current_scene = next_scene;
-    scene_context->current_scene->enter(scene_context->current_scene);
+    scene_context->current_scene->enter(scene_context->current_scene, transition->args);
 
     pthread_mutex_unlock(&scene_context->transition_render_mutex);
 }

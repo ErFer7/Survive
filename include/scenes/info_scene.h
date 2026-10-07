@@ -29,7 +29,7 @@ struct InfoScene {
 };
 
 void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneContext *scene_context);
-void enter_info_scene(void *info_scene);
+void enter_info_scene(void *info_scene, void *args);
 void update_info_scene(void *scene_context);
 void draw_info_scene(void *info_scene);
 void exit_info_scene(void *info_scene);

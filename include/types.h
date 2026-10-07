@@ -9,6 +9,7 @@ typedef struct VectorF VectorF;
 typedef struct Vector Vector;
 
 typedef unsigned int utf8_char;
+typedef unsigned char byte;
 
 typedef struct PeriodicThread PeriodicThread;
 typedef struct InputState InputState;
@@ -26,6 +27,8 @@ typedef struct MenuScene MenuScene;
 typedef struct InfoScene InfoScene;
 typedef struct StartScene StartScene;
 typedef struct GameplayScene GameplayScene;
+
+typedef struct GameplaySceneArgs GameplaySceneArgs;
 
 typedef struct SceneContext SceneContext;
 typedef struct SceneTransition SceneTransition;

@@ -36,7 +36,7 @@ struct StartScene {
 };
 
 void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, SceneContext *scene_context);
-void enter_start_scene(void *start_scene);
+void enter_start_scene(void *start_scene, void *args);
 void update_start_scene(void *scene_context);
 void draw_start_scene(void *start_scene);
 void exit_start_scene(void *start_scene);

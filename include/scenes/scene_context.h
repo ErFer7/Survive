@@ -9,6 +9,8 @@
 #include "system/input.h"
 #include "system/periodic_thread.h"
 
+#define TRANSITION_ARGS_SIZE 8
+
 struct SceneContext {
     Scene *current_scene;
     struct notcurses *not_curses;
@@ -25,6 +27,7 @@ struct SceneContext {
 struct SceneTransition {
     SceneContext *scene_context;
     Scene *next_scene;
+    byte args[TRANSITION_ARGS_SIZE];
 };
 
 void init_scene_context(SceneContext *scene_context);
@@ -34,3 +37,10 @@ void render_scene(void *scene_context);
 void transition(void *scene_transition);
 void quit(void *scene_context);
 void free_scene_context(SceneContext *scene_context);
+
+static inline SceneTransition create_scene_transition(SceneContext *scene_context, Scene *next_scene) {
+    SceneTransition scene_transition = {scene_context, next_scene};
+    memset(&scene_transition.args, 0, TRANSITION_ARGS_SIZE);
+
+    return scene_transition;
+}

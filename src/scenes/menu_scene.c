@@ -16,8 +16,8 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
     ncplane_dim_yx(parent_plane, &rows, &columns);
     Vector parent_size = create_vector(columns, rows);
 
-    SceneTransition start_transition = {scene_context, (Scene *)&scene_context->start_scene};
-    SceneTransition info_transition = {scene_context, (Scene *)&scene_context->info_scene};
+    SceneTransition start_transition = create_scene_transition(scene_context, (Scene *)&scene_context->start_scene);
+    SceneTransition info_transition = create_scene_transition(scene_context, (Scene *)&scene_context->info_scene);
 
     init_scene(&menu_scene->base,
                &enter_menu_scene,
@@ -84,7 +84,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
     init_menu_interface(&menu_scene->interface, HYPER_DARK_GRAY, &scene_context, sizeof(SceneContext *), &quit);
 }
 
-void enter_menu_scene(void *menu_scene) {
+void enter_menu_scene(void *menu_scene, void *args) {
     MenuScene *scene = (MenuScene *)menu_scene;
 
     ncplane_move_yx(scene->base.plane, 0, 0);
