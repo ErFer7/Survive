@@ -19,9 +19,6 @@ struct World {
     Cell *matrix;
     Vector size;
     bool has_terrain;
-    Entity player;
-    Cell **coins;
-    Entity *enemies;
 };
 
 void init_world(World *world);
@@ -63,46 +60,8 @@ static inline Cell *get_cell_ref_i(World *world, unsigned int index) {
 
 static inline void set_cell_i(World *world, unsigned int index, Cell cell) { world->matrix[index] = cell; }
 
-static inline void create_player(World *world, Vector position) {
-    world->player = create_player_entity(get_cell_ref_vec(world, position), position);
-}
-
 static inline void create_wall(World *world, Vector position, const utf8_char wall_character) {
     set_cell_vec(world, position, create_cell(wall_character, WALL_COLOR, WALL));
 }
-
-static inline void handle_world_input(World *world, InputState *input_state) {
-    handle_player_input(&world->player, input_state);
-}
-
-// TODO: Check if this is decent enough
-static inline bool solve_collision(Entity *entity, Cell *cell) {
-    if (entity->cell->type == PLAYER) {
-        switch (cell->type) {
-            case COIN:
-                // TODO: Handle coin
-            case VOID:
-                return true;
-            case ENEMY:
-                // TODO: Handle enemy
-            default:
-                return false;
-        }
-    } else if (entity->cell->type == ENEMY) {
-        switch (cell->type) {
-            case VOID:
-                return true;
-            case PLAYER:
-                // TODO: Handle player
-            default:
-                return false;
-        }
-    }
-
-    return false;
-}
-
-// TODO: Maybe this should be in another file
-void update_entities(World *world);
 
 void free_world(World *world);

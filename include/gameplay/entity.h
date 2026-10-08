@@ -15,7 +15,7 @@ struct Entity {
 static inline Entity create_entity(Cell *cell_ref, Vector position, const Cell cell) {
     *cell_ref = cell;
 
-    Entity entity = {cell_ref, position, 0.0f, create_vector(0, 0)};
+    Entity entity = {cell_ref, position, 0.0f, VECTOR_ZERO};
 
     return entity;
 }
@@ -41,7 +41,7 @@ static inline bool check_and_reset_movement_accumulator(Entity *entity) {
 
 static inline void move_entity(Entity *entity, Cell *new_cell, Vector new_position) {
     entity->position = new_position;
-    entity->direction = create_vector(0, 0);
+    entity->direction = VECTOR_ZERO;
     *new_cell = *entity->cell;
     *entity->cell = DEFAULT_CELL;
     entity->cell = new_cell;

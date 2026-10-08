@@ -7,6 +7,8 @@ struct Vector {
     int y;
 };
 
+static const Vector VECTOR_ZERO = {0, 0};
+
 static inline Vector create_vector(int x, int y) {
     Vector result;
 

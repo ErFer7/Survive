@@ -53,7 +53,7 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
                 strlen(RESUME_BUTTON),
                 WHITE,
                 HYPER_DARK_GRAY,
-                create_vector(0, 0),
+                VECTOR_ZERO,
                 CENTER,
                 parent_size,
                 &resume_transition,

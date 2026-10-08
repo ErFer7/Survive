@@ -39,7 +39,7 @@ void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneC
               strlen(INFO),
               WHITE,
               HYPER_DARK_GRAY,
-              create_vector(0, 0),
+              VECTOR_ZERO,
               CENTER,
               parent_size);
 

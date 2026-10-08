@@ -61,7 +61,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
               strlen(START_INFO),
               WHITE,
               HYPER_DARK_GRAY,
-              create_vector(0, 0),
+              VECTOR_ZERO,
               CENTER,
               parent_size);
 

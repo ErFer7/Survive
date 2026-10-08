@@ -2,6 +2,7 @@
 
 #include <notcurses/notcurses.h>
 
+#include "gameplay/gameplay.h"
 #include "gameplay/world.h"
 #include "interface/button.h"
 #include "interface/text.h"
@@ -39,7 +40,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               strlen(FPS_LABEL),
               WHITE,
               HYPER_DARK_GRAY,
-              create_vector(0, 0),
+              VECTOR_ZERO,
               BOTTOM_LEFT,
               parent_size);
 
@@ -94,13 +95,10 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
                             sizeof(SceneTransition),
                             &transition);
 
-    init_view(&gameplay_scene->view,
-              create_vector(0, 0),
-              create_vector(columns - 2, rows - 2),
-              parent_size,
-              gameplay_scene->base.plane);
-
-    init_world(&gameplay_scene->world);
+    init_gameplay(&gameplay_scene->gameplay,
+                  create_vector(columns - 2, rows - 2),
+                  parent_size,
+                  gameplay_scene->base.plane);
 }
 
 void enter_gameplay_scene(void *gameplay_scene, void *args) {
@@ -109,27 +107,12 @@ void enter_gameplay_scene(void *gameplay_scene, void *args) {
 
     deserialize_gameplay_scene_transition_args(&scene_args, args);
 
-    // TODO: Clean up this logic checks
+    // TODO: Clean up these logic checks
     if (scene_args.transition_mode == START || scene_args.transition_mode == RESTART) {
-        Vector size = scene_args.transition_mode == START
-                          ? create_vector(scene_args.world_width, scene_args.world_height)
-                          : scene->world.size;
-
-        bool enable_terrain_generation =
-            scene_args.transition_mode == START ? scene_args.enable_terrain_generation : scene->world.has_terrain;
-
-        free_world(&scene->world);
-
-        generate_world(&scene->world, size, enable_terrain_generation);
-
-        unsigned int rows;
-        unsigned int columns;
-
-        ncplane_dim_yx(scene->base.plane, &rows, &columns);
-        Vector plane_size = create_vector(columns, rows);
-        Vector view_size = create_vector(columns - 2, rows - 2);
-
-        update_view_position(&scene->view, scene->world.player.position);
+        start_gameplay(&scene->gameplay,
+                       scene_args.transition_mode == RESTART,
+                       create_vector(scene_args.world_width, scene_args.world_height),
+                       scene_args.enable_terrain_generation);
     }
 
     ncplane_move_yx(scene->base.plane, 0, 0);
@@ -147,10 +130,7 @@ void update_gameplay_scene(void *scene_context) {
                            gameplay_scene->interface.escape_handler_arg,
                            &context->input_state);
 
-    handle_world_input(&gameplay_scene->world, &context->input_state);
-    update_entities(&gameplay_scene->world);
-
-    update_view_position(&gameplay_scene->view, gameplay_scene->world.player.position);
+    update_gameplay(&gameplay_scene->gameplay, &context->input_state);
 }
 
 void draw_gameplay_scene(void *gameplay_scene) {
@@ -163,7 +143,7 @@ void draw_gameplay_scene(void *gameplay_scene) {
                    nullptr,
                    0);
 
-    draw_world_on_view(&scene->view, &scene->world);
+    draw_gameplay(&scene->gameplay);
 }
 
 void exit_gameplay_scene(void *gameplay_scene, void *args) {
@@ -173,7 +153,7 @@ void exit_gameplay_scene(void *gameplay_scene, void *args) {
     deserialize_gameplay_scene_transition_args(&scene_args, args);
 
     if (scene_args.transition_mode != PAUSE) {
-        free_world(&scene->world);
+        end_gameplay(&scene->gameplay);
     }
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);
@@ -186,6 +166,5 @@ void free_gameplay_scene(GameplayScene *gameplay_scene) {
                    nullptr,
                    0,
                    gameplay_scene->interface.escape_handler_arg);
-    free_view(&gameplay_scene->view);
-    free_world(&gameplay_scene->world);
+    free_gameplay(&gameplay_scene->gameplay);
 }

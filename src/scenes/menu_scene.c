@@ -50,7 +50,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
                 strlen(START_BUTTON),
                 RED,
                 HYPER_DARK_GRAY,
-                create_vector(0, 0),
+                VECTOR_ZERO,
                 CENTER,
                 parent_size,
                 &start_transition,

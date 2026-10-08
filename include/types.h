@@ -25,6 +25,7 @@ typedef struct Cell Cell;
 
 typedef struct Entity Entity;
 typedef struct World World;
+typedef struct Gameplay Gameplay;
 typedef struct View View;
 
 typedef struct Scene Scene;

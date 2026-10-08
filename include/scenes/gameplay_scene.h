@@ -1,7 +1,6 @@
 #pragma once
 
-#include "gameplay/view.h"
-#include "gameplay/world.h"
+#include "gameplay/gameplay.h"
 #include "interface/interface.h"
 #include "scene.h"
 #include "types.h"
@@ -20,8 +19,7 @@ static const char *GAMEPLAY_SCORE_LABEL = "Score:";
 struct GameplayScene {
     Scene base;
     GameplayInterface interface;
-    World world;
-    View view;
+    Gameplay gameplay;
 };
 
 struct GameplaySceneArgs {

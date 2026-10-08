@@ -2,19 +2,15 @@
 
 #include <string.h>
 
-#include "gameplay/entity.h"
-#include "gameplay/player.h"
 #include "stdlib.h"
 #include "utils/perlin_noise.h"
 
 void init_world(World *world);
 
 void init_world(World *world) {
-    world->size = create_vector(0, 0);
+    world->size = VECTOR_ZERO;
     world->has_terrain = false;
     world->matrix = nullptr;
-    world->coins = nullptr;
-    world->enemies = nullptr;
 }
 
 void generate_world(World *world, Vector size, bool enable_terrain_generation) {
@@ -29,16 +25,11 @@ void generate_world(World *world, Vector size, bool enable_terrain_generation) {
         set_cell_i(world, i, create_default_cell());
     }
 
-    world->coins = nullptr;
-    world->enemies = nullptr;
-
     if (enable_terrain_generation) {
         generate_terrain(world);
     }
 
     generate_walls(world);
-
-    create_player(world, create_vector(size.x / 2, size.y / 2));
 }
 
 void generate_walls(World *world) {
@@ -75,36 +66,9 @@ void generate_terrain(World *world) {
     }
 }
 
-void update_entities(World *world) {
-    if (is_non_zero(world->player.direction)) {
-        accumulate_movement(&world->player, PLAYER_SPEED);
-    }
-
-    if (check_and_reset_movement_accumulator(&world->player)) {
-        Vector new_position = add_vector(world->player.position, world->player.direction);
-        Cell *new_cell = get_cell_ref_vec(world, new_position);
-
-        if (solve_collision(&world->player, new_cell)) {
-            move_entity(&world->player, new_cell, new_position);
-        } else {
-            world->player.direction = create_vector(0, 0);
-        }
-    }
-}
-
 void free_world(World *world) {
     if (world->matrix != nullptr) {
         free(world->matrix);
         world->matrix = nullptr;
-    }
-
-    if (world->coins != nullptr) {
-        free(world->coins);
-        world->coins = nullptr;
-    }
-
-    if (world->enemies != nullptr) {
-        free(world->enemies);
-        world->enemies = nullptr;
     }
 }
