@@ -11,6 +11,7 @@ void init_gameplay(Gameplay *gameplay, Vector view_size, Vector parent_size, str
     gameplay->entity_count = 0;
     gameplay->player = nullptr;
     gameplay->enemies = nullptr;
+    gameplay->score = 0;
 }
 
 void start_gameplay(Gameplay *gameplay, bool restart, Vector size, bool enable_terrain_generation) {
@@ -24,6 +25,8 @@ void start_gameplay(Gameplay *gameplay, bool restart, Vector size, bool enable_t
     create_player(gameplay, create_vector(world_size.x / 2, world_size.y / 2));
 
     update_view_position(&gameplay->view, gameplay->player->position);
+
+    gameplay->score = 0;
 }
 
 Entity *add_entity(Gameplay *gameplay, const Entity entity) {

@@ -15,6 +15,9 @@ static const utf8_char MEDIUM_WALL_CHARACTER = UTF8("▒");
 static const utf8_char FAINT_WALL_CHARACTER = UTF8("░");
 static const Color WALL_COLOR = WHITE;
 
+static const utf8_char COIN_CHARACTER = UTF8("◈");
+static const Color COIN_COLOR = YELLOW;
+
 struct World {
     Cell *matrix;
     Vector size;
@@ -25,6 +28,8 @@ void init_world(World *world);
 void generate_world(World *world, Vector size, bool enable_terrain_generation);
 void generate_walls(World *world);
 void generate_terrain(World *world);
+void generate_coin(World *world);
+void generate_coins(World *world);
 
 static inline Cell *get_cell_ref_xy(World *world, int row, int column) {
     if (row >= 0 && row < world->size.y && column >= 0 && column < world->size.x) {
@@ -62,6 +67,10 @@ static inline void set_cell_i(World *world, unsigned int index, Cell cell) { wor
 
 static inline void create_wall(World *world, Vector position, const utf8_char wall_character) {
     set_cell_vec(world, position, create_cell(wall_character, WALL_COLOR, WALL));
+}
+
+static inline void create_coin(World *world, Vector position) {
+    set_cell_vec(world, position, create_cell(COIN_CHARACTER, COIN_COLOR, COIN));
 }
 
 void free_world(World *world);

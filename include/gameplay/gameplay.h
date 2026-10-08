@@ -13,6 +13,7 @@ struct Gameplay {
     Entity *player;
     Entity *enemies;
     uint32_t entity_count;
+    uint16_t score;
 };
 
 void init_gameplay(Gameplay *gameplay, Vector view_size, Vector parent_size, struct ncplane *scene_plane);

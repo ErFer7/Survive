@@ -1,9 +1,11 @@
 #include "gameplay/world.h"
 
+#include <math.h>
 #include <string.h>
 
 #include "stdlib.h"
 #include "utils/perlin_noise.h"
+#include "utils/random.h"
 
 void init_world(World *world);
 
@@ -30,6 +32,7 @@ void generate_world(World *world, Vector size, bool enable_terrain_generation) {
     }
 
     generate_walls(world);
+    generate_coins(world);
 }
 
 void generate_walls(World *world) {
@@ -63,6 +66,25 @@ void generate_terrain(World *world) {
                 create_wall(world, position, OPAQUE_WALL_CHARACTER);
             }
         }
+    }
+}
+
+void generate_coin(World *world) {
+    while (true) {
+        Vector position = create_vector(inclusive_random(1, world->size.x - 2), inclusive_random(1, world->size.y - 2));
+
+        Cell *cell = get_cell_ref_vec(world, position);
+
+        if (cell->type == VOID) {
+            create_coin(world, position);
+            break;
+        }
+    }
+}
+
+void generate_coins(World *world) {
+    for (uint32_t i = 0; i < ceilf((float)(world->size.x * world->size.y) / 3600.0f); i++) {
+        generate_coin(world);
     }
 }
 
