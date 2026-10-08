@@ -24,10 +24,6 @@ static inline void draw_button(Button *button, struct ncplane *plane) { draw_tex
 
 void toggle_selection(Button *button);
 
-static inline void trigger(Button *button) {
-    if (button->call != nullptr) {  // TODO: Remove
-        button->call(button->call_arg);
-    }
-}
+static inline void trigger(Button *button) { button->call(button->call_arg); }
 
 void free_button(Button *button);

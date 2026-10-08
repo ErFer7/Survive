@@ -31,5 +31,5 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
 void enter_menu_scene(void *menu_scene, void *args);
 void update_menu_scene(void *scene_context);
 void draw_menu_scene(void *menu_scene);
-void exit_menu_scene(void *menu_scene);
+void exit_menu_scene(void *menu_scene, void *args);
 void free_menu_scene(MenuScene *menu_scene);

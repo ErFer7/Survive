@@ -18,6 +18,7 @@ static const Color WALL_COLOR = WHITE;
 struct World {
     nccell *matrix;
     Vector size;
+    bool has_terrain;
     Entity player;
     nccell **coins;
     Entity *enemies;

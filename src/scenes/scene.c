@@ -6,7 +6,7 @@ void init_scene(Scene *scene,
                 void (*enter)(void *, void *),
                 void (*update)(void *),
                 void (*draw)(void *),
-                void (*exit)(void *),
+                void (*exit)(void *, void *),
                 Vector parent_size,
                 struct ncplane *parent_plane) {
     scene->enter = enter;

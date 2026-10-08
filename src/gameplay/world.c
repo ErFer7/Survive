@@ -11,6 +11,7 @@ void init_world(World *world);
 
 void init_world(World *world) {
     world->size = create_vector(0, 0);
+    world->has_terrain = false;
     world->matrix = nullptr;
     world->coins = nullptr;
     world->enemies = nullptr;
@@ -18,6 +19,7 @@ void init_world(World *world) {
 
 void generate_world(World *world, Vector size, bool enable_terrain_generation) {
     world->size = size;
+    world->has_terrain = enable_terrain_generation;
 
     size_t raw_size = sizeof(nccell) * size.x * size.y;
 

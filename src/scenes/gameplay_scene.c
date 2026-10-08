@@ -17,6 +17,12 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
     ncplane_dim_yx(parent_plane, &rows, &columns);
     Vector parent_size = create_vector(columns, rows);
 
+    SceneTransition pause_transition = create_scene_transition(scene_context, (Scene *)&scene_context->pause_scene);
+
+    GameplaySceneArgs pause_transition_args = create_gameplay_scene_args(PAUSE, 0, 0, false);
+
+    serialize_gameplay_scene_transition_args(&pause_transition_args, pause_transition.args);
+
     const char *float_label = "000000.000";
     const char *int_label = "0000000000";
 
@@ -65,8 +71,8 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               parent_size);
 
     init_text(&gameplay_scene->interface.texts[4],
-              SCORE_LABEL,
-              strlen(SCORE_LABEL),
+              GAMEPLAY_SCORE_LABEL,
+              strlen(GAMEPLAY_SCORE_LABEL),
               WHITE,
               HYPER_DARK_GRAY,
               create_vector(-21, 0),
@@ -82,7 +88,11 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               BOTTOM_RIGHT,
               parent_size);
 
-    init_gameplay_interface(&gameplay_scene->interface, HYPER_DARK_GRAY, nullptr, 0, nullptr);
+    init_gameplay_interface(&gameplay_scene->interface,
+                            HYPER_DARK_GRAY,
+                            &pause_transition,
+                            sizeof(SceneTransition),
+                            &transition);
 
     init_view(&gameplay_scene->view,
               create_vector(0, 0),
@@ -99,12 +109,18 @@ void enter_gameplay_scene(void *gameplay_scene, void *args) {
 
     deserialize_gameplay_scene_transition_args(&scene_args, args);
 
-    if (scene_args.reset) {
+    // TODO: Clean up this logic checks
+    if (scene_args.transition_mode == START || scene_args.transition_mode == RESTART) {
+        Vector size = scene_args.transition_mode == START
+                          ? create_vector(scene_args.world_width, scene_args.world_height)
+                          : scene->world.size;
+
+        bool enable_terrain_generation =
+            scene_args.transition_mode == START ? scene_args.enable_terrain_generation : scene->world.has_terrain;
+
         free_world(&scene->world);
 
-        generate_world(&scene->world,
-                       create_vector(scene_args.world_width, scene_args.world_height),
-                       scene_args.enable_terrain_generation);
+        generate_world(&scene->world, size, enable_terrain_generation);
 
         unsigned int rows;
         unsigned int columns;
@@ -114,8 +130,9 @@ void enter_gameplay_scene(void *gameplay_scene, void *args) {
         Vector view_size = create_vector(columns - 2, rows - 2);
 
         update_view_position(&scene->view, scene->world.player.position);
-        ncplane_move_yx(scene->base.plane, 0, 0);
     }
+
+    ncplane_move_yx(scene->base.plane, 0, 0);
 }
 
 void update_gameplay_scene(void *scene_context) {
@@ -149,16 +166,19 @@ void draw_gameplay_scene(void *gameplay_scene) {
     draw_world_on_view(&scene->view, &scene->world);
 }
 
-void exit_gameplay_scene(void *gameplay_scene) {
+void exit_gameplay_scene(void *gameplay_scene, void *args) {
     GameplayScene *scene = (GameplayScene *)gameplay_scene;
+    GameplaySceneArgs scene_args;
 
-    free_world(&scene->world);
+    deserialize_gameplay_scene_transition_args(&scene_args, args);
+
+    if (scene_args.transition_mode != PAUSE) {
+        free_world(&scene->world);
+    }
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);
 }
 
-// NOTE: There is no need to free the world here, since this will be triggered after a exiting the gameplay scene
-// anyway
 void free_gameplay_scene(GameplayScene *gameplay_scene) {
     free_scene(&gameplay_scene->base);
     free_interface(gameplay_scene->interface.texts,
@@ -167,4 +187,5 @@ void free_gameplay_scene(GameplayScene *gameplay_scene) {
                    0,
                    gameplay_scene->interface.escape_handler_arg);
     free_view(&gameplay_scene->view);
+    free_world(&gameplay_scene->world);
 }

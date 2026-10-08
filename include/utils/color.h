@@ -2,7 +2,10 @@
 
 // Colors: https://wixdaq.github.io/Tokyo-Night-Website/palette.html
 
+#include "types.h"
+
 enum Color {
+    BLACK = 0x000000,            // #000000
     RED = 0xF7768E,              // #F7768E
     ORANGE = 0xFF9E64,           // #FF9E64
     YELLOW = 0xE0AF68,           // #E0AF68
@@ -21,3 +24,9 @@ enum Color {
     VERY_DARK_GRAY = 0x414868,   // #414868
     HYPER_DARK_GRAY = 0x1A1B26,  // #1A1B26
 };
+
+static inline Color grayscale_to_rgb(float scale) {
+    byte parts = (byte)(255.0f * scale);
+
+    return parts << 16 | parts << 8 | parts;
+}

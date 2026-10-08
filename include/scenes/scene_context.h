@@ -2,14 +2,17 @@
 
 #include <notcurses/notcurses.h>
 
+#include "scenes/gameover_scene.h"
 #include "scenes/gameplay_scene.h"
 #include "scenes/info_scene.h"
 #include "scenes/menu_scene.h"
+#include "scenes/pause_scene.h"
 #include "scenes/start_scene.h"
 #include "system/input.h"
 #include "system/periodic_thread.h"
+#include "types.h"
 
-#define TRANSITION_ARGS_SIZE 8
+#define TRANSITION_ARGS_SIZE 16
 
 struct SceneContext {
     Scene *current_scene;
@@ -22,6 +25,8 @@ struct SceneContext {
     StartScene start_scene;
     InfoScene info_scene;
     GameplayScene gameplay_scene;
+    PauseScene pause_scene;
+    GameoverScene gameover_scene;
 };
 
 struct SceneTransition {

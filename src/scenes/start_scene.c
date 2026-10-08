@@ -27,11 +27,11 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
     SceneTransition gameplay_transition_classic =
         create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
 
-    GameplaySceneArgs small_world_args = create_gameplay_scene_args(true, 128, 128, true);
-    GameplaySceneArgs regular_world_args = create_gameplay_scene_args(true, 512, 512, true);
-    GameplaySceneArgs large_world_args = create_gameplay_scene_args(true, 2048, 2048, true);
-    GameplaySceneArgs mega_world_args = create_gameplay_scene_args(true, 8192, 8192, true);
-    GameplaySceneArgs classic_world_args = create_gameplay_scene_args(true, 120, 19, false);
+    GameplaySceneArgs small_world_args = create_gameplay_scene_args(START, 128, 128, true);
+    GameplaySceneArgs regular_world_args = create_gameplay_scene_args(START, 512, 512, true);
+    GameplaySceneArgs large_world_args = create_gameplay_scene_args(START, 2048, 2048, true);
+    GameplaySceneArgs mega_world_args = create_gameplay_scene_args(START, 8192, 8192, true);
+    GameplaySceneArgs classic_world_args = create_gameplay_scene_args(START, 120, 19, false);
 
     serialize_gameplay_scene_transition_args(&small_world_args, gameplay_transition_small.args);
     serialize_gameplay_scene_transition_args(&regular_world_args, gameplay_transition_regular.args);
@@ -183,7 +183,7 @@ void draw_start_scene(void *start_scene) {
                    sizeof(scene->interface.buttons) / sizeof(Button));
 }
 
-void exit_start_scene(void *start_scene) {
+void exit_start_scene(void *start_scene, void *args) {
     StartScene *scene = (StartScene *)start_scene;
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);

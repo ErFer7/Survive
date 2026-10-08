@@ -1,14 +1,17 @@
 #pragma once
 
+#include <stdint.h>
+
 typedef enum Alignment Alignment;
 typedef enum Status Status;
 typedef enum Color Color;
 typedef enum Key Key;
+typedef enum GameplayTransitionMode GameplayTransitionMode;
 
 typedef struct VectorF VectorF;
 typedef struct Vector Vector;
 
-typedef unsigned int utf8_char;
+typedef uint32_t utf8_char;
 typedef unsigned char byte;
 
 typedef struct PeriodicThread PeriodicThread;
@@ -27,6 +30,8 @@ typedef struct MenuScene MenuScene;
 typedef struct InfoScene InfoScene;
 typedef struct StartScene StartScene;
 typedef struct GameplayScene GameplayScene;
+typedef struct PauseScene PauseScene;
+typedef struct GameoverScene GameoverScene;
 
 typedef struct GameplaySceneArgs GameplaySceneArgs;
 

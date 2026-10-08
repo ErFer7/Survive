@@ -114,7 +114,7 @@ void draw_menu_scene(void *menu_scene) {
                    sizeof(scene->interface.buttons) / sizeof(Button));
 }
 
-void exit_menu_scene(void *menu_scene) {
+void exit_menu_scene(void *menu_scene, void *args) {
     MenuScene *scene = (MenuScene *)menu_scene;
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);

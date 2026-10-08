@@ -92,7 +92,7 @@ void draw_info_scene(void *info_scene) {
                    sizeof(scene->interface.buttons) / sizeof(Button));
 }
 
-void exit_info_scene(void *info_scene) {
+void exit_info_scene(void *info_scene, void *args) {
     InfoScene *scene = (InfoScene *)info_scene;
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);

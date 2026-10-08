@@ -35,6 +35,8 @@ void init_scene_context(SceneContext *scene_context) {
     init_start_scene(&scene_context->start_scene, stdplane, scene_context);
     init_info_scene(&scene_context->info_scene, stdplane, scene_context);
     init_gameplay_scene(&scene_context->gameplay_scene, stdplane, scene_context);
+    init_pause_scene(&scene_context->pause_scene, stdplane, scene_context);
+    init_gameover_scene(&scene_context->gameover_scene, stdplane, scene_context);
 
     scene_context->current_scene = (Scene *)&scene_context->menu_scene;
     scene_context->current_scene->enter(scene_context->current_scene, nullptr);
@@ -75,7 +77,7 @@ void transition(void *scene_transition) {
 
     pthread_mutex_lock(&scene_context->transition_render_mutex);
 
-    scene_context->current_scene->exit(scene_context->current_scene);
+    scene_context->current_scene->exit(scene_context->current_scene, transition->args);
     scene_context->current_scene = next_scene;
     scene_context->current_scene->enter(scene_context->current_scene, transition->args);
 
@@ -96,6 +98,8 @@ void free_scene_context(SceneContext *scene_context) {
     free_start_scene(&scene_context->start_scene);
     free_info_scene(&scene_context->info_scene);
     free_gameplay_scene(&scene_context->gameplay_scene);
+    free_pause_scene(&scene_context->pause_scene);
+    free_gameover_scene(&scene_context->gameover_scene);
     notcurses_stop(scene_context->not_curses);
     free_periodic_thread(&scene_context->update_thread);
     free_periodic_thread(&scene_context->render_thread);
