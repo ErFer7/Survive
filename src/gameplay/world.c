@@ -21,7 +21,7 @@ void generate_world(World *world, Vector size, bool enable_terrain_generation) {
     world->size = size;
     world->has_terrain = enable_terrain_generation;
 
-    size_t raw_size = sizeof(nccell) * size.x * size.y;
+    size_t raw_size = sizeof(Cell) * size.x * size.y;
 
     world->matrix = malloc(raw_size);
 
@@ -82,9 +82,13 @@ void update_entities(World *world) {
 
     if (check_and_reset_movement_accumulator(&world->player)) {
         Vector new_position = add_vector(world->player.position, world->player.direction);
-        nccell *new_cell = get_cell_ref_vec(world, new_position);
+        Cell *new_cell = get_cell_ref_vec(world, new_position);
 
-        move_entity(&world->player, new_cell, new_position);
+        if (solve_collision(&world->player, new_cell)) {
+            move_entity(&world->player, new_cell, new_position);
+        } else {
+            world->player.direction = create_vector(0, 0);
+        }
     }
 }
 

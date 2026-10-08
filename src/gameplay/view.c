@@ -35,20 +35,20 @@ void draw_world_on_view(View *view, World *world) {
     int origin_row = view->position.y - half_height;
     int origin_column = view->position.x - half_width;
 
-    nccell outside_cell = create_default_cell();  // TODO: Either use a const for this or use the effects below
+    Cell outside_cell = create_default_cell();  // TODO: Either use a const for this or use the effects below
 
     for (int row = origin_row; row < view->position.y + half_height; row++) {
         for (int column = origin_column; column < view->position.x + half_width; column++) {
-            nccell *cell = get_cell_ref_xy(world, row, column);
+            Cell *cell = get_cell_ref_xy(world, row, column);
 
             if (cell != nullptr) {
-                ncplane_putc_yx(view->plane, row - origin_row, column - origin_column, cell);
+                ncplane_putc_yx(view->plane, row - origin_row, column - origin_column, &cell->cell);
             } else {
                 // NOTE: Super cool effects
                 // nccell random_cell = create_cell(UTF8("█"), (row * column * world->player.position.x *
                 // world->player.position.y) % 0xFFFFFF);
 
-                ncplane_putc_yx(view->plane, row - origin_row, column - origin_column, &outside_cell);
+                ncplane_putc_yx(view->plane, row - origin_row, column - origin_column, &outside_cell.cell);
             }
         }
     }

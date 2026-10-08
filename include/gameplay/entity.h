@@ -6,13 +6,13 @@
 #include "utils/vector.h"
 
 struct Entity {
-    nccell *cell;
+    Cell *cell;
     Vector position;
     float movement_acumulator;
     Vector direction;
 };
 
-static inline Entity create_entity(nccell *cell_ref, Vector position, const nccell cell) {
+static inline Entity create_entity(Cell *cell_ref, Vector position, const Cell cell) {
     *cell_ref = cell;
 
     Entity entity = {cell_ref, position, 0.0f, create_vector(0, 0)};
@@ -39,7 +39,7 @@ static inline bool check_and_reset_movement_accumulator(Entity *entity) {
     return false;
 }
 
-static inline void move_entity(Entity *entity, nccell *new_cell, Vector new_position) {
+static inline void move_entity(Entity *entity, Cell *new_cell, Vector new_position) {
     entity->position = new_position;
     entity->direction = create_vector(0, 0);
     *new_cell = *entity->cell;

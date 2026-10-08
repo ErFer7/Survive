@@ -5,14 +5,21 @@
 #include "types.h"
 #include "utils/color.h"
 
-static const nccell DEFAULT_CELL = NCCELL_TRIVIAL_INITIALIZER;
+enum CellType { VOID, WALL, PLAYER, COIN, ENEMY };
 
-static inline nccell create_cell(utf8_char character, Color color) {
-    nccell cell = NCCELL_CHAR_INITIALIZER(character);
+struct Cell {
+    nccell cell;
+    CellType type;
+};
 
-    nccell_set_fg_rgb(&cell, color);
+static const Cell DEFAULT_CELL = {NCCELL_TRIVIAL_INITIALIZER, VOID};
+
+static inline Cell create_cell(utf8_char character, Color color, CellType type) {
+    Cell cell = {NCCELL_CHAR_INITIALIZER(character), type};
+
+    nccell_set_fg_rgb(&cell.cell, color);
 
     return cell;
 }
 
-static inline nccell create_default_cell() { return DEFAULT_CELL; }
+static inline Cell create_default_cell() { return DEFAULT_CELL; }

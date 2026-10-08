@@ -7,6 +7,7 @@ typedef enum Status Status;
 typedef enum Color Color;
 typedef enum Key Key;
 typedef enum GameplayTransitionMode GameplayTransitionMode;
+typedef enum CellType CellType;
 
 typedef struct VectorF VectorF;
 typedef struct Vector Vector;
@@ -19,6 +20,8 @@ typedef struct InputState InputState;
 
 typedef struct Text Text;
 typedef struct Button Button;
+
+typedef struct Cell Cell;
 
 typedef struct Entity Entity;
 typedef struct World World;
