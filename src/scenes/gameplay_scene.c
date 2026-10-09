@@ -102,6 +102,9 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
                   parent_size,
                   &gameover_transition,
                   gameplay_scene->base.plane);
+
+    scene_context->render_thread.frequency_info = &gameplay_scene->interface.texts[1];
+    scene_context->update_thread.frequency_info = &gameplay_scene->interface.texts[3];
 }
 
 void enter_gameplay_scene(void *gameplay_scene, void *args) {

@@ -13,6 +13,8 @@ struct PeriodicThread {
     long period_ns;
     void (*function)(void *);
     void *arg;
+    Text *frequency_info;
+    struct timespec last_time;
     enum Status status;
 };
 

@@ -39,4 +39,8 @@ static inline void set_foreground_color(Text *text, Color foreground_color) {
     text->foreground_color = foreground_color;
 }
 
+static inline void set_single_line_text_content(Text *text, char *new_content, size_t length) {
+    memcpy(text->content, new_content, length);
+}
+
 void free_text(Text *text);
