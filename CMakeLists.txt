@@ -25,7 +25,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/*.c")
 set(INCLUDE "${CMAKE_CURRENT_LIST_DIR}/include/")
 
 add_executable(survive ${SOURCES})
-target_compile_options(survive PRIVATE -Wall -Wextra -Wpedantic -Wfatal-errors -Wno-implicit-fallthrough)
+target_compile_options(survive PRIVATE -O3 -Wall -Wextra -Wpedantic -Wfatal-errors -Wno-implicit-fallthrough)
 target_include_directories(survive PUBLIC ${INCLUDE}
                            ${notcurses_SOURCE_DIR}/include)
 target_link_libraries(survive PUBLIC notcurses m OpenMP::OpenMP_C)
