@@ -2,13 +2,6 @@
 
 #include <stdint.h>
 
-typedef enum Alignment Alignment;
-typedef enum Status Status;
-typedef enum Color Color;
-typedef enum Key Key;
-typedef enum GameplayTransitionMode GameplayTransitionMode;
-typedef enum CellType CellType;
-
 typedef uint32_t utf8_char;
 typedef unsigned char byte;
 

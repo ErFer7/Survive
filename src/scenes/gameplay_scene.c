@@ -3,20 +3,24 @@
 #include <notcurses/notcurses.h>
 
 #include "gameplay/gameplay.h"
-#include "gameplay/world.h"
-#include "interface/button.h"
 #include "interface/text.h"
 #include "scenes/scene_context.h"
 #include "types.h"
 #include "utils/color.h"
 #include "utils/vector.h"
 
+static const char *FPS_LABEL = "FPS:";
+
+static const char *TICKS_LABEL = "TPS:";
+
+static const char *GAMEPLAY_SCORE_LABEL = "Score:";
+
 void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_plane, SceneContext *scene_context) {
-    unsigned int rows;
-    unsigned int columns;
+    uint32_t rows;
+    uint32_t columns;
 
     ncplane_dim_yx(parent_plane, &rows, &columns);
-    Vector parent_size = create_vector(columns, rows);
+    VectorU parent_size = create_vector_u(columns, rows);
 
     SceneTransition pause_transition = create_scene_transition(scene_context, (Scene *)&scene_context->pause_scene);
     SceneTransition gameover_transition =
@@ -35,6 +39,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
                &draw_gameplay_scene,
                &exit_gameplay_scene,
                parent_size,
+               HYPER_DARK_GRAY,
                parent_plane);
 
     init_text(&gameplay_scene->interface.texts[0],
@@ -91,14 +96,10 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               BOTTOM_RIGHT,
               parent_size);
 
-    init_gameplay_interface(&gameplay_scene->interface,
-                            HYPER_DARK_GRAY,
-                            &pause_transition,
-                            sizeof(SceneTransition),
-                            &transition);
+    init_gameplay_interface(&gameplay_scene->interface, &pause_transition, sizeof(SceneTransition), &transition);
 
     init_gameplay(&gameplay_scene->gameplay,
-                  create_vector(columns - 2, rows - 2),
+                  create_vector_u(columns - 2, rows - 2),
                   parent_size,
                   &gameover_transition,
                   &gameplay_scene->interface.texts[5],
@@ -118,7 +119,7 @@ void enter_gameplay_scene(void *gameplay_scene, void *args) {
     if (scene_args.transition_mode == START || scene_args.transition_mode == RESTART) {
         start_gameplay(&scene->gameplay,
                        scene_args.transition_mode == RESTART,
-                       create_vector(scene_args.world_width, scene_args.world_height),
+                       create_vector_u(scene_args.world_width, scene_args.world_height),
                        scene_args.enable_terrain_generation);
     }
 
@@ -144,7 +145,6 @@ void draw_gameplay_scene(void *gameplay_scene) {
     GameplayScene *scene = (GameplayScene *)gameplay_scene;
 
     draw_interface(scene->base.plane,
-                   scene->interface.background_color,
                    scene->interface.texts,
                    sizeof(scene->interface.texts) / sizeof(Text),
                    nullptr,

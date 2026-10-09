@@ -1,5 +1,6 @@
 #include "scenes/scene.h"
 
+#include "utils/color.h"
 #include "utils/vector.h"
 
 void init_scene(Scene *scene,
@@ -7,7 +8,8 @@ void init_scene(Scene *scene,
                 void (*update)(void *),
                 void (*draw)(void *),
                 void (*exit)(void *, void *),
-                Vector parent_size,
+                VectorU parent_size,
+                enum Color background_color,
                 struct ncplane *parent_plane) {
     scene->enter = enter;
     scene->update = update;
@@ -20,6 +22,18 @@ void init_scene(Scene *scene,
     memcpy(&scene->plane_options, &plane_options, sizeof(ncplane_options));
 
     scene->plane = ncplane_create(parent_plane, &scene->plane_options);
+
+    uint64_t channels = 0;
+    byte red;
+    byte green;
+    byte blue;
+
+    break_into_parts(background_color, &red, &green, &blue);
+
+    ncchannels_set_bg_rgb8(&channels, (uint32_t)red, (uint32_t)green, (uint32_t)blue);
+    ncchannels_set_bg_alpha(&channels, NCALPHA_OPAQUE);
+    ncplane_set_base(scene->plane, " ", 0, channels);
+    ncplane_erase(scene->plane);
 }
 
 void free_scene(Scene *scene) { ncplane_destroy(scene->plane); }

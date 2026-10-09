@@ -5,7 +5,6 @@ project(minimal C)
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-add_compile_options(-Wfatal-errors)
 
 include(FetchContent)
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -26,6 +25,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/src/*.c")
 set(INCLUDE "${CMAKE_CURRENT_LIST_DIR}/include/")
 
 add_executable(survive ${SOURCES})
+target_compile_options(survive PRIVATE -Wall -Wextra -Wpedantic -Wfatal-errors -Wno-implicit-fallthrough)
 target_include_directories(survive PUBLIC ${INCLUDE}
                            ${notcurses_SOURCE_DIR}/include)
 target_link_libraries(survive PUBLIC notcurses m OpenMP::OpenMP_C)

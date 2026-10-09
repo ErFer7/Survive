@@ -2,10 +2,9 @@
 
 #include <notcurses/notcurses.h>
 
-#include "gameplay/enemy.h"
+#include "gameplay/player.h"
 #include "gameplay/view.h"
 #include "gameplay/world.h"
-#include "types.h"
 
 struct Gameplay {
     World world;
@@ -15,23 +14,23 @@ struct Gameplay {
     Entity *enemies;
     uint32_t entity_count;
     uint32_t enemy_count;
-    uint16_t score;
+    uint32_t score;
     SceneTransition *gameover_transition;
     Text *score_info;
 };
 
 void init_gameplay(Gameplay *gameplay,
-                   Vector view_size,
-                   Vector parent_size,
+                   VectorU view_size,
+                   VectorU parent_size,
                    SceneTransition *gameover_transition,
                    Text *score_info,
                    struct ncplane *scene_plane);
-void start_gameplay(Gameplay *gameplay, bool restart, Vector size, bool enable_terrain_generation);
+void start_gameplay(Gameplay *gameplay, bool restart, VectorU size, bool enable_terrain_generation);
 
 void allocate_entity(Gameplay *gameplay);
 
-void create_player(Gameplay *gameplay, Vector position);
-void create_enemy(Gameplay *gameplay, Vector position);
+void create_player(Gameplay *gameplay, VectorU position);
+void create_enemy(Gameplay *gameplay, VectorU position);
 
 static inline void handle_gameplay_input(Gameplay *gameplay, InputState *input_state) {
     handle_player_input(gameplay->player, input_state);

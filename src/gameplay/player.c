@@ -16,4 +16,12 @@ void handle_player_input(Entity *player, InputState *input_state) {
     } else if (is_key_pressed(input_state, KEY_LEFT)) {
         player->direction.x = -1;
     }
+
+    if (is_key_pressed(input_state, KEY_SHIFT)) {
+        player->speed_modifier = 0.5f;
+    } else if (is_key_pressed(input_state, KEY_CTRL)) {
+        player->speed_modifier = 1.5f;
+    } else {
+        player->speed_modifier = 1.0f;
+    }
 }

@@ -9,12 +9,28 @@
 #include "utils/color.h"
 #include "utils/vector.h"
 
+static const char *MAIN_MENU_TITLE =
+    "███████╗██╗   ██╗██████╗ ██╗   ██╗██╗██╗   ██╗███████╗\n"
+    "██╔════╝██║   ██║██╔══██╗██║   ██║██║██║   ██║██╔════╝\n"
+    "███████╗██║   ██║██████╔╝██║   ██║██║██║   ██║█████╗  \n"
+    "╚════██║██║   ██║██╔══██╗╚██╗ ██╔╝██║╚██╗ ██╔╝██╔══╝  \n"
+    "███████║╚██████╔╝██║  ██║ ╚████╔╝ ██║ ╚████╔╝ ███████╗\n"
+    "╚══════╝ ╚═════╝ ╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═══╝  ╚══════╝";
+
+static const char *VERSION = "v3.0";
+
+static const char *START_BUTTON = " Start ";
+
+static const char *INFO_BUTTON = " Info ";
+
+static const char *QUIT_BUTTON = " Quit ";
+
 void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneContext *scene_context) {
-    unsigned int rows;
-    unsigned int columns;
+    uint32_t rows;
+    uint32_t columns;
 
     ncplane_dim_yx(parent_plane, &rows, &columns);
-    Vector parent_size = create_vector(columns, rows);
+    VectorU parent_size = create_vector_u(columns, rows);
 
     SceneTransition start_transition = create_scene_transition(scene_context, (Scene *)&scene_context->start_scene);
     SceneTransition info_transition = create_scene_transition(scene_context, (Scene *)&scene_context->info_scene);
@@ -25,6 +41,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
                &draw_menu_scene,
                &exit_menu_scene,
                parent_size,
+               HYPER_DARK_GRAY,
                parent_plane);
 
     init_text(&menu_scene->interface.texts[0],
@@ -81,10 +98,10 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
                 sizeof(SceneContext *),
                 &quit);
 
-    init_menu_interface(&menu_scene->interface, HYPER_DARK_GRAY, &scene_context, sizeof(SceneContext *), &quit);
+    init_menu_interface(&menu_scene->interface, &scene_context, sizeof(SceneContext *), &quit);
 }
 
-void enter_menu_scene(void *menu_scene, void *args) {
+void enter_menu_scene(void *menu_scene, void *) {
     MenuScene *scene = (MenuScene *)menu_scene;
 
     ncplane_move_yx(scene->base.plane, 0, 0);
@@ -107,14 +124,13 @@ void draw_menu_scene(void *menu_scene) {
     MenuScene *scene = (MenuScene *)menu_scene;
 
     draw_interface(scene->base.plane,
-                   scene->interface.background_color,
                    scene->interface.texts,
                    sizeof(scene->interface.texts) / sizeof(Text),
                    scene->interface.buttons,
                    sizeof(scene->interface.buttons) / sizeof(Button));
 }
 
-void exit_menu_scene(void *menu_scene, void *args) {
+void exit_menu_scene(void *menu_scene, void *) {
     MenuScene *scene = (MenuScene *)menu_scene;
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);

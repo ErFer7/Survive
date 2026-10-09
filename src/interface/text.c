@@ -5,11 +5,11 @@
 void init_text(Text *text,
                const char *content,
                size_t length,
-               unsigned int foreground_color,
-               Color background_color,
+               enum Color foreground_color,
+               enum Color background_color,
                Vector position,
                enum Alignment alignment,
-               Vector parent_size) {
+               VectorU parent_size) {
     text->content = malloc(sizeof(char) * (length + 1));
     memcpy(text->content, content, sizeof(char) * (length + 1));
 
@@ -23,8 +23,8 @@ void init_text(Text *text,
     text->lines[0] = text->content;
 
     char *line = text->content;
-    int width = 0;
-    int height = 1;
+    uint32_t width = 0;
+    uint32_t height = 1;
 
     while (1) {
         char *new_line = strchr(line, '\n');
@@ -37,7 +37,7 @@ void init_text(Text *text,
             *new_line = '\0';
         }
 
-        int line_width = ncstrwidth(line, nullptr, nullptr);
+        uint32_t line_width = ncstrwidth(line, nullptr, nullptr);
 
         if (line_width > width) {
             width = line_width;
@@ -60,8 +60,8 @@ void draw_text(Text *text, struct ncplane *plane) {
     ncplane_set_fg_rgb(plane, text->foreground_color);
     ncplane_set_bg_rgb(plane, text->background_color);
 
-    unsigned int line_index = 0;
-    for (unsigned int i = text->aligned_position.y; i < text->aligned_position.y + text->size.y; i++) {
+    uint32_t line_index = 0;
+    for (uint32_t i = text->aligned_position.y; i < text->aligned_position.y + text->size.y; i++) {
         ncplane_putstr_yx(plane, i, text->aligned_position.x, text->lines[line_index]);
         line_index++;
     }

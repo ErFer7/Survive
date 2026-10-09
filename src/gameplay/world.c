@@ -3,6 +3,7 @@
 #include <math.h>
 #include <string.h>
 
+#include "gameplay/cell.h"
 #include "stdlib.h"
 #include "utils/perlin_noise.h"
 #include "utils/random.h"
@@ -10,12 +11,12 @@
 void init_world(World *world);
 
 void init_world(World *world) {
-    world->size = VECTOR_ZERO;
+    world->size = VECTORU_ZERO;
     world->has_terrain = false;
     world->matrix = nullptr;
 }
 
-void generate_world(World *world, Vector size, bool enable_terrain_generation) {
+void generate_world(World *world, VectorU size, bool enable_terrain_generation) {
     world->size = size;
     world->has_terrain = enable_terrain_generation;
 
@@ -23,7 +24,7 @@ void generate_world(World *world, Vector size, bool enable_terrain_generation) {
 
     world->matrix = malloc(raw_size);
 
-    for (unsigned int i = 0; i < size.x * size.y; i++) {
+    for (uint32_t i = 0; i < size.x * size.y; i++) {
         set_cell_i(world, i, create_default_cell());
     }
 
@@ -32,28 +33,30 @@ void generate_world(World *world, Vector size, bool enable_terrain_generation) {
     }
 
     generate_walls(world);
+    clear_spawn(world);
+
     generate_coins(world);
 }
 
 void generate_walls(World *world) {
-    for (unsigned int row = 0; row < world->size.y; row++) {
-        create_wall(world, create_vector(0, row), OPAQUE_WALL_CHARACTER);
-        create_wall(world, create_vector(world->size.x - 1, row), OPAQUE_WALL_CHARACTER);
+    for (uint32_t row = 0; row < world->size.y; row++) {
+        create_wall(world, create_vector_u(0, row), OPAQUE_WALL_CHARACTER);
+        create_wall(world, create_vector_u(world->size.x - 1, row), OPAQUE_WALL_CHARACTER);
     }
 
-    for (unsigned int columns = 0; columns < world->size.x; columns++) {
-        create_wall(world, create_vector(columns, 0), OPAQUE_WALL_CHARACTER);
-        create_wall(world, create_vector(columns, world->size.y - 1), OPAQUE_WALL_CHARACTER);
+    for (uint32_t columns = 0; columns < world->size.x; columns++) {
+        create_wall(world, create_vector_u(columns, 0), OPAQUE_WALL_CHARACTER);
+        create_wall(world, create_vector_u(columns, world->size.y - 1), OPAQUE_WALL_CHARACTER);
     }
 }
 
 void generate_terrain(World *world) {
-    int seed = rand();
+    int32_t seed = rand();
 
 #pragma omp parallel for collapse(2)
-    for (unsigned int row = 0; row < world->size.y; row++) {
-        for (unsigned int column = 0; column < world->size.x; column++) {
-            Vector position = create_vector(column, row);
+    for (uint32_t row = 0; row < world->size.y; row++) {
+        for (uint32_t column = 0; column < world->size.x; column++) {
+            VectorU position = create_vector_u(column, row);
             float noise = perlin_noise((float)column * 0.1f, (float)row * 0.1f, 0.65f, 5, seed);
 
             if (noise > 0.7 && noise <= 0.775) {
@@ -69,9 +72,22 @@ void generate_terrain(World *world) {
     }
 }
 
+void clear_spawn(World *world) {
+    VectorU center = divide_vector_u_by_scalar(world->size, 2);
+
+    for (uint32_t row = center.y - SPAWN_RADIUS; row < center.y + SPAWN_RADIUS; row++) {
+        for (uint32_t column = center.x - SPAWN_RADIUS; column < center.x + SPAWN_RADIUS; column++) {
+            if (vector_u_distance(create_vector_u(column, row), center) <= SPAWN_RADIUS) {
+                set_cell_xy(world, row, column, DEFAULT_CELL);
+            }
+        }
+    }
+}
+
 void generate_coin(World *world) {
     while (true) {
-        Vector position = create_vector(inclusive_random(1, world->size.x - 2), inclusive_random(1, world->size.y - 2));
+        VectorU position =
+            create_vector_u(inclusive_random(1, world->size.x - 2), inclusive_random(1, world->size.y - 2));
 
         Cell *cell = get_cell_ref_vec(world, position);
 

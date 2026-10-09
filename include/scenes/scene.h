@@ -3,6 +3,7 @@
 #include <notcurses/notcurses.h>
 
 #include "types.h"
+#include "utils/color.h"
 #include "utils/vector.h"
 
 struct Scene {
@@ -19,6 +20,7 @@ void init_scene(Scene *scene,
                 void (*update)(void *),
                 void (*draw)(void *),
                 void (*exit)(void *, void *),
-                Vector parent_size,
+                VectorU parent_size,
+                enum Color background_color,
                 struct ncplane *parent_plane);
 void free_scene(Scene *scene);

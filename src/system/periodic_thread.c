@@ -5,7 +5,7 @@
 
 #include "interface/text.h"
 
-void init_periodic_thread(PeriodicThread *periodic_thread, long period_ms, void (*function)(void *), void *arg) {
+void init_periodic_thread(PeriodicThread *periodic_thread, int64_t period_ms, void (*function)(void *), void *arg) {
     periodic_thread->period_ns = period_ms * 1000000UL;
     periodic_thread->function = function;
     periodic_thread->arg = arg;

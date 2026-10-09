@@ -3,11 +3,11 @@
 void init_button(Button *button,
                  const char *content,
                  size_t length,
-                 unsigned int foreground_color,
-                 unsigned int background_color,
+                 enum Color foreground_color,
+                 enum Color background_color,
                  Vector position,
                  enum Alignment alignment,
-                 Vector parent_size,
+                 VectorU parent_size,
                  void *call_arg,
                  size_t call_arg_size,
                  void (*call)(void *)) {
@@ -24,8 +24,8 @@ void init_button(Button *button,
 }
 
 void toggle_selection(Button *button) {
-    unsigned int new_background_color = get_foreground_color(&button->text);
-    unsigned int new_foreground_color = get_background_color(&button->text);
+    enum Color new_background_color = get_foreground_color(&button->text);
+    enum Color new_foreground_color = get_background_color(&button->text);
 
     set_foreground_color(&button->text, new_foreground_color);
     set_background_color(&button->text, new_background_color);

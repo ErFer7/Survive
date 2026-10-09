@@ -8,12 +8,29 @@
 #include "utils/color.h"
 #include "utils/vector.h"
 
+static const char *INFO_TITLE =
+    "██╗███╗   ██╗███████╗ ██████╗ \n"
+    "██║████╗  ██║██╔════╝██╔═══██╗\n"
+    "██║██╔██╗ ██║█████╗  ██║   ██║\n"
+    "██║██║╚██╗██║██╔══╝  ██║   ██║\n"
+    "██║██║ ╚████║██║     ╚██████╔╝\n"
+    "╚═╝╚═╝  ╚═══╝╚═╝      ╚═════╝";
+
+static const char *INFO =
+    "Adaptation of my first game that was created in 2019-03-19.\n"
+    "Written in C 💙.\n \n"
+    "Use the arrows to control the player. Press shift to slow down and ctrl to run.\n \n"
+    "~Hefer\n \n"
+    "https://github.com/ErFer7/Survive";
+
+static const char *INFO_BACK_BUTTON = " Back ";
+
 void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneContext *scene_context) {
-    unsigned int rows;
-    unsigned int columns;
+    uint32_t rows;
+    uint32_t columns;
 
     ncplane_dim_yx(parent_plane, &rows, &columns);
-    Vector parent_size = create_vector(columns, rows);
+    VectorU parent_size = create_vector_u(columns, rows);
 
     SceneTransition menu_transition = create_scene_transition(scene_context, (Scene *)&scene_context->menu_scene);
 
@@ -23,6 +40,7 @@ void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneC
                &draw_info_scene,
                &exit_info_scene,
                parent_size,
+               HYPER_DARK_GRAY,
                parent_plane);
 
     init_text(&info_scene->interface.texts[0],
@@ -55,14 +73,10 @@ void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneC
                 sizeof(SceneTransition),
                 &transition);
 
-    init_info_interface(&info_scene->interface,
-                        HYPER_DARK_GRAY,
-                        &menu_transition,
-                        sizeof(SceneTransition),
-                        &transition);
+    init_info_interface(&info_scene->interface, &menu_transition, sizeof(SceneTransition), &transition);
 }
 
-void enter_info_scene(void *info_scene, void *args) {
+void enter_info_scene(void *info_scene, void *) {
     InfoScene *scene = (InfoScene *)info_scene;
 
     ncplane_move_yx(scene->base.plane, 0, 0);
@@ -85,14 +99,13 @@ void draw_info_scene(void *info_scene) {
     InfoScene *scene = (InfoScene *)info_scene;
 
     draw_interface(scene->base.plane,
-                   scene->interface.background_color,
                    scene->interface.texts,
                    sizeof(scene->interface.texts) / sizeof(Text),
                    scene->interface.buttons,
                    sizeof(scene->interface.buttons) / sizeof(Button));
 }
 
-void exit_info_scene(void *info_scene, void *args) {
+void exit_info_scene(void *info_scene, void *) {
     InfoScene *scene = (InfoScene *)info_scene;
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);

@@ -10,7 +10,6 @@
 #include "scenes/start_scene.h"
 #include "system/input.h"
 #include "system/periodic_thread.h"
-#include "types.h"
 
 #define TRANSITION_ARGS_SIZE 16
 
@@ -44,7 +43,7 @@ void quit(void *scene_context);
 void free_scene_context(SceneContext *scene_context);
 
 static inline SceneTransition create_scene_transition(SceneContext *scene_context, Scene *next_scene) {
-    SceneTransition scene_transition = {scene_context, next_scene};
+    SceneTransition scene_transition = {scene_context, next_scene, {}};
     memset(&scene_transition.args, 0, TRANSITION_ARGS_SIZE);
 
     return scene_transition;

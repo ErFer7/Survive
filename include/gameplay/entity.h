@@ -7,19 +7,21 @@
 
 struct Entity {
     Cell *cell;
-    Vector position;
+    VectorU position;
     float movement_acumulator;
+    float speed_modifier;
     Vector direction;
 };
 
-static inline Entity create_entity(Cell *cell_ref, Vector position, const Cell cell) {
+static inline Entity create_entity(Cell *cell_ref, VectorU position, const Cell cell) {
     *cell_ref = cell;
 
-    Entity entity = {cell_ref, position, 0.0f, VECTOR_ZERO};
+    Entity entity = {cell_ref, position, 0.0f, 1.0f, VECTOR_ZERO};
 
     return entity;
 }
 
+// TODO: Remove these getters and setters
 static inline Vector get_direction(Entity *entity) { return entity->direction; }
 
 static inline void set_direction(Entity *entity, Vector direction) { entity->direction = direction; }
@@ -39,7 +41,7 @@ static inline bool check_and_reset_movement_accumulator(Entity *entity) {
     return false;
 }
 
-static inline void move_entity(Entity *entity, Cell *new_cell, Vector new_position) {
+static inline void move_entity(Entity *entity, Cell *new_cell, VectorU new_position) {
     entity->position = new_position;
     entity->direction = VECTOR_ZERO;
     *new_cell = *entity->cell;

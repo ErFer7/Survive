@@ -1,12 +1,12 @@
 #include "interface/interface.h"
 
+#include <notcurses/notcurses.h>
+
 #include "interface/button.h"
-#include "notcurses/nckeys.h"
-#include "notcurses/notcurses.h"
 #include "system/input.h"
 
-void handle_interface_input(int *selected_button,
-                            int *key_held_cooldown,
+void handle_interface_input(int32_t *selected_button,
+                            int32_t *key_held_cooldown,
                             Button *buttons,
                             unsigned int button_count,
                             void (*escape_handler)(void *),
@@ -47,7 +47,7 @@ void handle_interface_input(int *selected_button,
 
             break;
         case KEY_DOWN:
-            if (*selected_button < button_count - 1) {
+            if ((uint32_t)*selected_button < button_count - 1) {
                 toggle_selection(&buttons[*selected_button]);
                 (*selected_button)++;
                 toggle_selection(&buttons[*selected_button]);
@@ -60,35 +60,26 @@ void handle_interface_input(int *selected_button,
     }
 }
 
-void draw_interface(struct ncplane *plane,
-                    Color background_color,
-                    Text *texts,
-                    unsigned int text_count,
-                    Button *buttons,
-                    unsigned int button_count) {
-    ncplane_set_bg_rgb(plane, background_color);
-
-    for (unsigned int i = 0; i < text_count; i++) {
+void draw_interface(struct ncplane *plane, Text *texts, uint32_t text_count, Button *buttons, uint32_t button_count) {
+    for (uint32_t i = 0; i < text_count; i++) {
         draw_text(&texts[i], plane);
     }
 
-    for (unsigned int i = 0; i < button_count; i++) {
+    for (uint32_t i = 0; i < button_count; i++) {
         draw_button(&buttons[i], plane);
     }
-
-    ncplane_set_bg_default(plane);
 }
 
 void free_interface(Text *texts,
-                    unsigned int text_count,
+                    uint32_t text_count,
                     Button *buttons,
-                    unsigned int button_count,
+                    uint32_t button_count,
                     void **escape_handler_arg) {
-    for (unsigned int i = 0; i < text_count; i++) {
+    for (uint32_t i = 0; i < text_count; i++) {
         free_text(&texts[i]);
     }
 
-    for (unsigned int i = 0; i < button_count; i++) {
+    for (uint32_t i = 0; i < button_count; i++) {
         free_button(&buttons[i]);
     }
 

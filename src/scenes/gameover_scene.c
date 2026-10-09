@@ -9,12 +9,26 @@
 #include "utils/color.h"
 #include "utils/vector.h"
 
+static const char *GAMEOVER_TITLE =
+    " ██████╗  █████╗ ███╗   ███╗███████╗ ██████╗ ██╗   ██╗███████╗██████╗ \n"
+    "██╔════╝ ██╔══██╗████╗ ████║██╔════╝██╔═══██╗██║   ██║██╔════╝██╔══██╗\n"
+    "██║  ███╗███████║██╔████╔██║█████╗  ██║   ██║██║   ██║█████╗  ██████╔╝\n"
+    "██║   ██║██╔══██║██║╚██╔╝██║██╔══╝  ██║   ██║╚██╗ ██╔╝██╔══╝  ██╔══██╗\n"
+    "╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗╚██████╔╝ ╚████╔╝ ███████╗██║  ██║\n"
+    " ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝ ╚═════╝   ╚═══╝  ╚══════╝╚═╝  ╚═╝";
+
+static const char *GAMEOVER_SCORE_LABEL = "Score:";
+
+static const char *GAMEOVER_RESTART_BUTTON = " Restart ";
+
+static const char *MENU_BUTTON = " Menu ";
+
 void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_plane, SceneContext *scene_context) {
-    unsigned int rows;
-    unsigned int columns;
+    uint32_t rows;
+    uint32_t columns;
 
     ncplane_dim_yx(parent_plane, &rows, &columns);
-    Vector parent_size = create_vector(columns, rows);
+    VectorU parent_size = create_vector_u(columns, rows);
 
     SceneTransition restart_transition =
         create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
@@ -32,6 +46,7 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
                &draw_gameover_scene,
                &exit_gameover_scene,
                parent_size,
+               HYPER_DARK_GRAY,
                parent_plane);
 
     init_text(&gameover_scene->interface.texts[0],
@@ -85,17 +100,13 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
                 sizeof(SceneTransition),
                 &transition);
 
-    init_gameover_interface(&gameover_scene->interface,
-                            HYPER_DARK_GRAY,
-                            &menu_transition,
-                            sizeof(SceneTransition),
-                            &transition);
+    init_gameover_interface(&gameover_scene->interface, &menu_transition, sizeof(SceneTransition), &transition);
 }
 
 void enter_gameover_scene(void *gameover_scene, void *args) {
     GameoverScene *scene = (GameoverScene *)gameover_scene;
 
-    uint16_t score;
+    uint32_t score;
     deserialize_gameover_scene_transition_args(&score, args);
 
     char score_str[11];
@@ -124,14 +135,13 @@ void draw_gameover_scene(void *gameover_scene) {
     GameoverScene *scene = (GameoverScene *)gameover_scene;
 
     draw_interface(scene->base.plane,
-                   scene->interface.background_color,
                    scene->interface.texts,
                    sizeof(scene->interface.texts) / sizeof(Text),
                    scene->interface.buttons,
                    sizeof(scene->interface.buttons) / sizeof(Button));
 }
 
-void exit_gameover_scene(void *gameover_scene, void *args) {
+void exit_gameover_scene(void *gameover_scene, void *) {
     GameoverScene *scene = (GameoverScene *)gameover_scene;
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);

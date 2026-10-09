@@ -5,16 +5,10 @@
 #include "scene.h"
 #include "types.h"
 
-DEFINE_BUTTONLESS_INTERFACE(GameplayInterface, 6);
-DEFINE_INIT_BUTTONLESS_INTERFACE(GameplayInterface, gameplay);
+DEFINE_BUTTONLESS_INTERFACE(GameplayInterface, 6)
+DEFINE_INIT_BUTTONLESS_INTERFACE(GameplayInterface, gameplay)
 
 enum GameplayTransitionMode { START, RESUME, PAUSE, RESTART };
-
-static const char *FPS_LABEL = "FPS:";
-
-static const char *TICKS_LABEL = "TPS:";
-
-static const char *GAMEPLAY_SCORE_LABEL = "Score:";
 
 struct GameplayScene {
     Scene base;
@@ -23,10 +17,10 @@ struct GameplayScene {
 };
 
 struct GameplaySceneArgs {
-    GameplayTransitionMode transition_mode;
+    enum GameplayTransitionMode transition_mode;
     bool enable_terrain_generation;
-    uint16_t world_width;
-    uint16_t world_height;
+    uint32_t world_width;
+    uint32_t world_height;
 };
 
 void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_plane, SceneContext *scene_context);
@@ -36,9 +30,9 @@ void draw_gameplay_scene(void *gameplay_scene);
 void exit_gameplay_scene(void *gameplay_scene, void *args);
 void free_gameplay_scene(GameplayScene *gameplay_scene);
 
-static inline GameplaySceneArgs create_gameplay_scene_args(GameplayTransitionMode transition_mode,
-                                                           uint16_t width,
-                                                           uint16_t height,
+static inline GameplaySceneArgs create_gameplay_scene_args(enum GameplayTransitionMode transition_mode,
+                                                           uint32_t width,
+                                                           uint32_t height,
                                                            bool enable_terrain_generation) {
     GameplaySceneArgs gameplay_scene_args = {transition_mode, enable_terrain_generation, width, height};
 

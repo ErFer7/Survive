@@ -3,12 +3,13 @@
 #include <notcurses/notcurses.h>
 
 #include "types.h"
+#include "utils/color.h"
 #include "utils/vector.h"
 
 #define COOL_EFFECTS
 
 struct View {
-    Vector position;
+    VectorU position;
     struct ncplane *plane;
     struct ncplane_options plane_options;
 #ifdef COOL_EFFECTS
@@ -17,10 +18,15 @@ struct View {
 #endif
 };
 
-void init_view(View *view, Vector initial_position, Vector size, Vector parent_size, struct ncplane *parent_plane);
+void init_view(View *view,
+               VectorU initial_position,
+               VectorU size,
+               VectorU parent_size,
+               enum Color background_color,
+               struct ncplane *parent_plane);
 void draw_world_on_view(View *view, World *world);
 
-static inline void update_view_position(View *view, Vector position) { view->position = position; }
+static inline void update_view_position(View *view, VectorU position) { view->position = position; }
 
 static inline void free_view(View *view) {
     ncplane_destroy(view->plane);

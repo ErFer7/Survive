@@ -47,12 +47,28 @@
 
 #define DEFINE_MULTIPLY_VECTOR_BY_SCALAR(NAME, TYPE, FUNCTION_NAME)                \
     static inline NAME multiply_##FUNCTION_NAME##_by_scalar(NAME v, TYPE scalar) { \
-        NAME result;                                                               \
+        v.x *= scalar;                                                             \
+        v.y *= scalar;                                                             \
                                                                                    \
-        result.x *= scalar;                                                        \
-        result.y *= scalar;                                                        \
-                                                                                   \
-        return result;                                                             \
+        return v;                                                                  \
+    }
+
+#define DEFINE_DIVIDE_VECTOR(NAME, TYPE, FUNCTION_NAME)         \
+    static inline NAME divide_##FUNCTION_NAME(NAME v, NAME w) { \
+        NAME result;                                            \
+                                                                \
+        result.x = v.x / w.x;                                   \
+        result.y = v.y / w.y;                                   \
+                                                                \
+        return result;                                          \
+    }
+
+#define DEFINE_DIVIDE_VECTOR_BY_SCALAR(NAME, TYPE, FUNCTION_NAME)                \
+    static inline NAME divide_##FUNCTION_NAME##_by_scalar(NAME v, TYPE scalar) { \
+        v.x /= scalar;                                                           \
+        v.y /= scalar;                                                           \
+                                                                                 \
+        return v;                                                                \
     }
 
 #define DEFINE_VECTOR_CONVERSION(NAME, TARGET_TYPE, TARGET_NAME, FUNCTION_NAME, TARGET_FUNCTION_NAME) \
@@ -65,35 +81,61 @@
         return result;                                                                                \
     }
 
-DEFINE_VECTOR(Vector, int32_t);
-DEFINE_VECTOR(VectorF, float);
+#define DEFINE_DISTANCE(NAME, FUNCTION_NAME, SAFE_TYPE)            \
+    static inline float FUNCTION_NAME##_distance(NAME v, NAME w) { \
+        float diff_x = (SAFE_TYPE)v.x - (SAFE_TYPE)w.x;            \
+        float diff_y = (SAFE_TYPE)v.y - (SAFE_TYPE)w.y;            \
+                                                                   \
+        return sqrtf(diff_x * diff_x + diff_y * diff_y);           \
+    }
 
-DEFINE_CREATE_VECTOR(Vector, int32_t, vector);
-DEFINE_CREATE_VECTOR(VectorF, float, vector_f);
+#define DEFINE_IS_ZERO(NAME, FUNCTION_NAME) \
+    static inline bool FUNCTION_NAME##_is_zero(NAME v) { return v.x == 0 && v.y == 0; }
 
-DEFINE_ADD_VECTOR(Vector, int32_t, vector);
-DEFINE_ADD_VECTOR(Vector, float, vector_f);
+DEFINE_VECTOR(Vector, int32_t)
+DEFINE_VECTOR(VectorU, uint32_t)
+DEFINE_VECTOR(VectorF, float)
 
-DEFINE_SUB_VECTOR(Vector, int32_t, vector);
-DEFINE_SUB_VECTOR(Vector, float, vector_f);
+DEFINE_CREATE_VECTOR(Vector, int32_t, vector)
+DEFINE_CREATE_VECTOR(VectorU, uint32_t, vector_u)
+DEFINE_CREATE_VECTOR(VectorF, float, vector_f)
 
-DEFINE_MULTIPLY_VECTOR(Vector, int32_t, vector);
-DEFINE_MULTIPLY_VECTOR(Vector, float, vector_f);
+DEFINE_ADD_VECTOR(Vector, int32_t, vector)
+DEFINE_ADD_VECTOR(VectorU, uint32_t, vector_u)
+DEFINE_ADD_VECTOR(Vector, float, vector_f)
 
-DEFINE_MULTIPLY_VECTOR_BY_SCALAR(Vector, int32_t, vector);
-DEFINE_MULTIPLY_VECTOR_BY_SCALAR(Vector, float, vector_f);
+DEFINE_SUB_VECTOR(Vector, int32_t, vector)
+DEFINE_SUB_VECTOR(VectorU, uint32_t, vector_u)
+DEFINE_SUB_VECTOR(Vector, float, vector_f)
 
-DEFINE_VECTOR_CONVERSION(Vector, float, VectorF, vector, vector_f);
-DEFINE_VECTOR_CONVERSION(VectorF, int32_t, Vector, vector_f, vector);
+DEFINE_MULTIPLY_VECTOR(Vector, int32_t, vector)
+DEFINE_MULTIPLY_VECTOR(VectorU, uint32_t, vector_u)
+DEFINE_MULTIPLY_VECTOR(Vector, float, vector_f)
+
+DEFINE_MULTIPLY_VECTOR_BY_SCALAR(Vector, int32_t, vector)
+DEFINE_MULTIPLY_VECTOR_BY_SCALAR(VectorU, uint32_t, vector_u)
+DEFINE_MULTIPLY_VECTOR_BY_SCALAR(Vector, float, vector_f)
+
+DEFINE_DIVIDE_VECTOR(Vector, int32_t, vector)
+DEFINE_DIVIDE_VECTOR(VectorU, uint32_t, vector_u)
+DEFINE_DIVIDE_VECTOR(Vector, float, vector_f)
+
+DEFINE_DIVIDE_VECTOR_BY_SCALAR(Vector, int32_t, vector)
+DEFINE_DIVIDE_VECTOR_BY_SCALAR(VectorU, uint32_t, vector_u)
+DEFINE_DIVIDE_VECTOR_BY_SCALAR(Vector, float, vector_f)
+
+DEFINE_VECTOR_CONVERSION(Vector, float, VectorF, vector, vector_f)
+DEFINE_VECTOR_CONVERSION(VectorF, int32_t, Vector, vector_f, vector)
+DEFINE_VECTOR_CONVERSION(Vector, uint32_t, VectorU, vector, vector_u)
+DEFINE_VECTOR_CONVERSION(VectorU, int32_t, Vector, vector_u, vector)
+
+DEFINE_DISTANCE(Vector, vector, int32_t)
+DEFINE_DISTANCE(VectorU, vector_u, int32_t)
+DEFINE_DISTANCE(VectorF, vector_f, float)
 
 static const Vector VECTOR_ZERO = {0, 0};
+static const VectorU VECTORU_ZERO = {0U, 0U};
 static const VectorF VECTOR_F_ZERO = {0.0f, 0.0f};
 
-static inline bool is_non_zero(Vector v) { return v.x != 0 || v.y != 0; }
-
-static inline float distance(VectorF v, VectorF w) {
-    float diff_x = v.x - w.x;
-    float diff_y = v.y - w.y;
-
-    return sqrtf(diff_x * diff_x + diff_y * diff_y);
-}
+DEFINE_IS_ZERO(Vector, vector)
+DEFINE_IS_ZERO(VectorU, vector_u)

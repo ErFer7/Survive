@@ -1,6 +1,8 @@
 #pragma once
 
-// TODO: This is terrible
-#define UTF8(character)                                                                                      \
-    (((unsigned int)(unsigned char)(character[0])) | (((unsigned int)(unsigned char)(character[1])) << 8U) | \
-     (((unsigned int)(unsigned char)(character[2])) << 16U) | (((unsigned int)(unsigned char)(character[3])) << 24U))
+#include <stdint.h>
+
+// NOTE: This is terrible
+#define UTF8(character)                                                            \
+    (((uint32_t)(byte)(character[0])) | (((uint32_t)(byte)(character[1])) << 8U) | \
+     (((uint32_t)(byte)(character[2])) << 16U) | (((uint32_t)(byte)(character[3])) << 24U))

@@ -1,9 +1,9 @@
 #include "interface/alignment.h"
 
-Vector aligned_position(Vector position, Vector size, Vector parent_size, enum Alignment alignment) {
+VectorU aligned_position(Vector position, VectorU size, VectorU parent_size, enum Alignment alignment) {
     Vector aligned_position = position;
-    int width = size.x;
-    int height = size.y;
+    uint32_t width = size.x;
+    uint32_t height = size.y;
 
     switch (alignment) {
         case TOP:
@@ -40,5 +40,5 @@ Vector aligned_position(Vector position, Vector size, Vector parent_size, enum A
             break;
     }
 
-    return aligned_position;
+    return vector_to_vector_u(aligned_position);
 }

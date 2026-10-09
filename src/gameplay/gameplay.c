@@ -1,6 +1,8 @@
 #include "gameplay/gameplay.h"
 
 #include "gameplay/cell.h"
+#include "gameplay/enemy.h"
+#include "gameplay/player.h"
 #include "interface/text.h"
 #include "scenes/scene_context.h"
 #include "types.h"
@@ -8,14 +10,14 @@
 #include "utils/vector.h"
 
 void init_gameplay(Gameplay *gameplay,
-                   Vector view_size,
-                   Vector parent_size,
+                   VectorU view_size,
+                   VectorU parent_size,
                    SceneTransition *gameover_transition,
                    Text *score_info,
                    struct ncplane *scene_plane) {
     init_world(&gameplay->world);
 
-    init_view(&gameplay->view, VECTOR_ZERO, view_size, parent_size, scene_plane);
+    init_view(&gameplay->view, VECTORU_ZERO, view_size, parent_size, HYPER_DARK_GRAY, scene_plane);
 
     gameplay->entities = nullptr;
     gameplay->entity_count = 0;
@@ -28,14 +30,14 @@ void init_gameplay(Gameplay *gameplay,
     memcpy(gameplay->gameover_transition, gameover_transition, sizeof(SceneTransition));
 }
 
-void start_gameplay(Gameplay *gameplay, bool restart, Vector size, bool enable_terrain_generation) {
+void start_gameplay(Gameplay *gameplay, bool restart, VectorU size, bool enable_terrain_generation) {
     partially_free_gameplay(gameplay);
 
-    Vector world_size = restart ? gameplay->world.size : size;
+    VectorU world_size = restart ? gameplay->world.size : size;
     bool terrain_generation = restart ? gameplay->world.has_terrain : enable_terrain_generation;
 
     generate_world(&gameplay->world, world_size, terrain_generation);
-    create_player(gameplay, create_vector(world_size.x / 2, world_size.y / 2));
+    create_player(gameplay, divide_vector_u_by_scalar(world_size, 2));
     update_view_position(&gameplay->view, gameplay->player->position);
 
     gameplay->score = 0;
@@ -70,13 +72,13 @@ Entity *add_entity(Gameplay *gameplay, const Entity entity) {
     return &gameplay->entities[last];
 }
 
-void create_player(Gameplay *gameplay, Vector position) {
+void create_player(Gameplay *gameplay, VectorU position) {
     allocate_entity(gameplay);
 
     *gameplay->player = create_player_entity(get_cell_ref_vec(&gameplay->world, position), position);
 }
 
-void create_enemy(Gameplay *gameplay, Vector position) {
+void create_enemy(Gameplay *gameplay, VectorU position) {
     allocate_entity(gameplay);
 
     gameplay->enemies[gameplay->enemy_count] =
@@ -87,8 +89,8 @@ void create_enemy(Gameplay *gameplay, Vector position) {
 
 // PERFORMANCE: Optimize
 void update_enemy(Gameplay *gameplay, Entity *enemy) {
-    Vector target = gameplay->player->position;
-    Vector position = enemy->position;
+    VectorU target = gameplay->player->position;
+    VectorU position = enemy->position;
     bool blocked = false;
 
     int32_t target_direction_x = 0;
@@ -99,7 +101,8 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
         target_direction_x = -1;
     }
 
-    Cell *target_cell = get_cell_ref_vec(&gameplay->world, create_vector(position.x + target_direction_x, position.y));
+    Cell *target_cell =
+        get_cell_ref_vec(&gameplay->world, create_vector_u(position.x + target_direction_x, position.y));
 
     blocked = target_cell->type != VOID && target_cell->type != PLAYER;
 
@@ -115,7 +118,7 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
         target_direction_y = -1;
     }
 
-    target_cell = get_cell_ref_vec(&gameplay->world, create_vector(position.x, position.y + target_direction_y));
+    target_cell = get_cell_ref_vec(&gameplay->world, create_vector_u(position.x, position.y + target_direction_y));
 
     blocked = target_cell->type != VOID && target_cell->type != PLAYER;
 
@@ -126,20 +129,19 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
     if (blocked) {
         float distances[8];
         float smallest_distance = INFINITY;
-        int direction_index;
-        Vector adjacent_position_vector;
+        uint32_t direction_index;
+        VectorU adjacent_position_vector;
 
-        int distance_index = 0;
+        uint32_t distance_index = 0;
 
-        for (int j = position.x - 1; j < position.x + 2; j++) {
-            for (int k = position.y - 1; k < position.y + 2; k++) {
+        for (uint32_t j = position.x - 1; j < position.x + 2; j++) {
+            for (uint32_t k = position.y - 1; k < position.y + 2; k++) {
                 if (j != position.x || k != position.y) {
-                    adjacent_position_vector = create_vector(j, k);
+                    adjacent_position_vector = create_vector_u(j, k);
                     Cell *cell = get_cell_ref_vec(&gameplay->world, adjacent_position_vector);
 
                     if (cell->type == VOID) {
-                        distances[distance_index] =
-                            distance(vector_to_vector_f(adjacent_position_vector), vector_to_vector_f(target));
+                        distances[distance_index] = vector_u_distance(adjacent_position_vector, target);
                     } else {
                         distances[distance_index] = INFINITY;
                     }
@@ -149,7 +151,7 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
             }
         }
 
-        for (int j = 0; j < 8; j++) {
+        for (uint32_t j = 0; j < 8; j++) {
             if (smallest_distance > distances[j]) {
                 smallest_distance = distances[j];
                 direction_index = j;
@@ -199,15 +201,17 @@ void update_entities_movement(Gameplay *gameplay) {
     Entity *entities = gameplay->entities;
 
     for (uint32_t i = 0; i < gameplay->entity_count; i++) {
-        if (is_non_zero(entities[i].direction)) {
+        if (!vector_is_zero(entities[i].direction)) {
             // NOTE: This is ok for this game, since there is only two entities
             const float speed = entities[i].cell->type == PLAYER ? PLAYER_SPEED : ENEMY_SPEED;
 
-            accumulate_movement(&entities[i], speed);
+            accumulate_movement(&entities[i], speed * entities[i].speed_modifier);
         }
 
         if (check_and_reset_movement_accumulator(&entities[i])) {
-            Vector new_position = add_vector(entities[i].position, entities[i].direction);
+            VectorU new_position =
+                vector_to_vector_u(add_vector(vector_u_to_vector(entities[i].position), entities[i].direction));
+
             Cell *new_cell = get_cell_ref_vec(&gameplay->world, new_position);
 
             if (solve_collision(gameplay, &entities[i], new_cell)) {
@@ -239,13 +243,10 @@ void handle_coin_pick(Gameplay *gameplay) {
 
 void generate_enemy(Gameplay *gameplay) {
     while (true) {
-        Vector position = create_vector(inclusive_random(1, gameplay->world.size.x - 2),
-                                        inclusive_random(1, gameplay->world.size.y - 2));
+        VectorU position = create_vector_u(inclusive_random(1, gameplay->world.size.x - 2),
+                                           inclusive_random(1, gameplay->world.size.y - 2));
 
-        VectorF player_position = vector_to_vector_f(gameplay->player->position);
-        VectorF position_f = vector_to_vector_f(position);
-
-        if (distance(player_position, position_f) > 20.0f) {
+        if (vector_u_distance(gameplay->player->position, position) > 20.0f) {
             Cell *cell = get_cell_ref_vec(&gameplay->world, position);
 
             if (cell->type == VOID) {

@@ -25,8 +25,14 @@ enum Color {
     HYPER_DARK_GRAY = 0x1A1B26,  // #1A1B26
 };
 
-static inline Color grayscale_to_rgb(float scale) {
+static inline void break_into_parts(enum Color color, byte *red, byte *green, byte *blue) {
+    *red = (color & 0xFF0000U) >> 16U;
+    *green = (color & 0x00FF00U) >> 8U;
+    *blue = color & 0x0000FFU;
+}
+
+static inline enum Color grayscale_to_rgb(float scale) {
     byte parts = (byte)(255.0f * scale);
 
-    return parts << 16 | parts << 8 | parts;
+    return parts << 16U | parts << 8U | parts;
 }
