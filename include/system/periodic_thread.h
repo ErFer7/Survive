@@ -11,7 +11,6 @@ enum Status { FINISHED = -1, SUSPENDED = 0, RUNNING = 1 };
 struct PeriodicThread {
     pthread_t thread;
     long period_ns;
-    struct timespec next_time;
     void (*function)(void *);
     void *arg;
     enum Status status;

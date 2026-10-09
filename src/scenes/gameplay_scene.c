@@ -19,6 +19,8 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
     Vector parent_size = create_vector(columns, rows);
 
     SceneTransition pause_transition = create_scene_transition(scene_context, (Scene *)&scene_context->pause_scene);
+    SceneTransition gameover_transition =
+        create_scene_transition(scene_context, (Scene *)&scene_context->gameover_scene);
 
     GameplaySceneArgs pause_transition_args = create_gameplay_scene_args(PAUSE, 0, 0, false);
 
@@ -98,6 +100,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
     init_gameplay(&gameplay_scene->gameplay,
                   create_vector(columns - 2, rows - 2),
                   parent_size,
+                  &gameover_transition,
                   gameplay_scene->base.plane);
 }
 
@@ -153,7 +156,7 @@ void exit_gameplay_scene(void *gameplay_scene, void *args) {
     deserialize_gameplay_scene_transition_args(&scene_args, args);
 
     if (scene_args.transition_mode != PAUSE) {
-        end_gameplay(&scene->gameplay);
+        partially_free_gameplay(&scene->gameplay);
     }
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);

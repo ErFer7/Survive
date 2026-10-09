@@ -54,7 +54,7 @@ void generate_terrain(World *world) {
     for (unsigned int row = 0; row < world->size.y; row++) {
         for (unsigned int column = 0; column < world->size.x; column++) {
             Vector position = create_vector(column, row);
-            float noise = perlin_noise((float)column * 0.1, (float)row * 0.1, 0.65, 5, seed);
+            float noise = perlin_noise((float)column * 0.1f, (float)row * 0.1f, 0.65f, 5, seed);
 
             if (noise > 0.7 && noise <= 0.775) {
                 create_wall(world, position, FAINT_WALL_CHARACTER);

@@ -3,6 +3,7 @@
 #include <notcurses/notcurses.h>
 
 #include "types.h"
+#include "utils/vector.h"
 
 struct Scene {
     void (*enter)(void *, void *);

@@ -9,9 +9,6 @@ typedef enum Key Key;
 typedef enum GameplayTransitionMode GameplayTransitionMode;
 typedef enum CellType CellType;
 
-typedef struct VectorF VectorF;
-typedef struct Vector Vector;
-
 typedef uint32_t utf8_char;
 typedef unsigned char byte;
 

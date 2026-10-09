@@ -15,6 +15,9 @@ void init_scene_context(SceneContext *scene_context) {
     memset(&nc_options, 0, sizeof(notcurses_options));
 
     scene_context->not_curses = notcurses_init(&nc_options, stdout);
+
+    notcurses_cursor_disable(scene_context->not_curses);
+
     struct ncplane *stdplane = notcurses_stdplane(scene_context->not_curses);
 
     pthread_mutex_init(&scene_context->transition_render_mutex, nullptr);
