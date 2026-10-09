@@ -101,6 +101,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
                   create_vector(columns - 2, rows - 2),
                   parent_size,
                   &gameover_transition,
+                  &gameplay_scene->interface.texts[5],
                   gameplay_scene->base.plane);
 
     scene_context->render_thread.frequency_info = &gameplay_scene->interface.texts[1];

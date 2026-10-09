@@ -95,6 +95,15 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
 void enter_gameover_scene(void *gameover_scene, void *args) {
     GameoverScene *scene = (GameoverScene *)gameover_scene;
 
+    uint16_t score;
+    deserialize_gameover_scene_transition_args(&score, args);
+
+    char score_str[11];
+
+    snprintf(score_str, sizeof(score_str), "%010d", score);
+
+    set_single_line_text_content(&scene->interface.texts[2], score_str, sizeof(score_str));
+
     ncplane_move_yx(scene->base.plane, 0, 0);
 }
 

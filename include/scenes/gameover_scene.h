@@ -31,3 +31,11 @@ void update_gameover_scene(void *scene_context);
 void draw_gameover_scene(void *gameover_scene);
 void exit_gameover_scene(void *gameover_scene, void *args);
 void free_gameover_scene(GameoverScene *gameover_scene);
+
+static inline void serialize_gameover_scene_transition_args(uint16_t *score, byte *arg_buffer) {
+    memcpy(arg_buffer, score, sizeof(uint16_t));
+}
+
+static inline void deserialize_gameover_scene_transition_args(uint16_t *score, byte *arg_buffer) {
+    memcpy(score, arg_buffer, sizeof(uint16_t));
+}

@@ -29,7 +29,7 @@ void init_view(View *view, Vector initial_position, Vector size, Vector parent_s
 #endif
 }
 
-// PERFORMANCE: Optimize this
+// PERFORMANCE: Optimize this. The effects could be generated with a matrix with 3 moving pointers
 void draw_world_on_view(View *view, World *world) {
     unsigned int rows = 0;
     unsigned int columns = 0;
@@ -55,7 +55,7 @@ void draw_world_on_view(View *view, World *world) {
             } else {
 #ifdef COOL_EFFECTS
                 // TODO: Put all constants somewhere
-                float noise = perlin_noise((float)(column - ((float)origin_column / 1.25f) + view->shift) * 0.1f,
+                float noise = perlin_noise((float)(column - ((float)origin_column / 1.25f)) * 0.1f,
                                            (float)(row - ((float)origin_row / 1.25f) + view->shift) * 0.1f,
                                            1.75f,
                                            5,

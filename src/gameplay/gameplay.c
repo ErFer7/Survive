@@ -1,6 +1,7 @@
 #include "gameplay/gameplay.h"
 
 #include "gameplay/cell.h"
+#include "interface/text.h"
 #include "scenes/scene_context.h"
 #include "types.h"
 #include "utils/random.h"
@@ -10,6 +11,7 @@ void init_gameplay(Gameplay *gameplay,
                    Vector view_size,
                    Vector parent_size,
                    SceneTransition *gameover_transition,
+                   Text *score_info,
                    struct ncplane *scene_plane) {
     init_world(&gameplay->world);
 
@@ -21,6 +23,7 @@ void init_gameplay(Gameplay *gameplay,
     gameplay->enemies = nullptr;
     gameplay->score = 0;
     gameplay->gameover_transition = malloc(sizeof(SceneTransition));
+    gameplay->score_info = score_info;
 
     memcpy(gameplay->gameover_transition, gameover_transition, sizeof(SceneTransition));
 }
@@ -211,6 +214,8 @@ void update_entities_movement(Gameplay *gameplay) {
                 move_entity(&entities[i], new_cell, new_position);
             } else {
                 if (gameplay->player == nullptr) {  // Someone killed us!
+                    serialize_gameover_scene_transition_args(&gameplay->score, gameplay->gameover_transition->args);
+
                     transition(gameplay->gameover_transition);
                     break;
                 }
@@ -224,6 +229,12 @@ void update_entities_movement(Gameplay *gameplay) {
 void handle_coin_pick(Gameplay *gameplay) {
     generate_coin(&gameplay->world);
     gameplay->score++;
+
+    char score_info_str[11];
+
+    snprintf(score_info_str, sizeof(score_info_str), "%010d", gameplay->score);
+
+    set_single_line_text_content(gameplay->score_info, score_info_str, sizeof(score_info_str));
 }
 
 void generate_enemy(Gameplay *gameplay) {

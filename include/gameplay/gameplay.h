@@ -17,12 +17,14 @@ struct Gameplay {
     uint32_t enemy_count;
     uint16_t score;
     SceneTransition *gameover_transition;
+    Text *score_info;
 };
 
 void init_gameplay(Gameplay *gameplay,
                    Vector view_size,
                    Vector parent_size,
                    SceneTransition *gameover_transition,
+                   Text *score_info,
                    struct ncplane *scene_plane);
 void start_gameplay(Gameplay *gameplay, bool restart, Vector size, bool enable_terrain_generation);
 
