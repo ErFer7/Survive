@@ -1,20 +1,20 @@
 #include "utils/perlin_noise.h"
 
 float smooth(float x, float y, int32_t octave, int32_t seed) {
-    int32_t intX = (int32_t)x;
-    float fracX = x - intX;
-    int32_t intY = (int32_t)y;
-    float fracY = y - intY;
+    int32_t int_x = (int32_t)x;
+    float frac_x = x - int_x;
+    int32_t int_y = (int32_t)y;
+    float frac_y = y - int_y;
 
-    float v1 = noise(intX, intY, octave, seed);
-    float v2 = noise(intX + 1, intY, octave, seed);
-    float v3 = noise(intX, intY + 1, octave, seed);
-    float v4 = noise(intX + 1, intY + 1, octave, seed);
+    float v1 = noise(int_x, int_y, octave, seed);
+    float v2 = noise(int_x + 1, int_y, octave, seed);
+    float v3 = noise(int_x, int_y + 1, octave, seed);
+    float v4 = noise(int_x + 1, int_y + 1, octave, seed);
 
-    float i1 = interpolate(v1, v2, fracX);
-    float i2 = interpolate(v3, v4, fracX);
+    float i1 = interpolate(v1, v2, frac_x);
+    float i2 = interpolate(v3, v4, frac_x);
 
-    return interpolate(i1, i2, fracY);
+    return interpolate(i1, i2, frac_y);
 }
 
 float perlin_noise(float x, float y, float persistence, int32_t octaves, int32_t seed) {

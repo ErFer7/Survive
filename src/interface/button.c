@@ -24,11 +24,11 @@ void init_button(Button *button,
 }
 
 void toggle_selection(Button *button) {
-    enum Color new_background_color = get_foreground_color(&button->text);
-    enum Color new_foreground_color = get_background_color(&button->text);
+    enum Color new_background_color = button->text.foreground_color;
+    enum Color new_foreground_color = button->text.background_color;
 
-    set_foreground_color(&button->text, new_foreground_color);
-    set_background_color(&button->text, new_background_color);
+    button->text.foreground_color = new_foreground_color;
+    button->text.background_color = new_background_color;
 }
 
 void free_button(Button *button) {

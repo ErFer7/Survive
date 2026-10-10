@@ -2,7 +2,7 @@
 
 #include <notcurses/notcurses.h>
 
-#include "constants.h"
+#include "config.h"
 #include "interface/button.h"
 #include "interface/text.h"
 
@@ -24,8 +24,6 @@
         void *escape_handler_arg;                     \
         Text texts[TEXT_COUNT];                       \
     } NAME;
-
-static const int32_t KEY_HELD_COOLDOWN = KEY_HELD_COOLDOWN_TIME_MS / (1000 / UPDATE_FREQUENCY);
 
 #define DEFINE_INIT_INTERFACE(NAME, FUNCTION_NAME)                                          \
     static inline void init_##FUNCTION_NAME##_interface(NAME *interface,                    \
@@ -57,6 +55,9 @@ static const int32_t KEY_HELD_COOLDOWN = KEY_HELD_COOLDOWN_TIME_MS / (1000 / UPD
         memcpy(interface->escape_handler_arg, escape_handler_arg, escape_handler_arg_size); \
     }
 
+static const int32_t KEY_HELD_COOLDOWN_TIME_MS = 180;
+static const int32_t KEY_HELD_COOLDOWN = KEY_HELD_COOLDOWN_TIME_MS / (1000 / UPDATE_FREQUENCY);
+
 void handle_interface_input(int32_t *selected_button,
                             int32_t *key_held_cooldown,
                             Button *buttons,
@@ -64,9 +65,7 @@ void handle_interface_input(int32_t *selected_button,
                             void (*escape_handler)(void *),
                             void *escape_handler_arg,
                             InputState *input_state);
-
 void draw_interface(struct ncplane *plane, Text *texts, uint32_t text_count, Button *buttons, uint32_t button_count);
-
 void free_interface(Text *texts,
                     uint32_t text_count,
                     Button *buttons,

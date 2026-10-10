@@ -21,7 +21,7 @@ static const char *GAMEOVER_SCORE_LABEL = "Score:";
 
 static const char *GAMEOVER_RESTART_BUTTON = " Restart ";
 
-static const char *MENU_BUTTON = " Menu ";
+static const char *MENU_BUTTON = " Menu    ";
 
 void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_plane, SceneContext *scene_context) {
     uint32_t rows;
@@ -49,6 +49,7 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
                HYPER_DARK_GRAY,
                parent_plane);
 
+    // TODO: Maybe there should be just a "create_text"
     init_text(&gameover_scene->interface.texts[0],
               GAMEOVER_TITLE,
               strlen(GAMEOVER_TITLE),

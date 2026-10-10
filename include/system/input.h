@@ -12,9 +12,13 @@ struct InputState {
     bool is_key_pressed[KEY_COUNT];
 };
 
-void init_input_state(InputState *input_state);
-
 void update_input_state(InputState *input_state, struct notcurses *not_curses);
+
+static inline void init_input_state(InputState *input_state) {
+    for (uint32_t i = 0; i < KEY_COUNT; i++) {
+        input_state->is_key_pressed[i] = false;
+    }
+}
 
 static inline bool is_key_pressed(InputState *input_state, enum Key key) { return input_state->is_key_pressed[key]; }
 

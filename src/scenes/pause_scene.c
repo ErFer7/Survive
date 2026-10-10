@@ -17,11 +17,11 @@ static const char *PAUSE_TITLE =
     "██║     ██║  ██║╚██████╔╝███████║███████╗\n"
     "╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝";
 
-static const char *RESUME_BUTTON = " Resume ";
+static const char *RESUME_BUTTON = " Resume  ";
 
 static const char *PAUSE_RESTART_BUTTON = " Restart ";
 
-static const char *GAMEOVER_BUTTON = " Leave ";
+static const char *GAMEOVER_BUTTON = " Leave   ";
 
 void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, SceneContext *scene_context) {
     uint32_t rows;

@@ -26,21 +26,8 @@ void init_text(Text *text,
                enum Alignment alignment,
                VectorU parent_size);
 void draw_text(Text *text, struct ncplane *plane);
-
-static inline enum Color get_background_color(Text *text) { return text->background_color; }
-
-static inline void set_background_color(Text *text, enum Color background_color) {
-    text->background_color = background_color;
-}
-
-static inline enum Color get_foreground_color(Text *text) { return text->foreground_color; }
-
-static inline void set_foreground_color(Text *text, enum Color foreground_color) {
-    text->foreground_color = foreground_color;
-}
+void free_text(Text *text);
 
 static inline void set_single_line_text_content(Text *text, char *new_content, size_t length) {
     memcpy(text->content, new_content, length);
 }
-
-void free_text(Text *text);

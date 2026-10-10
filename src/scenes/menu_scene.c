@@ -17,13 +17,13 @@ static const char *MAIN_MENU_TITLE =
     "███████║╚██████╔╝██║  ██║ ╚████╔╝ ██║ ╚████╔╝ ███████╗\n"
     "╚══════╝ ╚═════╝ ╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═══╝  ╚══════╝";
 
-static const char *VERSION = "v3.0";
+static const char *VERSION = "v3.0.1";
 
 static const char *START_BUTTON = " Start ";
 
-static const char *INFO_BUTTON = " Info ";
+static const char *INFO_BUTTON = " Info  ";
 
-static const char *QUIT_BUTTON = " Quit ";
+static const char *QUIT_BUTTON = " Quit  ";
 
 void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneContext *scene_context) {
     uint32_t rows;

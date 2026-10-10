@@ -1,12 +1,20 @@
 # Survive
 
-Este é um jogo extremamente simples feito como um experimento em C.
+Steps to build:
 
----
+```sh
+make setup
+make
+```
 
-This is a extremely simple game made as an experiment in C.
+Then run the executable `build/survive` or use `make run`.
 
----
+To debug, use:
+
+```sh
+make debug
+make gdb
+```
 
 ![image](https://github.com/user-attachments/assets/8b535df2-3596-410f-9df5-2c4b9bd674c3)
 

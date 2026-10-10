@@ -32,5 +32,5 @@ target_link_libraries(survive PUBLIC notcurses m OpenMP::OpenMP_C)
 
 option(ENABLE_DEBUG "Enable debug options" OFF)
 if (ENABLE_DEBUG)
-    target_compile_definitions(survive PUBLIC DEBUG_OPTIONS)
+    target_compile_definitions(survive PUBLIC DEBUG_OPTIONS -O3)
 endif()

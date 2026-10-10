@@ -26,18 +26,19 @@ void init_gameplay(Gameplay *gameplay,
                    Text *score_info,
                    struct ncplane *scene_plane);
 void start_gameplay(Gameplay *gameplay, bool restart, VectorU size, bool enable_terrain_generation);
-
 void allocate_entity(Gameplay *gameplay);
-
 void create_player(Gameplay *gameplay, VectorU position);
 void create_enemy(Gameplay *gameplay, VectorU position);
+void update_enemy(Gameplay *gameplay, Entity *enemy);
+void update_entities_movement(Gameplay *gameplay);
+void handle_coin_pick(Gameplay *gameplay);
+void generate_enemy(Gameplay *gameplay);
+void partially_free_gameplay(Gameplay *gameplay);
+void free_gameplay(Gameplay *gameplay);
 
 static inline void handle_gameplay_input(Gameplay *gameplay, InputState *input_state) {
     handle_player_input(gameplay->player, input_state);
 }
-
-void update_enemy(Gameplay *gameplay, Entity *enemy);
-void update_entities_movement(Gameplay *gameplay);
 
 static inline void update_enemies(Gameplay *gameplay) {
     for (uint32_t i = 0; i < gameplay->enemy_count; i++) {
@@ -51,13 +52,9 @@ static inline void update_gameplay(Gameplay *gameplay, InputState *input_state) 
     update_entities_movement(gameplay);
 
     if (gameplay->player != nullptr) {
-        update_view_position(&gameplay->view, gameplay->player->position);
+        gameplay->view.position = gameplay->player->position;
     }
 }
-
-void handle_coin_pick(Gameplay *gameplay);
-
-void generate_enemy(Gameplay *gameplay);
 
 // TODO: Check if this is decent enough
 static inline bool solve_collision(Gameplay *gameplay, Entity *entity, Cell *cell) {
@@ -88,7 +85,3 @@ static inline bool solve_collision(Gameplay *gameplay, Entity *entity, Cell *cel
 }
 
 static inline void draw_gameplay(Gameplay *gameplay) { draw_world_on_view(&gameplay->view, &gameplay->world); }
-
-void partially_free_gameplay(Gameplay *gameplay);
-
-void free_gameplay(Gameplay *gameplay);

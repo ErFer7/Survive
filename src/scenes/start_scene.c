@@ -18,15 +18,15 @@ static const char *START_TITLE =
 
 static const char *START_INFO = "Choose your game mode and world size.";
 
-static const char *WARNING = "Large worlds can use a lot of memory!";
-
-static const char *SMALL_BUTTON = " Small ";
+static const char *WARNING = "Large worlds can use a lot of memory (1GiB)!";
 
 static const char *REGULAR_BUTTON = " Regular ";
 
-static const char *LARGE_BUTTON = " Large ";
+static const char *SMALL_BUTTON = " Small   ";
 
-static const char *MEGA_BUTTON = " MEGA ";
+static const char *LARGE_BUTTON = " Large   ";
+
+static const char *MEGA_BUTTON = " MEGA    ";
 
 static const char *CLASSIC_BUTTON = " Classic ";
 
@@ -40,9 +40,9 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
     VectorU parent_size = create_vector_u(columns, rows);
 
     SceneTransition menu_transition = create_scene_transition(scene_context, (Scene *)&scene_context->menu_scene);
-    SceneTransition gameplay_transition_small =
-        create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
     SceneTransition gameplay_transition_regular =
+        create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
+    SceneTransition gameplay_transition_small =
         create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
     SceneTransition gameplay_transition_large =
         create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
@@ -51,14 +51,14 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
     SceneTransition gameplay_transition_classic =
         create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
 
-    GameplaySceneArgs small_world_args = create_gameplay_scene_args(START, 128, 128, true);
     GameplaySceneArgs regular_world_args = create_gameplay_scene_args(START, 512, 512, true);
+    GameplaySceneArgs small_world_args = create_gameplay_scene_args(START, 128, 128, true);
     GameplaySceneArgs large_world_args = create_gameplay_scene_args(START, 2048, 2048, true);
     GameplaySceneArgs mega_world_args = create_gameplay_scene_args(START, 8192, 8192, true);
     GameplaySceneArgs classic_world_args = create_gameplay_scene_args(START, 120, 19, false);
 
-    serialize_gameplay_scene_transition_args(&small_world_args, gameplay_transition_small.args);
     serialize_gameplay_scene_transition_args(&regular_world_args, gameplay_transition_regular.args);
+    serialize_gameplay_scene_transition_args(&small_world_args, gameplay_transition_small.args);
     serialize_gameplay_scene_transition_args(&large_world_args, gameplay_transition_large.args);
     serialize_gameplay_scene_transition_args(&mega_world_args, gameplay_transition_mega.args);
     serialize_gameplay_scene_transition_args(&classic_world_args, gameplay_transition_classic.args);
@@ -100,26 +100,26 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
               parent_size);
 
     init_button(&start_scene->interface.buttons[0],
-                SMALL_BUTTON,
-                strlen(SMALL_BUTTON),
+                REGULAR_BUTTON,
+                strlen(REGULAR_BUTTON),
                 RED,
                 HYPER_DARK_GRAY,
                 create_vector(0, 3),
                 CENTER,
                 parent_size,
-                &gameplay_transition_small,
+                &gameplay_transition_regular,
                 sizeof(SceneTransition),
                 &transition);
 
     init_button(&start_scene->interface.buttons[1],
-                REGULAR_BUTTON,
-                strlen(REGULAR_BUTTON),
+                SMALL_BUTTON,
+                strlen(SMALL_BUTTON),
                 RED,
                 HYPER_DARK_GRAY,
                 create_vector(0, 4),
                 CENTER,
                 parent_size,
-                &gameplay_transition_regular,
+                &gameplay_transition_small,
                 sizeof(SceneTransition),
                 &transition);
 

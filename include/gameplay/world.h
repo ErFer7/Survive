@@ -28,7 +28,9 @@ void generate_terrain(World *world);
 void clear_spawn(World *world);
 void generate_coin(World *world);
 void generate_coins(World *world);
+void free_world(World *world);
 
+// PERFORMANCE: Remove the checks and check outsize when necessary
 static inline Cell *get_cell_ref_xy(World *world, uint32_t row, uint32_t column) {
     if (row < world->size.y && column < world->size.x) {
         return &world->matrix[world->size.x * row + column];
@@ -70,5 +72,3 @@ static inline void create_wall(World *world, VectorU position, const utf8_char w
 static inline void create_coin(World *world, VectorU position) {
     set_cell_vec(world, position, create_cell(COIN_CHARACTER, COIN_COLOR, COIN));
 }
-
-void free_world(World *world);

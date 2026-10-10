@@ -1,11 +1,15 @@
 #pragma once
 
+// Thanks Charles Zinn for the perlin noise generator
+//
 #include <math.h>
 #include <stdint.h>
 
 static const float PI = 3.141593f;
 
-// Thanks Charles Zinn for the perlin noise generator
+float smooth(float x, float y, int32_t octave, int32_t seed);
+float perlin_noise(float x, float y, float persistence, int32_t octaves, int32_t seed);
+
 static inline float raw_noise(int32_t n) {
     n = (n << 13) ^ n;
 
@@ -21,6 +25,3 @@ static inline float interpolate(float a, float b, float x) {
 
     return a * (1 - f) + b * f;
 }
-
-float smooth(float x, float y, int32_t octave, int32_t seed);
-float perlin_noise(float x, float y, float persistence, int32_t octaves, int32_t seed);

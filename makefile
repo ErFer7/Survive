@@ -1,3 +1,6 @@
+TERMINAL ?= kitty
+VALGRIND_FLAGS ?= --leak-check=full --show-leak-kinds=all --track-origins=yes --error-exitcode=1
+
 .PHONY: default
 default:
 	cmake --build build -j$(nproc)
@@ -20,18 +23,26 @@ release:
 run:
 	./build/survive
 
-# TODO: Fix this insanity
 .PHONY: gdb
 gdb:
-	@kitty sh -c "tty > /tmp/survive_tty && sleep infinity" & \
-	while [ ! -f /tmp/survive_tty ]; do sleep 0.05; done; \
-	TTY=$$(cat /tmp/survive_tty); \
-	rm -f /tmp/survive_tty; \
-	gdb -ex "set inferior-tty $$TTY" ./build/survive
+	@set -e; \
+	dir=$$(mktemp -d); fifo="$$dir/tty"; mkfifo "$$fifo"; \
+	$(TERMINAL) sh -c 'tty > "$$1"; exec sleep infinity' sh "$$fifo" & \
+	term=$$!; \
+	trap 'kill $$term 2>/dev/null; rm -rf "$$dir"' EXIT; \
+	tty=$$(cat "$$fifo"); \
+	gdb -ex "set inferior-tty $$tty" ./build/survive
 
 .PHONY: valgrind
-valgrind:
-	valgrind --leak-check=full ./build/survive
+valgrind: build/survive
+	@set -e; \
+	dir=$$(mktemp -d); fifo="$$dir/tty"; mkfifo "$$fifo"; \
+	$(TERMINAL) sh -c 'tty > "$$1"; exec sleep infinity' sh "$$fifo" & \
+	term=$$!; \
+	trap 'kill $$term 2>/dev/null; rm -rf "$$dir"' EXIT; \
+	tty=$$(cat "$$fifo"); \
+	valgrind $(VALGRIND_FLAGS) --log-file=valgrind.log \
+		./build/survive $(ARGS) <"$$tty" >"$$tty" 2>&1
 
 .PHONY: clean
 clean:

@@ -17,11 +17,11 @@ static const char *INFO_TITLE =
     "╚═╝╚═╝  ╚═══╝╚═╝      ╚═════╝";
 
 static const char *INFO =
-    "Adaptation of my first game that was created in 2019-03-19.\n"
+    "This is an adaptation of my first game that was created in 2019-03-19.\n"
     "Written in C 💙.\n \n"
     "Use the arrows to control the player. Press shift to slow down and ctrl to run.\n \n"
-    "~Hefer\n \n"
-    "https://github.com/ErFer7/Survive";
+    "Author: ~Hefer\n \n"
+    "Repository: https://github.com/ErFer7/Survive";
 
 static const char *INFO_BACK_BUTTON = " Back ";
 

@@ -2,7 +2,7 @@
 
 #include <pthread.h>
 
-#include "constants.h"
+#include "config.h"
 #include "scenes/menu_scene.h"
 #include "scenes/start_scene.h"
 #include "system/periodic_thread.h"

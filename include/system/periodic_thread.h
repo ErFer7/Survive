@@ -18,10 +18,10 @@ struct PeriodicThread {
     enum Status status;
 };
 
-static inline int64_t frequency_hz_to_period_ms(int64_t frequency_hz) { return 1000 / frequency_hz; }
-
-// Period in ms
 void init_periodic_thread(PeriodicThread *periodic_thread, int64_t period_ms, void (*function)(void *), void *arg);
+void *run_periodic_thread(void *periodic_thread);
+
+static inline int64_t frequency_hz_to_period_ms(int64_t frequency_hz) { return 1000 / frequency_hz; }
 
 static inline void start_periodic_thread(PeriodicThread *periodic_thread) { periodic_thread->status = RUNNING; }
 
@@ -32,7 +32,5 @@ static inline void join_periodic_thread(PeriodicThread *periodic_thread) {
 static inline void suspend_periodic_thread(PeriodicThread *periodic_thread) { periodic_thread->status = SUSPENDED; }
 
 static inline void stop_periodic_thread(PeriodicThread *periodic_thread) { periodic_thread->status = FINISHED; }
-
-void *run_periodic_thread(void *periodic_thread);
 
 static inline void free_periodic_thread(PeriodicThread *) {}

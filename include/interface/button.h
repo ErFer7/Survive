@@ -19,11 +19,9 @@ void init_button(Button *button,
                  void *call_arg,
                  size_t call_arg_size,
                  void (*call)(void *));
+void toggle_selection(Button *button);
+void free_button(Button *button);
 
 static inline void draw_button(Button *button, struct ncplane *plane) { draw_text(&button->text, plane); }
 
-void toggle_selection(Button *button);
-
 static inline void trigger(Button *button) { button->call(button->call_arg); }
-
-void free_button(Button *button);

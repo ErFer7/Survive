@@ -1,6 +1,6 @@
 #pragma once
 
-#include "constants.h"
+#include "config.h"
 #include "gameplay/cell.h"
 #include "types.h"
 #include "utils/vector.h"
@@ -20,11 +20,6 @@ static inline Entity create_entity(Cell *cell_ref, VectorU position, const Cell 
 
     return entity;
 }
-
-// TODO: Remove these getters and setters
-static inline Vector get_direction(Entity *entity) { return entity->direction; }
-
-static inline void set_direction(Entity *entity, Vector direction) { entity->direction = direction; }
 
 // Speed: cells/s
 static inline void accumulate_movement(Entity *entity, const float speed) {

@@ -1,11 +1,5 @@
 #include "system/input.h"
 
-void init_input_state(InputState *input_state) {
-    for (uint32_t i = 0; i < KEY_COUNT; i++) {
-        input_state->is_key_pressed[i] = false;
-    }
-}
-
 void update_input_state(InputState *input_state, struct notcurses *not_curses) {
     ncinput ni;
     uint32_t key = notcurses_get_nblock(not_curses, &ni);

@@ -38,8 +38,8 @@ void start_gameplay(Gameplay *gameplay, bool restart, VectorU size, bool enable_
 
     generate_world(&gameplay->world, world_size, terrain_generation);
     create_player(gameplay, divide_vector_u_by_scalar(world_size, 2));
-    update_view_position(&gameplay->view, gameplay->player->position);
 
+    gameplay->view.position = gameplay->player->position;
     gameplay->score = 0;
 }
 

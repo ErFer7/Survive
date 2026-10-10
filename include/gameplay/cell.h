@@ -7,6 +7,7 @@
 
 enum CellType { VOID, WALL, PLAYER, COIN, ENEMY };
 
+// TODO: Animations
 struct Cell {
     nccell cell;
     enum CellType type;
