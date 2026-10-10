@@ -16,8 +16,8 @@ make debug
 make gdb
 ```
 
-![image](https://github.com/user-attachments/assets/8b535df2-3596-410f-9df5-2c4b9bd674c3)
+<img width="1904" height="1024" alt="image" src="https://github.com/user-attachments/assets/5304d121-b9af-410c-bb9e-6985c171021f" />
 
-![image](https://github.com/user-attachments/assets/e62943cb-0e06-43bd-965e-197860e41beb)
+<img width="1904" height="1024" alt="image" src="https://github.com/user-attachments/assets/bbac4c0b-ef31-490a-94c4-1b418ed69bd6" />
 
-![image](https://github.com/user-attachments/assets/19792ae3-69db-44f0-a83a-9cf44e81e8f5)
+<img width="1904" height="1024" alt="image" src="https://github.com/user-attachments/assets/59402172-ea36-4b3d-a25f-a1f5926ed344" />
