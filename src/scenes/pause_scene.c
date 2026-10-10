@@ -9,7 +9,7 @@
 #include "utils/color.h"
 #include "utils/vector.h"
 
-static const char *PAUSE_TITLE =
+static const char *TITLE =
     "██████╗  █████╗ ██╗   ██╗███████╗███████╗\n"
     "██╔══██╗██╔══██╗██║   ██║██╔════╝██╔════╝\n"
     "██████╔╝███████║██║   ██║███████╗█████╗  \n"
@@ -19,7 +19,7 @@ static const char *PAUSE_TITLE =
 
 static const char *RESUME_BUTTON = " Resume  ";
 
-static const char *PAUSE_RESTART_BUTTON = " Restart ";
+static const char *RESTART_BUTTON = " Restart ";
 
 static const char *GAMEOVER_BUTTON = " Leave   ";
 
@@ -36,8 +36,8 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
     SceneTransition gameover_transition =
         create_scene_transition(scene_context, (Scene *)&scene_context->gameover_scene);
 
-    GameplaySceneArgs resume_world_args = create_gameplay_scene_args(RESUME, 0, 0, false);
-    GameplaySceneArgs restart_world_args = create_gameplay_scene_args(RESTART, 0, 0, false);
+    GameplaySceneArgs resume_world_args = create_gameplay_scene_args(RESUME, false, VECTORU_ZERO);
+    GameplaySceneArgs restart_world_args = create_gameplay_scene_args(RESTART, false, VECTORU_ZERO);
 
     serialize_gameplay_scene_transition_args(&resume_world_args, resume_transition.args);
     serialize_gameplay_scene_transition_args(&restart_world_args, restart_transition.args);
@@ -48,14 +48,14 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
                &draw_pause_scene,
                &exit_pause_scene,
                parent_size,
-               HYPER_DARK_GRAY,
+               DEFAULT_BACKGROUND,
                parent_plane);
 
     init_text(&pause_scene->interface.texts[0],
-              PAUSE_TITLE,
-              strlen(PAUSE_TITLE),
+              TITLE,
+              strlen(TITLE),
               WHITE,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               create_vector(0, 4),
               TOP,
               parent_size);
@@ -64,7 +64,7 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
                 RESUME_BUTTON,
                 strlen(RESUME_BUTTON),
                 WHITE,
-                HYPER_DARK_GRAY,
+                DEFAULT_BACKGROUND,
                 VECTOR_ZERO,
                 CENTER,
                 parent_size,
@@ -73,10 +73,10 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
                 &transition);
 
     init_button(&pause_scene->interface.buttons[1],
-                PAUSE_RESTART_BUTTON,
-                strlen(PAUSE_RESTART_BUTTON),
+                RESTART_BUTTON,
+                strlen(RESTART_BUTTON),
                 WHITE,
-                HYPER_DARK_GRAY,
+                DEFAULT_BACKGROUND,
                 create_vector(0, 2),
                 CENTER,
                 parent_size,
@@ -88,7 +88,7 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
                 GAMEOVER_BUTTON,
                 strlen(GAMEOVER_BUTTON),
                 RED,
-                HYPER_DARK_GRAY,
+                DEFAULT_BACKGROUND,
                 create_vector(0, 4),
                 CENTER,
                 parent_size,

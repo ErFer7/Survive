@@ -4,9 +4,11 @@
 
 #include "types.h"
 
+static const int64_t MILLISECONDS = 1000L;
+static const int64_t MICROSECONDS = 1000000UL;
 static const int64_t NANOSECONDS = 1000000000L;
 
-enum Status { FINISHED = -1, SUSPENDED = 0, RUNNING = 1 };
+enum Status { FINISHED, SUSPENDED, RUNNING };
 
 struct PeriodicThread {
     pthread_t thread;
@@ -21,7 +23,7 @@ struct PeriodicThread {
 void init_periodic_thread(PeriodicThread *periodic_thread, int64_t period_ms, void (*function)(void *), void *arg);
 void *run_periodic_thread(void *periodic_thread);
 
-static inline int64_t frequency_hz_to_period_ms(int64_t frequency_hz) { return 1000 / frequency_hz; }
+static inline int64_t frequency_hz_to_period_ms(int64_t frequency_hz) { return MILLISECONDS / frequency_hz; }
 
 static inline void start_periodic_thread(PeriodicThread *periodic_thread) { periodic_thread->status = RUNNING; }
 

@@ -6,6 +6,8 @@
 #include "gameplay/view.h"
 #include "gameplay/world.h"
 
+static const float MIN_ENEMY_SPAWN_DISTANCE = 20.0f;
+
 struct Gameplay {
     World world;
     View view;

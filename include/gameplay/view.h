@@ -4,9 +4,19 @@
 
 #include "types.h"
 #include "utils/color.h"
+#include "utils/utf8.h"
 #include "utils/vector.h"
 
 #define COOL_EFFECTS
+
+#ifdef COOL_EFFECTS
+static const float VIEW_EFFECTS_PARALLAX = 1.25f;
+static const float VIEW_PERLIN_NOISE_SCALE = 0.1f;
+static const float VIEW_PERLIN_NOISE_PERSISTENCE = 1.75f;
+static const int32_t VIEW_PERLIN_NOISE_OCTAVES = 5;
+static const utf8_char VIEW_EFFECTS_CELL = UTF8("█");
+static const enum Color VIEW_MAX_OUTSIZE_COLOR = BRIGHT_CYAN;
+#endif
 
 struct View {
     VectorU position;

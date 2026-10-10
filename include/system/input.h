@@ -24,7 +24,7 @@ static inline bool is_key_pressed(InputState *input_state, enum Key key) { retur
 
 // First key pressed in the state array
 static inline enum Key get_key_pressed(InputState *input_state) {
-    for (enum Key key = KEY_ESC; key < KEY_CTRL; key++) {
+    for (enum Key key = KEY_ESC; key < KEY_COUNT; key++) {
         if (input_state->is_key_pressed[key]) {
             return key;
         }

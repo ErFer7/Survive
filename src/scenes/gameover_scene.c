@@ -9,7 +9,7 @@
 #include "utils/color.h"
 #include "utils/vector.h"
 
-static const char *GAMEOVER_TITLE =
+static const char *TITLE =
     " ██████╗  █████╗ ███╗   ███╗███████╗ ██████╗ ██╗   ██╗███████╗██████╗ \n"
     "██╔════╝ ██╔══██╗████╗ ████║██╔════╝██╔═══██╗██║   ██║██╔════╝██╔══██╗\n"
     "██║  ███╗███████║██╔████╔██║█████╗  ██║   ██║██║   ██║█████╗  ██████╔╝\n"
@@ -17,9 +17,9 @@ static const char *GAMEOVER_TITLE =
     "╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗╚██████╔╝ ╚████╔╝ ███████╗██║  ██║\n"
     " ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝ ╚═════╝   ╚═══╝  ╚══════╝╚═╝  ╚═╝";
 
-static const char *GAMEOVER_SCORE_LABEL = "Score:";
+static const char *SCORE_LABEL = "Score:";
 
-static const char *GAMEOVER_RESTART_BUTTON = " Restart ";
+static const char *RESTART_BUTTON = " Restart ";
 
 static const char *MENU_BUTTON = " Menu    ";
 
@@ -34,7 +34,7 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
         create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
     SceneTransition menu_transition = create_scene_transition(scene_context, (Scene *)&scene_context->menu_scene);
 
-    GameplaySceneArgs restart_world_args = create_gameplay_scene_args(RESTART, 0, 0, false);
+    GameplaySceneArgs restart_world_args = create_gameplay_scene_args(RESTART, false, VECTORU_ZERO);
 
     serialize_gameplay_scene_transition_args(&restart_world_args, restart_transition.args);
 
@@ -46,24 +46,24 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
                &draw_gameover_scene,
                &exit_gameover_scene,
                parent_size,
-               HYPER_DARK_GRAY,
+               DEFAULT_BACKGROUND,
                parent_plane);
 
     // TODO: Maybe there should be just a "create_text"
     init_text(&gameover_scene->interface.texts[0],
-              GAMEOVER_TITLE,
-              strlen(GAMEOVER_TITLE),
+              TITLE,
+              strlen(TITLE),
               RED,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               create_vector(0, 4),
               TOP,
               parent_size);
 
     init_text(&gameover_scene->interface.texts[1],
-              GAMEOVER_SCORE_LABEL,
-              strlen(GAMEOVER_SCORE_LABEL),
+              SCORE_LABEL,
+              strlen(SCORE_LABEL),
               WHITE,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               create_vector(-6, 0),
               CENTER,
               parent_size);
@@ -72,16 +72,16 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
               int_label,
               strlen(int_label),
               WHITE,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               create_vector(3, 0),
               CENTER,
               parent_size);
 
     init_button(&gameover_scene->interface.buttons[0],
-                GAMEOVER_RESTART_BUTTON,
-                strlen(GAMEOVER_RESTART_BUTTON),
+                RESTART_BUTTON,
+                strlen(RESTART_BUTTON),
                 WHITE,
-                HYPER_DARK_GRAY,
+                DEFAULT_BACKGROUND,
                 create_vector(0, 2),
                 CENTER,
                 parent_size,
@@ -93,7 +93,7 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
                 MENU_BUTTON,
                 strlen(MENU_BUTTON),
                 RED,
-                HYPER_DARK_GRAY,
+                DEFAULT_BACKGROUND,
                 create_vector(0, 4),
                 CENTER,
                 parent_size,

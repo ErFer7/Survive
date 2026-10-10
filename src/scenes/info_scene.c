@@ -8,7 +8,7 @@
 #include "utils/color.h"
 #include "utils/vector.h"
 
-static const char *INFO_TITLE =
+static const char *TITLE =
     "██╗███╗   ██╗███████╗ ██████╗ \n"
     "██║████╗  ██║██╔════╝██╔═══██╗\n"
     "██║██╔██╗ ██║█████╗  ██║   ██║\n"
@@ -23,7 +23,7 @@ static const char *INFO =
     "Author: ~Hefer\n \n"
     "Repository: https://github.com/ErFer7/Survive";
 
-static const char *INFO_BACK_BUTTON = " Back ";
+static const char *BACK_BUTTON = " Back ";
 
 void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneContext *scene_context) {
     uint32_t rows;
@@ -40,14 +40,14 @@ void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneC
                &draw_info_scene,
                &exit_info_scene,
                parent_size,
-               HYPER_DARK_GRAY,
+               DEFAULT_BACKGROUND,
                parent_plane);
 
     init_text(&info_scene->interface.texts[0],
-              INFO_TITLE,
-              strlen(INFO_TITLE),
+              TITLE,
+              strlen(TITLE),
               GREEN,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               create_vector(0, 4),
               TOP,
               parent_size);
@@ -56,16 +56,16 @@ void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneC
               INFO,
               strlen(INFO),
               WHITE,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               VECTOR_ZERO,
               CENTER,
               parent_size);
 
     init_button(&info_scene->interface.buttons[0],
-                INFO_BACK_BUTTON,
-                strlen(INFO_BACK_BUTTON),
+                BACK_BUTTON,
+                strlen(BACK_BUTTON),
                 GREEN,
-                HYPER_DARK_GRAY,
+                DEFAULT_BACKGROUND,
                 create_vector(0, 10),
                 CENTER,
                 parent_size,

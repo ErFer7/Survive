@@ -17,7 +17,7 @@ void init_gameplay(Gameplay *gameplay,
                    struct ncplane *scene_plane) {
     init_world(&gameplay->world);
 
-    init_view(&gameplay->view, VECTORU_ZERO, view_size, parent_size, HYPER_DARK_GRAY, scene_plane);
+    init_view(&gameplay->view, VECTORU_ZERO, view_size, parent_size, DEFAULT_BACKGROUND, scene_plane);
 
     gameplay->entities = nullptr;
     gameplay->entity_count = 0;
@@ -202,7 +202,7 @@ void update_entities_movement(Gameplay *gameplay) {
 
     for (uint32_t i = 0; i < gameplay->entity_count; i++) {
         if (!vector_is_zero(entities[i].direction)) {
-            // NOTE: This is ok for this game, since there is only two entities
+            // This is ok for this game, since there is only two entities
             const float speed = entities[i].cell->type == PLAYER ? PLAYER_SPEED : ENEMY_SPEED;
 
             accumulate_movement(&entities[i], speed * entities[i].speed_modifier);
@@ -246,7 +246,7 @@ void generate_enemy(Gameplay *gameplay) {
         VectorU position = create_vector_u(inclusive_random(1, gameplay->world.size.x - 2),
                                            inclusive_random(1, gameplay->world.size.y - 2));
 
-        if (vector_u_distance(gameplay->player->position, position) > 20.0f) {
+        if (vector_u_distance(gameplay->player->position, position) > MIN_ENEMY_SPAWN_DISTANCE) {
             Cell *cell = get_cell_ref_vec(&gameplay->world, position);
 
             if (cell->type == VOID) {

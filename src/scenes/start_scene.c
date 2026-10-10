@@ -8,7 +8,7 @@
 #include "utils/color.h"
 #include "utils/vector.h"
 
-static const char *START_TITLE =
+static const char *TITLE =
     "███████╗████████╗ █████╗ ██████╗ ████████╗\n"
     "██╔════╝╚══██╔══╝██╔══██╗██╔══██╗╚══██╔══╝\n"
     "███████╗   ██║   ███████║██████╔╝   ██║   \n"
@@ -16,7 +16,7 @@ static const char *START_TITLE =
     "███████║   ██║   ██║  ██║██║  ██║   ██║   \n"
     "╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝";
 
-static const char *START_INFO = "Choose your game mode and world size.";
+static const char *INFO = "Choose your game mode and world size.";
 
 static const char *WARNING = "Large worlds can use a lot of memory (1GiB)!";
 
@@ -30,7 +30,7 @@ static const char *MEGA_BUTTON = " MEGA    ";
 
 static const char *CLASSIC_BUTTON = " Classic ";
 
-static const char *START_BACK_BUTTON = " Back ";
+static const char *BACK_BUTTON = " Back ";
 
 void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, SceneContext *scene_context) {
     uint32_t rows;
@@ -51,11 +51,11 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
     SceneTransition gameplay_transition_classic =
         create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
 
-    GameplaySceneArgs regular_world_args = create_gameplay_scene_args(START, 512, 512, true);
-    GameplaySceneArgs small_world_args = create_gameplay_scene_args(START, 128, 128, true);
-    GameplaySceneArgs large_world_args = create_gameplay_scene_args(START, 2048, 2048, true);
-    GameplaySceneArgs mega_world_args = create_gameplay_scene_args(START, 8192, 8192, true);
-    GameplaySceneArgs classic_world_args = create_gameplay_scene_args(START, 120, 19, false);
+    GameplaySceneArgs regular_world_args = create_gameplay_scene_args(START, true, REGULAR_WORLD_SIZE);
+    GameplaySceneArgs small_world_args = create_gameplay_scene_args(START, true, SMALL_WORLD_SIZE);
+    GameplaySceneArgs large_world_args = create_gameplay_scene_args(START, true, LARGE_WORLD_SIZE);
+    GameplaySceneArgs mega_world_args = create_gameplay_scene_args(START, true, MEGA_WORLD_SIZE);
+    GameplaySceneArgs classic_world_args = create_gameplay_scene_args(START, false, CLASSIC_WORLD_SIZE);
 
     serialize_gameplay_scene_transition_args(&regular_world_args, gameplay_transition_regular.args);
     serialize_gameplay_scene_transition_args(&small_world_args, gameplay_transition_small.args);
@@ -69,23 +69,23 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                &draw_start_scene,
                &exit_start_scene,
                parent_size,
-               HYPER_DARK_GRAY,
+               DEFAULT_BACKGROUND,
                parent_plane);
 
     init_text(&start_scene->interface.texts[0],
-              START_TITLE,
-              strlen(START_TITLE),
+              TITLE,
+              strlen(TITLE),
               RED,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               create_vector(0, 4),
               TOP,
               parent_size);
 
     init_text(&start_scene->interface.texts[1],
-              START_INFO,
-              strlen(START_INFO),
+              INFO,
+              strlen(INFO),
               WHITE,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               VECTOR_ZERO,
               CENTER,
               parent_size);
@@ -94,7 +94,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
               WARNING,
               strlen(WARNING),
               YELLOW,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               create_vector(0, 1),
               CENTER,
               parent_size);
@@ -103,7 +103,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 REGULAR_BUTTON,
                 strlen(REGULAR_BUTTON),
                 RED,
-                HYPER_DARK_GRAY,
+                DEFAULT_BACKGROUND,
                 create_vector(0, 3),
                 CENTER,
                 parent_size,
@@ -115,7 +115,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 SMALL_BUTTON,
                 strlen(SMALL_BUTTON),
                 RED,
-                HYPER_DARK_GRAY,
+                DEFAULT_BACKGROUND,
                 create_vector(0, 4),
                 CENTER,
                 parent_size,
@@ -127,7 +127,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 LARGE_BUTTON,
                 strlen(LARGE_BUTTON),
                 RED,
-                HYPER_DARK_GRAY,
+                DEFAULT_BACKGROUND,
                 create_vector(0, 5),
                 CENTER,
                 parent_size,
@@ -139,7 +139,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 MEGA_BUTTON,
                 strlen(MEGA_BUTTON),
                 RED,
-                HYPER_DARK_GRAY,
+                DEFAULT_BACKGROUND,
                 create_vector(0, 6),
                 CENTER,
                 parent_size,
@@ -151,7 +151,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 CLASSIC_BUTTON,
                 strlen(CLASSIC_BUTTON),
                 RED,
-                HYPER_DARK_GRAY,
+                DEFAULT_BACKGROUND,
                 create_vector(0, 7),
                 CENTER,
                 parent_size,
@@ -160,10 +160,10 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 &transition);
 
     init_button(&start_scene->interface.buttons[5],
-                START_BACK_BUTTON,
-                strlen(START_BACK_BUTTON),
+                BACK_BUTTON,
+                strlen(BACK_BUTTON),
                 WHITE,
-                HYPER_DARK_GRAY,
+                DEFAULT_BACKGROUND,
                 create_vector(0, 9),
                 CENTER,
                 parent_size,

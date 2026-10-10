@@ -133,9 +133,9 @@ DEFINE_DISTANCE(Vector, vector, int32_t)
 DEFINE_DISTANCE(VectorU, vector_u, int32_t)
 DEFINE_DISTANCE(VectorF, vector_f, float)
 
+DEFINE_IS_ZERO(Vector, vector)
+DEFINE_IS_ZERO(VectorU, vector_u)
+
 static const Vector VECTOR_ZERO = {0, 0};
 static const VectorU VECTORU_ZERO = {0U, 0U};
 static const VectorF VECTOR_F_ZERO = {0.0f, 0.0f};
-
-DEFINE_IS_ZERO(Vector, vector)
-DEFINE_IS_ZERO(VectorU, vector_u)

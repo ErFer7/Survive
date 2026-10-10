@@ -8,7 +8,19 @@
 DEFINE_BUTTONLESS_INTERFACE(GameplayInterface, 6)
 DEFINE_INIT_BUTTONLESS_INTERFACE(GameplayInterface, gameplay)
 
-enum GameplayTransitionMode { START, RESUME, PAUSE, RESTART };
+enum GameplayTransitionMode {
+    RESET = 0b001,
+    PRESERVE = 0b010,
+
+    GENERATE = 0b100,
+
+    START = GENERATE | RESET,
+    RESTART = GENERATE | PRESERVE,
+
+    IGNORE = 0b1000,
+    RESUME = IGNORE,
+    PAUSE = IGNORE,
+};
 
 struct GameplayScene {
     Scene base;
@@ -19,8 +31,7 @@ struct GameplayScene {
 struct GameplaySceneArgs {
     enum GameplayTransitionMode transition_mode;
     bool enable_terrain_generation;
-    uint32_t world_width;
-    uint32_t world_height;
+    VectorU world_size;
 };
 
 void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_plane, SceneContext *scene_context);
@@ -31,10 +42,9 @@ void exit_gameplay_scene(void *gameplay_scene, void *args);
 void free_gameplay_scene(GameplayScene *gameplay_scene);
 
 static inline GameplaySceneArgs create_gameplay_scene_args(enum GameplayTransitionMode transition_mode,
-                                                           uint32_t width,
-                                                           uint32_t height,
-                                                           bool enable_terrain_generation) {
-    GameplaySceneArgs gameplay_scene_args = {transition_mode, enable_terrain_generation, width, height};
+                                                           bool enable_terrain_generation,
+                                                           VectorU world_size) {
+    GameplaySceneArgs gameplay_scene_args = {transition_mode, enable_terrain_generation, world_size};
 
     return gameplay_scene_args;
 }

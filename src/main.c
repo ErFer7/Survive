@@ -12,6 +12,7 @@
 */
 
 // TODO: Handle resize
+// FIX: Rare segfaults when picking up a coin
 int main() {
     SceneContext scene_context;
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cell.h"
+#include "utils/normalization.h"
 #include "utils/utf8.h"
 #include "utils/vector.h"
 
@@ -14,6 +15,18 @@ static const utf8_char COIN_CHARACTER = UTF8("◈");
 static const enum Color COIN_COLOR = YELLOW;
 
 static const uint32_t SPAWN_RADIUS = 16;
+
+static const float COIN_DENSITY = 3600.0f;
+
+static const float WORLD_PERLIN_NOISE_SCALE = 0.1f;
+static const float WORLD_PERLIN_NOISE_PERSISTENCE = 0.65f;
+static const int32_t WORLD_PERLIN_NOISE_OCTAVES = 5;
+static const float WORLD_MIN_NOISE_THRESHOLD = 0.7f;
+static const float OPAQUE_TERRAIN_NOISE_THRESHOLD = 1.5f;
+static const utf8_char WALLS[4] = {FAINT_WALL_CHARACTER,
+                                   MEDIUM_WALL_CHARACTER,
+                                   DARK_WALL_CHARACTER,
+                                   OPAQUE_WALL_CHARACTER};
 
 struct World {
     Cell *matrix;
@@ -69,6 +82,21 @@ static inline void create_wall(World *world, VectorU position, const utf8_char w
     set_cell_vec(world, position, create_cell(wall_character, WALL_COLOR, WALL));
 }
 
+static inline void create_terrain_wall(World *world,
+                                       VectorU position,
+                                       const utf8_char wall_character,
+                                       enum Color color) {
+    set_cell_vec(world, position, create_cell(wall_character, color, WALL));
+}
+
 static inline void create_coin(World *world, VectorU position) {
     set_cell_vec(world, position, create_cell(COIN_CHARACTER, COIN_COLOR, COIN));
+}
+
+static inline utf8_char get_terrain_character(float noise) {
+    return WALLS[(uint32_t)(min_max(noise, WORLD_MIN_NOISE_THRESHOLD, OPAQUE_TERRAIN_NOISE_THRESHOLD) * 4.0f)];
+}
+
+static inline enum Color get_terrain_color(float noise) {
+    return gradient(min_max(noise, WORLD_MIN_NOISE_THRESHOLD, OPAQUE_TERRAIN_NOISE_THRESHOLD), DARK_GRAY, WHITE);
 }

@@ -18,9 +18,9 @@ void handle_player_input(Entity *player, InputState *input_state) {
     }
 
     if (is_key_pressed(input_state, KEY_SHIFT)) {
-        player->speed_modifier = 0.5f;
+        player->speed_modifier = PLAYER_SLOW_SPEED_MODIFIER;
     } else if (is_key_pressed(input_state, KEY_CTRL)) {
-        player->speed_modifier = 1.5f;
+        player->speed_modifier = PLAYER_FAST_SPEED_MODIFIER;
     } else {
         player->speed_modifier = 1.0f;
     }

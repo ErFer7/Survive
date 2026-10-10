@@ -13,7 +13,7 @@ static const char *FPS_LABEL = "FPS:";
 
 static const char *TICKS_LABEL = "TPS:";
 
-static const char *GAMEPLAY_SCORE_LABEL = "Score:";
+static const char *SCORE_LABEL = "Score:";
 
 void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_plane, SceneContext *scene_context) {
     uint32_t rows;
@@ -26,7 +26,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
     SceneTransition gameover_transition =
         create_scene_transition(scene_context, (Scene *)&scene_context->gameover_scene);
 
-    GameplaySceneArgs pause_transition_args = create_gameplay_scene_args(PAUSE, 0, 0, false);
+    GameplaySceneArgs pause_transition_args = create_gameplay_scene_args(PAUSE, false, VECTORU_ZERO);
 
     serialize_gameplay_scene_transition_args(&pause_transition_args, pause_transition.args);
 
@@ -39,14 +39,14 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
                &draw_gameplay_scene,
                &exit_gameplay_scene,
                parent_size,
-               HYPER_DARK_GRAY,
+               DEFAULT_BACKGROUND,
                parent_plane);
 
     init_text(&gameplay_scene->interface.texts[0],
               FPS_LABEL,
               strlen(FPS_LABEL),
               WHITE,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               VECTOR_ZERO,
               BOTTOM_LEFT,
               parent_size);
@@ -55,7 +55,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               float_label,
               strlen(float_label),
               WHITE,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               create_vector(5, 0),
               BOTTOM_LEFT,
               parent_size);
@@ -64,7 +64,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               TICKS_LABEL,
               strlen(TICKS_LABEL),
               WHITE,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               create_vector(17, 0),
               BOTTOM_LEFT,
               parent_size);
@@ -73,16 +73,16 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               float_label,
               strlen(float_label),
               WHITE,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               create_vector(22, 0),
               BOTTOM_LEFT,
               parent_size);
 
     init_text(&gameplay_scene->interface.texts[4],
-              GAMEPLAY_SCORE_LABEL,
-              strlen(GAMEPLAY_SCORE_LABEL),
+              SCORE_LABEL,
+              strlen(SCORE_LABEL),
               WHITE,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               create_vector(-21, 0),
               BOTTOM_RIGHT,
               parent_size);
@@ -91,7 +91,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               int_label,
               strlen(int_label),
               WHITE,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               create_vector(-16, 0),
               BOTTOM_RIGHT,
               parent_size);
@@ -115,11 +115,10 @@ void enter_gameplay_scene(void *gameplay_scene, void *args) {
 
     deserialize_gameplay_scene_transition_args(&scene_args, args);
 
-    // TODO: Clean up these logic checks
     if (scene_args.transition_mode == START || scene_args.transition_mode == RESTART) {
         start_gameplay(&scene->gameplay,
                        scene_args.transition_mode == RESTART,
-                       create_vector_u(scene_args.world_width, scene_args.world_height),
+                       scene_args.world_size,
                        scene_args.enable_terrain_generation);
     }
 

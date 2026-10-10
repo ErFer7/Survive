@@ -1,10 +1,13 @@
 #include "gameplay/world.h"
 
 #include <math.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "gameplay/cell.h"
 #include "stdlib.h"
+#include "utils/color.h"
+#include "utils/normalization.h"
 #include "utils/perlin_noise.h"
 #include "utils/random.h"
 
@@ -57,16 +60,18 @@ void generate_terrain(World *world) {
     for (uint32_t row = 0; row < world->size.y; row++) {
         for (uint32_t column = 0; column < world->size.x; column++) {
             VectorU position = create_vector_u(column, row);
-            float noise = perlin_noise((float)column * 0.1f, (float)row * 0.1f, 0.65f, 5, seed);
+            float noise = perlin_noise((float)column * WORLD_PERLIN_NOISE_SCALE,
+                                       (float)row * WORLD_PERLIN_NOISE_SCALE,
+                                       WORLD_PERLIN_NOISE_PERSISTENCE,
+                                       WORLD_PERLIN_NOISE_OCTAVES,
+                                       seed);
 
-            if (noise > 0.7 && noise <= 0.775) {
-                create_wall(world, position, FAINT_WALL_CHARACTER);
-            } else if (noise > 0.775 && noise <= 0.85) {
-                create_wall(world, position, MEDIUM_WALL_CHARACTER);
-            } else if (noise > 0.85 && noise <= 0.925) {
-                create_wall(world, position, DARK_WALL_CHARACTER);
-            } else if (noise > 0.925) {
-                create_wall(world, position, OPAQUE_WALL_CHARACTER);
+            if (noise >= WORLD_MIN_NOISE_THRESHOLD) {
+                if (noise <= OPAQUE_TERRAIN_NOISE_THRESHOLD) {
+                    create_terrain_wall(world, position, get_terrain_character(noise), get_terrain_color(noise));
+                } else {
+                    create_terrain_wall(world, position, OPAQUE_WALL_CHARACTER, WALL_COLOR);
+                }
             }
         }
     }
@@ -99,7 +104,7 @@ void generate_coin(World *world) {
 }
 
 void generate_coins(World *world) {
-    for (uint32_t i = 0; i < ceilf((float)(world->size.x * world->size.y) / 3600.0f); i++) {
+    for (uint32_t i = 0; i < ceilf((float)(world->size.x * world->size.y) / COIN_DENSITY); i++) {
         generate_coin(world);
     }
 }

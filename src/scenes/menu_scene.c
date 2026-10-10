@@ -9,7 +9,7 @@
 #include "utils/color.h"
 #include "utils/vector.h"
 
-static const char *MAIN_MENU_TITLE =
+static const char *TITLE =
     "███████╗██╗   ██╗██████╗ ██╗   ██╗██╗██╗   ██╗███████╗\n"
     "██╔════╝██║   ██║██╔══██╗██║   ██║██║██║   ██║██╔════╝\n"
     "███████╗██║   ██║██████╔╝██║   ██║██║██║   ██║█████╗  \n"
@@ -17,7 +17,7 @@ static const char *MAIN_MENU_TITLE =
     "███████║╚██████╔╝██║  ██║ ╚████╔╝ ██║ ╚████╔╝ ███████╗\n"
     "╚══════╝ ╚═════╝ ╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═══╝  ╚══════╝";
 
-static const char *VERSION = "v3.0.1";
+static const char *VERSION = "v3.1";
 
 static const char *START_BUTTON = " Start ";
 
@@ -41,14 +41,14 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
                &draw_menu_scene,
                &exit_menu_scene,
                parent_size,
-               HYPER_DARK_GRAY,
+               DEFAULT_BACKGROUND,
                parent_plane);
 
     init_text(&menu_scene->interface.texts[0],
-              MAIN_MENU_TITLE,
-              strlen(MAIN_MENU_TITLE),
+              TITLE,
+              strlen(TITLE),
               RED,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               create_vector(0, 4),
               TOP,
               parent_size);
@@ -57,7 +57,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
               VERSION,
               strlen(VERSION),
               BLUE,
-              HYPER_DARK_GRAY,
+              DEFAULT_BACKGROUND,
               create_vector(0, -1),
               BOTTOM,
               parent_size);
@@ -66,7 +66,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
                 START_BUTTON,
                 strlen(START_BUTTON),
                 RED,
-                HYPER_DARK_GRAY,
+                DEFAULT_BACKGROUND,
                 VECTOR_ZERO,
                 CENTER,
                 parent_size,
@@ -78,7 +78,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
                 INFO_BUTTON,
                 strlen(INFO_BUTTON),
                 RED,
-                HYPER_DARK_GRAY,
+                DEFAULT_BACKGROUND,
                 create_vector(0, 2),
                 CENTER,
                 parent_size,
@@ -90,7 +90,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
                 QUIT_BUTTON,
                 strlen(QUIT_BUTTON),
                 RED,
-                HYPER_DARK_GRAY,
+                DEFAULT_BACKGROUND,
                 create_vector(0, 4),
                 CENTER,
                 parent_size,

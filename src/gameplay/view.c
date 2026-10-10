@@ -2,7 +2,6 @@
 
 #include "gameplay/world.h"
 #include "utils/perlin_noise.h"
-#include "utils/random.h"
 
 void init_view(View *view,
                VectorU initial_position,
@@ -41,7 +40,7 @@ void init_view(View *view,
     ncplane_erase(view->plane);
 
 #ifdef COOL_EFFECTS
-    view->perlin_seed = (float)inclusive_random(0, 1000);
+    view->perlin_seed = (float)rand();
     view->shift = 0.0f;
 #endif
 }
@@ -71,13 +70,14 @@ void draw_world_on_view(View *view, World *world) {
                 ncplane_putc_yx(view->plane, row - origin_row, column - origin_column, &cell->cell);
             } else {
 #ifdef COOL_EFFECTS
-                // TODO: Put all constants somewhere
-                float noise = perlin_noise((float)(column - ((float)origin_column / 1.25f)) * 0.1f,
-                                           (float)(row - ((float)origin_row / 1.25f) + view->shift) * 0.1f,
-                                           1.75f,
-                                           5,
-                                           (int)view->perlin_seed);
-                Cell outsize_cell = create_cell(UTF8("█"), fabsf(noise) * 0x00FFFF, VOID);
+                float noise = perlin_noise(
+                    (float)(column - ((float)origin_column / VIEW_EFFECTS_PARALLAX)) * VIEW_PERLIN_NOISE_SCALE,
+                    (float)(row - ((float)origin_row / VIEW_EFFECTS_PARALLAX) + view->shift) * VIEW_PERLIN_NOISE_SCALE,
+                    VIEW_PERLIN_NOISE_PERSISTENCE,
+                    VIEW_PERLIN_NOISE_OCTAVES,
+                    (int)view->perlin_seed);
+
+                Cell outsize_cell = create_cell(VIEW_EFFECTS_CELL, fabsf(noise) * VIEW_MAX_OUTSIZE_COLOR, VOID);
 
                 ncplane_putc_yx(view->plane, row - origin_row, column - origin_column, &outsize_cell.cell);
 #else
