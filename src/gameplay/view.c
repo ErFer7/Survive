@@ -64,9 +64,8 @@ void draw_world_on_view(View *view, World *world) {
 
     for (int32_t row = origin_row; row < (int32_t)view->position.y + half_height; row++) {
         for (int32_t column = origin_column; column < (int32_t)view->position.x + half_width; column++) {
-            Cell *cell = get_cell_ref_xy(world, (uint32_t)row, (uint32_t)column);
-
-            if (cell != nullptr) {
+            if ((uint32_t)row < world->size.y && (uint32_t)column < world->size.x) {
+                Cell *cell = get_cell_ref_xy(world, (uint32_t)row, (uint32_t)column);
                 ncplane_putc_yx(view->plane, row - origin_row, column - origin_column, &cell->cell);
             } else {
 #ifdef COOL_EFFECTS

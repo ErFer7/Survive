@@ -43,13 +43,8 @@ void generate_coin(World *world);
 void generate_coins(World *world);
 void free_world(World *world);
 
-// PERFORMANCE: Remove the checks and check outsize when necessary
 static inline Cell *get_cell_ref_xy(World *world, uint32_t row, uint32_t column) {
-    if (row < world->size.y && column < world->size.x) {
-        return &world->matrix[world->size.x * row + column];
-    }
-
-    return nullptr;
+    return &world->matrix[world->size.x * row + column];
 }
 
 static inline void set_cell_xy(World *world, uint32_t row, uint32_t column, Cell cell) {
@@ -57,9 +52,7 @@ static inline void set_cell_xy(World *world, uint32_t row, uint32_t column, Cell
 }
 
 static inline Cell *get_cell_ref_vec(World *world, VectorU position) {
-    if (position.y < world->size.y && position.x < world->size.x) {
-        return &world->matrix[world->size.x * position.y + position.x];
-    }
+    return &world->matrix[world->size.x * position.y + position.x];
 
     return nullptr;
 }
@@ -68,13 +61,7 @@ static inline void set_cell_vec(World *world, VectorU position, Cell cell) {
     world->matrix[world->size.x * position.y + position.x] = cell;
 }
 
-static inline Cell *get_cell_ref_i(World *world, uint32_t index) {
-    if (index < world->size.x * world->size.y) {
-        return &world->matrix[index];
-    }
-
-    return nullptr;
-}
+static inline Cell *get_cell_ref_i(World *world, uint32_t index) { return &world->matrix[index]; }
 
 static inline void set_cell_i(World *world, uint32_t index, Cell cell) { world->matrix[index] = cell; }
 
