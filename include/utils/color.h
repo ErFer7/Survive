@@ -36,10 +36,12 @@ static inline void break_into_parts(enum Color color, byte *red, byte *green, by
     *blue = color & BLUE_MASK;
 }
 
+static inline enum Color merge_parts(byte red, byte green, byte blue) { return red << 16U | green << 8U | blue; }
+
 static inline enum Color grayscale_to_rgb(float scale) {
     byte parts = (byte)(255.0f * scale);
 
-    return parts << 16U | parts << 8U | parts;
+    return merge_parts(parts, parts, parts);
 }
 
 static inline enum Color gradient(float sample, enum Color start, enum Color end) {
@@ -62,5 +64,5 @@ static inline enum Color gradient(float sample, enum Color start, enum Color end
     float result_green = ((float)end_green - origin_green) * sample + origin_green;
     float result_blue = ((float)end_blue - origin_blue) * sample + origin_blue;
 
-    return (byte)result_red << 16U | (byte)result_green << 8U | (byte)result_blue;
+    return merge_parts((byte)result_red, (byte)result_green, (byte)result_blue);
 }
