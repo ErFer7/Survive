@@ -70,6 +70,16 @@ void draw_interface(struct ncplane *plane, Text *texts, uint32_t text_count, But
     }
 }
 
+void resize_interface(Text *texts, uint32_t text_count, Button *buttons, uint32_t button_count, VectorU parent_size) {
+    for (uint32_t i = 0; i < text_count; i++) {
+        reposition_text(&texts[i], parent_size);
+    }
+
+    for (uint32_t i = 0; i < button_count; i++) {
+        reposition_button(&buttons[i], parent_size);
+    }
+}
+
 void free_interface(Text *texts,
                     uint32_t text_count,
                     Button *buttons,

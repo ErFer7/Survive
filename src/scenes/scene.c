@@ -4,10 +4,12 @@
 #include "utils/vector.h"
 
 void init_scene(Scene *scene,
+                void *derived_scene,
                 void (*enter)(void *, void *),
                 void (*update)(void *),
                 void (*draw)(void *),
                 void (*exit)(void *, void *),
+                int (*resize_callback)(struct ncplane *),
                 VectorU parent_size,
                 enum Color background_color,
                 struct ncplane *parent_plane) {
@@ -16,12 +18,21 @@ void init_scene(Scene *scene,
     scene->draw = draw;
     scene->exit = exit;
 
-    const struct ncplane_options plane_options =
-        {-9999, -9999, parent_size.y, parent_size.x, nullptr, nullptr, nullptr, NCPLANE_OPTION_FIXED, 0, 0};
+    const struct ncplane_options plane_options = {-9999,
+                                                  -9999,
+                                                  parent_size.y,
+                                                  parent_size.x,
+                                                  derived_scene,
+                                                  nullptr,
+                                                  resize_callback,
+                                                  NCPLANE_OPTION_FIXED,
+                                                  0,
+                                                  0};
 
     memcpy(&scene->plane_options, &plane_options, sizeof(ncplane_options));
 
     scene->plane = ncplane_create(parent_plane, &scene->plane_options);
+    scene->parent_plane = parent_plane;
 
     uint64_t channels = 0;
     byte red;

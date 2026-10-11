@@ -87,3 +87,5 @@ static inline bool solve_collision(Gameplay *gameplay, Entity *entity, Cell *cel
 }
 
 static inline void draw_gameplay(Gameplay *gameplay) { draw_world_on_view(&gameplay->view, &gameplay->world); }
+
+static inline void resize_gameplay_view(Gameplay *gameplay, VectorU size) { resize_view(&gameplay->view, size); }

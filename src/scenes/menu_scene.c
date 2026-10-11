@@ -17,7 +17,7 @@ static const char *TITLE =
     "███████║╚██████╔╝██║  ██║ ╚████╔╝ ██║ ╚████╔╝ ███████╗\n"
     "╚══════╝ ╚═════╝ ╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═══╝  ╚══════╝";
 
-static const char *VERSION = "v3.1";
+static const char *VERSION = "v3.2";
 
 static const char *START_BUTTON = " Start ";
 
@@ -36,10 +36,12 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
     SceneTransition info_transition = create_scene_transition(scene_context, (Scene *)&scene_context->info_scene);
 
     init_scene(&menu_scene->base,
+               menu_scene,
                &enter_menu_scene,
                &update_menu_scene,
                &draw_menu_scene,
                &exit_menu_scene,
+               &menu_resize_callback,
                parent_size,
                DEFAULT_BACKGROUND,
                parent_plane);
@@ -134,6 +136,28 @@ void exit_menu_scene(void *menu_scene, void *) {
     MenuScene *scene = (MenuScene *)menu_scene;
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);
+}
+
+int menu_resize_callback(struct ncplane *parent_plane) {
+    MenuScene *menu_scene = (MenuScene *)ncplane_userptr(parent_plane);
+
+    uint32_t rows;
+    uint32_t columns;
+
+    ncplane_dim_yx(menu_scene->base.parent_plane, &rows, &columns);
+    VectorU parent_size = create_vector_u(columns, rows);
+
+    resize_scene(&menu_scene->base, parent_size);
+
+    resize_interface(menu_scene->interface.texts,
+                     sizeof(menu_scene->interface.texts) / sizeof(Text),
+                     menu_scene->interface.buttons,
+                     sizeof(menu_scene->interface.buttons) / sizeof(Button),
+                     parent_size);
+
+    ncplane_erase(menu_scene->base.plane);
+
+    return 0;
 }
 
 void free_menu_scene(MenuScene *menu_scene) {

@@ -16,6 +16,7 @@ void enter_gameover_scene(void *gameover_scene, void *args);
 void update_gameover_scene(void *scene_context);
 void draw_gameover_scene(void *gameover_scene);
 void exit_gameover_scene(void *gameover_scene, void *);
+int gameover_resize_callback(struct ncplane *parent_plane);
 void free_gameover_scene(GameoverScene *gameover_scene);
 
 static inline void serialize_gameover_scene_transition_args(uint32_t *score, byte *arg_buffer) {

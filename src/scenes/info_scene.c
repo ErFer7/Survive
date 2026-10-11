@@ -35,10 +35,12 @@ void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneC
     SceneTransition menu_transition = create_scene_transition(scene_context, (Scene *)&scene_context->menu_scene);
 
     init_scene(&info_scene->base,
+               info_scene,
                &enter_info_scene,
                &update_info_scene,
                &draw_info_scene,
                &exit_info_scene,
+               &info_resize_callback,
                parent_size,
                DEFAULT_BACKGROUND,
                parent_plane);
@@ -109,6 +111,28 @@ void exit_info_scene(void *info_scene, void *) {
     InfoScene *scene = (InfoScene *)info_scene;
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);
+}
+
+int info_resize_callback(struct ncplane *parent_plane) {
+    InfoScene *info_scene = (InfoScene *)ncplane_userptr(parent_plane);
+
+    uint32_t rows;
+    uint32_t columns;
+
+    ncplane_dim_yx(info_scene->base.parent_plane, &rows, &columns);
+    VectorU parent_size = create_vector_u(columns, rows);
+
+    resize_scene(&info_scene->base, parent_size);
+
+    resize_interface(info_scene->interface.texts,
+                     sizeof(info_scene->interface.texts) / sizeof(Text),
+                     info_scene->interface.buttons,
+                     sizeof(info_scene->interface.buttons) / sizeof(Button),
+                     parent_size);
+
+    ncplane_erase(info_scene->base.plane);
+
+    return 0;
 }
 
 void free_info_scene(InfoScene *info_scene) {

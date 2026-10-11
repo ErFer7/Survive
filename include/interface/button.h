@@ -25,3 +25,7 @@ void free_button(Button *button);
 static inline void draw_button(Button *button, struct ncplane *plane) { draw_text(&button->text, plane); }
 
 static inline void trigger(Button *button) { button->call(button->call_arg); }
+
+static inline void reposition_button(Button *button, VectorU parent_size) {
+    reposition_text(&button->text, parent_size);
+}

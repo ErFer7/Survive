@@ -64,10 +64,12 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
     serialize_gameplay_scene_transition_args(&classic_world_args, gameplay_transition_classic.args);
 
     init_scene(&start_scene->base,
+               start_scene,
                &enter_start_scene,
                &update_start_scene,
                &draw_start_scene,
                &exit_start_scene,
+               &start_resize_callback,
                parent_size,
                DEFAULT_BACKGROUND,
                parent_plane);
@@ -207,6 +209,28 @@ void exit_start_scene(void *start_scene, void *) {
     StartScene *scene = (StartScene *)start_scene;
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);
+}
+
+int start_resize_callback(struct ncplane *parent_plane) {
+    StartScene *start_scene = (StartScene *)ncplane_userptr(parent_plane);
+
+    uint32_t rows;
+    uint32_t columns;
+
+    ncplane_dim_yx(start_scene->base.parent_plane, &rows, &columns);
+    VectorU parent_size = create_vector_u(columns, rows);
+
+    resize_scene(&start_scene->base, parent_size);
+
+    resize_interface(start_scene->interface.texts,
+                     sizeof(start_scene->interface.texts) / sizeof(Text),
+                     start_scene->interface.buttons,
+                     sizeof(start_scene->interface.buttons) / sizeof(Button),
+                     parent_size);
+
+    ncplane_erase(start_scene->base.plane);
+
+    return 0;
 }
 
 void free_start_scene(StartScene *start_scene) {

@@ -16,4 +16,5 @@ void enter_start_scene(void *start_scene, void *);
 void update_start_scene(void *scene_context);
 void draw_start_scene(void *start_scene);
 void exit_start_scene(void *start_scene, void *);
+int start_resize_callback(struct ncplane *parent_plane);
 void free_start_scene(StartScene *start_scene);

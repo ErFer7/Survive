@@ -9,6 +9,8 @@
 
 #define COOL_EFFECTS
 
+static const Vector VIEW_SIZE_OFFSET = {-2, -2};
+
 #ifdef COOL_EFFECTS
 static const float VIEW_EFFECTS_PARALLAX = 1.25f;
 static const float VIEW_PERLIN_NOISE_SCALE = 0.1f;
@@ -22,6 +24,7 @@ struct View {
     VectorU position;
     struct ncplane *plane;
     struct ncplane_options plane_options;
+    struct ncplane *parent_plane;
 #ifdef COOL_EFFECTS
     float perlin_seed;
     float shift;
@@ -35,8 +38,8 @@ void init_view(View *view,
                enum Color background_color,
                struct ncplane *parent_plane);
 void draw_world_on_view(View *view, World *world);
+void free_view(View *view);
 
-static inline void free_view(View *view) {
-    ncplane_destroy(view->plane);
-    view->plane = nullptr;
+static inline void resize_view(View *view, VectorU size) {
+    ncplane_resize_simple(view->plane, size.y + VIEW_SIZE_OFFSET.y, size.x + VIEW_SIZE_OFFSET.x);
 }

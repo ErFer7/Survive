@@ -16,4 +16,5 @@ void enter_info_scene(void *info_scene, void *);
 void update_info_scene(void *scene_context);
 void draw_info_scene(void *info_scene);
 void exit_info_scene(void *info_scene, void *);
+int info_resize_callback(struct ncplane *parent_plane);
 void free_info_scene(InfoScene *info_scene);

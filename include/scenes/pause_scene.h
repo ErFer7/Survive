@@ -16,4 +16,5 @@ void enter_pause_scene(void *pause_scene, void *);
 void update_pause_scene(void *scene_context);
 void draw_pause_scene(void *pause_scene);
 void exit_pause_scene(void *pause_scene, void *);
+int pause_resize_callback(struct ncplane *parent_plane);
 void free_pause_scene(PauseScene *pause_scene);

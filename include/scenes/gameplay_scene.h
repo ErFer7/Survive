@@ -39,6 +39,7 @@ void enter_gameplay_scene(void *gameplay_scene, void *args);
 void update_gameplay_scene(void *scene_context);
 void draw_gameplay_scene(void *gameplay_scene);
 void exit_gameplay_scene(void *gameplay_scene, void *args);
+int gameplay_resize_callback(struct ncplane *parent_plane);
 void free_gameplay_scene(GameplayScene *gameplay_scene);
 
 static inline GameplaySceneArgs create_gameplay_scene_args(enum GameplayTransitionMode transition_mode,

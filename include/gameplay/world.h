@@ -16,7 +16,8 @@ static const enum Color COIN_COLOR = YELLOW;
 
 static const uint32_t SPAWN_RADIUS = 16;
 
-static const float COIN_DENSITY = 3600.0f;
+// 1 coin for 3600 cells
+static const float COIN_GENERATION_COEFFICIENT = 3600.0f;
 
 static const float WORLD_PERLIN_NOISE_SCALE = 0.1f;
 static const float WORLD_PERLIN_NOISE_PERSISTENCE = 0.65f;
@@ -28,6 +29,7 @@ static const utf8_char WALLS[4] = {FAINT_WALL_CHARACTER,
                                    DARK_WALL_CHARACTER,
                                    OPAQUE_WALL_CHARACTER};
 
+// TODO: Chunks
 struct World {
     Cell *matrix;
     VectorU size;

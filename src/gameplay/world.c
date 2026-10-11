@@ -104,7 +104,7 @@ void generate_coin(World *world) {
 }
 
 void generate_coins(World *world) {
-    for (uint32_t i = 0; i < ceilf((float)(world->size.x * world->size.y) / COIN_DENSITY); i++) {
+    for (uint32_t i = 0; i < ceilf((float)(world->size.x * world->size.y) / COIN_GENERATION_COEFFICIENT); i++) {
         generate_coin(world);
     }
 }

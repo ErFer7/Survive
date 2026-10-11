@@ -34,10 +34,12 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
     const char *int_label = "0000000000";
 
     init_scene(&gameplay_scene->base,
+               gameplay_scene,
                &enter_gameplay_scene,
                &update_gameplay_scene,
                &draw_gameplay_scene,
                &exit_gameplay_scene,
+               &gameplay_resize_callback,
                parent_size,
                DEFAULT_BACKGROUND,
                parent_plane);
@@ -99,7 +101,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
     init_gameplay_interface(&gameplay_scene->interface, &pause_transition, sizeof(SceneTransition), &transition);
 
     init_gameplay(&gameplay_scene->gameplay,
-                  create_vector_u(columns - 2, rows - 2),
+                  vector_to_vector_u(add_vector(vector_u_to_vector(parent_size), VIEW_SIZE_OFFSET)),
                   parent_size,
                   &gameover_transition,
                   &gameplay_scene->interface.texts[5],
@@ -163,6 +165,30 @@ void exit_gameplay_scene(void *gameplay_scene, void *args) {
     }
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);
+}
+
+int gameplay_resize_callback(struct ncplane *parent_plane) {
+    GameplayScene *gameplay_scene = (GameplayScene *)ncplane_userptr(parent_plane);
+
+    uint32_t rows;
+    uint32_t columns;
+
+    ncplane_dim_yx(gameplay_scene->base.parent_plane, &rows, &columns);
+    VectorU parent_size = create_vector_u(columns, rows);
+
+    resize_scene(&gameplay_scene->base, parent_size);
+
+    resize_interface(gameplay_scene->interface.texts,
+                     sizeof(gameplay_scene->interface.texts) / sizeof(Text),
+                     nullptr,
+                     0,
+                     parent_size);
+
+    resize_gameplay_view(&gameplay_scene->gameplay, parent_size);
+
+    ncplane_erase(gameplay_scene->base.plane);
+
+    return 0;
 }
 
 void free_gameplay_scene(GameplayScene *gameplay_scene) {

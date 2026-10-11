@@ -66,6 +66,11 @@ void handle_interface_input(int32_t *selected_button,
                             void *escape_handler_arg,
                             InputState *input_state);
 void draw_interface(struct ncplane *plane, Text *texts, uint32_t text_count, Button *buttons, uint32_t button_count);
+void resize_interface(Text *texts,
+                    uint32_t text_count,
+                    Button *buttons,
+                    uint32_t button_count,
+                    VectorU parent_size);
 void free_interface(Text *texts,
                     uint32_t text_count,
                     Button *buttons,

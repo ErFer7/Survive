@@ -41,10 +41,12 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
     const char *int_label = "0000000000";
 
     init_scene(&gameover_scene->base,
+               gameover_scene,
                &enter_gameover_scene,
                &update_gameover_scene,
                &draw_gameover_scene,
                &exit_gameover_scene,
+               &gameover_resize_callback,
                parent_size,
                DEFAULT_BACKGROUND,
                parent_plane);
@@ -146,6 +148,28 @@ void exit_gameover_scene(void *gameover_scene, void *) {
     GameoverScene *scene = (GameoverScene *)gameover_scene;
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);
+}
+
+int gameover_resize_callback(struct ncplane *parent_plane) {
+    GameoverScene *gameover_scene = (GameoverScene *)ncplane_userptr(parent_plane);
+
+    uint32_t rows;
+    uint32_t columns;
+
+    ncplane_dim_yx(gameover_scene->base.parent_plane, &rows, &columns);
+    VectorU parent_size = create_vector_u(columns, rows);
+
+    resize_scene(&gameover_scene->base, parent_size);
+
+    resize_interface(gameover_scene->interface.texts,
+                     sizeof(gameover_scene->interface.texts) / sizeof(Text),
+                     gameover_scene->interface.buttons,
+                     sizeof(gameover_scene->interface.buttons) / sizeof(Button),
+                     parent_size);
+
+    ncplane_erase(gameover_scene->base.plane);
+
+    return 0;
 }
 
 void free_gameover_scene(GameoverScene *gameover_scene) {

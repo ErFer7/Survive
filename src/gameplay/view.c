@@ -25,7 +25,7 @@ void init_view(View *view,
     memcpy(&view->plane_options, &plane_options, sizeof(ncplane_options));
 
     view->plane = ncplane_create(parent_plane, &view->plane_options);
-    ncplane_reparent(view->plane, parent_plane);
+    view->parent_plane = parent_plane;
 
     uint64_t channels = 0;
     byte red;
@@ -85,4 +85,9 @@ void draw_world_on_view(View *view, World *world) {
             }
         }
     }
+}
+
+void free_view(View *view) {
+    ncplane_destroy(view->plane);
+    view->plane = nullptr;
 }

@@ -43,10 +43,12 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
     serialize_gameplay_scene_transition_args(&restart_world_args, restart_transition.args);
 
     init_scene(&pause_scene->base,
+               pause_scene,
                &enter_pause_scene,
                &update_pause_scene,
                &draw_pause_scene,
                &exit_pause_scene,
+               &pause_resize_callback,
                parent_size,
                DEFAULT_BACKGROUND,
                parent_plane);
@@ -132,6 +134,28 @@ void exit_pause_scene(void *pause_scene, void *) {
     PauseScene *scene = (PauseScene *)pause_scene;
 
     ncplane_move_yx(scene->base.plane, -9999, -9999);
+}
+
+int pause_resize_callback(struct ncplane *parent_plane) {
+    PauseScene *pause_scene = (PauseScene *)ncplane_userptr(parent_plane);
+
+    uint32_t rows;
+    uint32_t columns;
+
+    ncplane_dim_yx(pause_scene->base.parent_plane, &rows, &columns);
+    VectorU parent_size = create_vector_u(columns, rows);
+
+    resize_scene(&pause_scene->base, parent_size);
+
+    resize_interface(pause_scene->interface.texts,
+                     sizeof(pause_scene->interface.texts) / sizeof(Text),
+                     pause_scene->interface.buttons,
+                     sizeof(pause_scene->interface.buttons) / sizeof(Button),
+                     parent_size);
+
+    ncplane_erase(pause_scene->base.plane);
+
+    return 0;
 }
 
 void free_pause_scene(PauseScene *pause_scene) {

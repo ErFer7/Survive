@@ -31,3 +31,7 @@ void free_text(Text *text);
 static inline void set_single_line_text_content(Text *text, char *new_content, size_t length) {
     memcpy(text->content, new_content, length);
 }
+
+static inline void reposition_text(Text *text, VectorU parent_size) {
+    text->aligned_position = aligned_position(text->position, text->size, parent_size, text->alignment);
+}
