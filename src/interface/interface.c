@@ -27,7 +27,6 @@ void handle_interface_input(int32_t *selected_button,
         return;
     }
 
-    // PERFORMANCE: Simplify this check
     switch (get_key_pressed(input_state)) {
         case KEY_ESC:
             escape_handler(escape_handler_arg);

@@ -51,7 +51,6 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
                DEFAULT_BACKGROUND,
                parent_plane);
 
-    // TODO: Maybe there should be just a "create_text"
     init_text(&gameover_scene->interface.texts[0],
               TITLE,
               strlen(TITLE),

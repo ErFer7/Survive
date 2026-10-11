@@ -58,7 +58,6 @@ static inline void update_gameplay(Gameplay *gameplay, InputState *input_state) 
     }
 }
 
-// TODO: Check if this is decent enough
 static inline bool solve_collision(Gameplay *gameplay, Entity *entity, Cell *cell) {
     if (entity->cell->type == PLAYER) {
         switch (cell->type) {

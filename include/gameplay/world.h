@@ -5,13 +5,13 @@
 #include "utils/utf8.h"
 #include "utils/vector.h"
 
-static const utf8_char OPAQUE_WALL_CHARACTER = UTF8("█");
-static const utf8_char DARK_WALL_CHARACTER = UTF8("▓");
-static const utf8_char MEDIUM_WALL_CHARACTER = UTF8("▒");
-static const utf8_char FAINT_WALL_CHARACTER = UTF8("░");
+static const utf8_char WALLS[4] = {UTF8("░"), UTF8("▒"), UTF8("▓"), UTF8("█")};
+static const utf8_char OPAQUE_WALL_CHARACTER = WALLS[3];
+static const uint32_t WALL_ANIMATION_LENGTH = 1;
 static const enum Color WALL_COLOR = WHITE;
 
-static const utf8_char COIN_CHARACTER = UTF8("◈");
+static const utf8_char COIN_CHARACTERS[6] = {UTF8("⠇"), UTF8("⠋"), UTF8("⠙"), UTF8("⠸"), UTF8("⠴"), UTF8("⠦")};
+static const uint32_t COIN_ANIMATION_LENGTH = 6;
 static const enum Color COIN_COLOR = YELLOW;
 
 static const uint32_t SPAWN_RADIUS = 16;
@@ -24,10 +24,6 @@ static const float WORLD_PERLIN_NOISE_PERSISTENCE = 0.65f;
 static const int32_t WORLD_PERLIN_NOISE_OCTAVES = 5;
 static const float WORLD_MIN_NOISE_THRESHOLD = 0.7f;
 static const float OPAQUE_TERRAIN_NOISE_THRESHOLD = 1.5f;
-static const utf8_char WALLS[4] = {FAINT_WALL_CHARACTER,
-                                   MEDIUM_WALL_CHARACTER,
-                                   DARK_WALL_CHARACTER,
-                                   OPAQUE_WALL_CHARACTER};
 
 // TODO: Chunks
 struct World {
@@ -68,18 +64,22 @@ static inline Cell *get_cell_ref_i(World *world, uint32_t index) { return &world
 static inline void set_cell_i(World *world, uint32_t index, Cell cell) { world->matrix[index] = cell; }
 
 static inline void create_wall(World *world, VectorU position, const utf8_char wall_character) {
-    set_cell_vec(world, position, create_cell(wall_character, WALL_COLOR, WALL));
+    utf8_char wall_array[1] = {wall_character};
+
+    set_cell_vec(world, position, create_cell(wall_array, WALL_ANIMATION_LENGTH, WALL_COLOR, WALL));
 }
 
 static inline void create_terrain_wall(World *world,
                                        VectorU position,
                                        const utf8_char wall_character,
                                        enum Color color) {
-    set_cell_vec(world, position, create_cell(wall_character, color, WALL));
+    utf8_char wall_array[1] = {wall_character};
+
+    set_cell_vec(world, position, create_cell(wall_array, WALL_ANIMATION_LENGTH, color, WALL));
 }
 
 static inline void create_coin(World *world, VectorU position) {
-    set_cell_vec(world, position, create_cell(COIN_CHARACTER, COIN_COLOR, COIN));
+    set_cell_vec(world, position, create_cell(COIN_CHARACTERS, COIN_ANIMATION_LENGTH, COIN_COLOR, COIN));
 }
 
 static inline utf8_char get_terrain_character(float noise) {

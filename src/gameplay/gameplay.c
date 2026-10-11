@@ -134,10 +134,10 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
 
         uint32_t distance_index = 0;
 
-        for (uint32_t j = position.x - 1; j < position.x + 2; j++) {
-            for (uint32_t k = position.y - 1; k < position.y + 2; k++) {
-                if (j != position.x || k != position.y) {
-                    adjacent_position_vector = create_vector_u(j, k);
+        for (uint32_t j = position.y - 1; j < position.y + 2; j++) {
+            for (uint32_t k = position.x - 1; k < position.x + 2; k++) {
+                if (j != position.y || k != position.x) {
+                    adjacent_position_vector = create_vector_u(k, j);
                     Cell *cell = get_cell_ref_vec(&gameplay->world, adjacent_position_vector);
 
                     if (cell->type == VOID) {
@@ -164,28 +164,28 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
                 enemy->direction.y = -1;
                 break;
             case 1:
-                enemy->direction.x = -1;
-                enemy->direction.y = 0;
+                enemy->direction.x = 0;
+                enemy->direction.y = -1;
                 break;
             case 2:
+                enemy->direction.x = 1;
+                enemy->direction.y = -1;
+                break;
+            case 3:
+                enemy->direction.x = -1;
+                enemy->direction.y = 0;
+                break;
+            case 4:
+                enemy->direction.x = 1;
+                enemy->direction.y = 0;
+                break;
+            case 5:
                 enemy->direction.x = -1;
                 enemy->direction.y = 1;
                 break;
-            case 3:
-                enemy->direction.x = 0;
-                enemy->direction.y = -1;
-                break;
-            case 4:
+            case 6:
                 enemy->direction.x = 0;
                 enemy->direction.y = 1;
-                break;
-            case 5:
-                enemy->direction.x = 1;
-                enemy->direction.y = -1;
-                break;
-            case 6:
-                enemy->direction.x = 1;
-                enemy->direction.y = 0;
                 break;
             case 7:
                 enemy->direction.x = 1;

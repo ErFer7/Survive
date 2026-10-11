@@ -11,12 +11,15 @@
 
 static const Vector VIEW_SIZE_OFFSET = {-2, -2};
 
+static const float ANIMATION_SPEED = 8.0f;
+
 #ifdef COOL_EFFECTS
 static const float VIEW_EFFECTS_PARALLAX = 1.25f;
 static const float VIEW_PERLIN_NOISE_SCALE = 0.1f;
 static const float VIEW_PERLIN_NOISE_PERSISTENCE = 1.75f;
 static const int32_t VIEW_PERLIN_NOISE_OCTAVES = 5;
-static const utf8_char VIEW_EFFECTS_CELL = UTF8("█");
+static const utf8_char VIEW_EFFECTS_CHARACTER[1] = {UTF8("█")};
+static const uint32_t VIEW_EFFECTS_CELL_ANIMATION_LENGTH = 1;
 static const enum Color VIEW_MAX_OUTSIZE_COLOR = BRIGHT_CYAN;
 #endif
 

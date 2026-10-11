@@ -1,5 +1,10 @@
 #include "gameplay/view.h"
 
+#include <stdint.h>
+
+#include "config.h"
+#include "gameplay/enemy.h"
+#include "gameplay/player.h"
 #include "gameplay/world.h"
 #include "utils/perlin_noise.h"
 
@@ -66,6 +71,11 @@ void draw_world_on_view(View *view, World *world) {
         for (int32_t column = origin_column; column < (int32_t)view->position.x + half_width; column++) {
             if ((uint32_t)row < world->size.y && (uint32_t)column < world->size.x) {
                 Cell *cell = get_cell_ref_xy(world, (uint32_t)row, (uint32_t)column);
+
+                cell->animation_index += (1.0f / (float)RENDER_FREQUENCY) * ANIMATION_SPEED;
+
+                update_cell_character(cell);
+
                 ncplane_putc_yx(view->plane, row - origin_row, column - origin_column, &cell->cell);
             } else {
 #ifdef COOL_EFFECTS
@@ -76,7 +86,10 @@ void draw_world_on_view(View *view, World *world) {
                     VIEW_PERLIN_NOISE_OCTAVES,
                     (int)view->perlin_seed);
 
-                Cell outsize_cell = create_cell(VIEW_EFFECTS_CELL, fabsf(noise) * VIEW_MAX_OUTSIZE_COLOR, VOID);
+                Cell outsize_cell = create_cell(VIEW_EFFECTS_CHARACTER,
+                                                VIEW_EFFECTS_CELL_ANIMATION_LENGTH,
+                                                fabsf(noise) * VIEW_MAX_OUTSIZE_COLOR,
+                                                VOID);
 
                 ncplane_putc_yx(view->plane, row - origin_row, column - origin_column, &outsize_cell.cell);
 #else
