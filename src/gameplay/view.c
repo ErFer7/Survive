@@ -3,13 +3,11 @@
 #include <stdint.h>
 
 #include "config.h"
-#include "gameplay/enemy.h"
-#include "gameplay/player.h"
 #include "gameplay/world.h"
 #include "utils/perlin_noise.h"
 
 void init_view(View *view,
-               VectorU initial_position,
+               Vector initial_position,
                VectorU size,
                VectorU parent_size,
                enum Color background_color,
@@ -70,7 +68,7 @@ void draw_world_on_view(View *view, World *world) {
     for (int32_t row = origin_row; row < (int32_t)view->position.y + half_height; row++) {
         for (int32_t column = origin_column; column < (int32_t)view->position.x + half_width; column++) {
             if ((uint32_t)row < world->size.y && (uint32_t)column < world->size.x) {
-                Cell *cell = get_cell_ref_xy(world, (uint32_t)row, (uint32_t)column);
+                Cell *cell = get_cell_ref_xy(world, row, column);
 
                 cell->animation_index += (1.0f / (float)RENDER_FREQUENCY) * ANIMATION_SPEED;
 

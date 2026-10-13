@@ -18,7 +18,7 @@ static const char *TITLE =
 
 static const char *INFO = "Choose your game mode and world size.";
 
-static const char *WARNING = "Large worlds can use a lot of memory (1GiB)!";
+static const char *WARNING = "Large worlds can use a lot of memory (3GiB)!";
 
 static const char *REGULAR_BUTTON = " Regular ";
 

@@ -9,6 +9,7 @@
 
 enum CellType { VOID, WALL, PLAYER, COIN, ENEMY };
 
+// 48 bytes
 struct Cell {
     utf8_char characters[MAX_ANIMATION_LENGTH];
     nccell cell;

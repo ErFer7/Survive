@@ -17,7 +17,7 @@ void init_gameplay(Gameplay *gameplay,
                    struct ncplane *scene_plane) {
     init_world(&gameplay->world);
 
-    init_view(&gameplay->view, VECTORU_ZERO, view_size, parent_size, DEFAULT_BACKGROUND, scene_plane);
+    init_view(&gameplay->view, VECTOR_ZERO, view_size, parent_size, DEFAULT_BACKGROUND, scene_plane);
 
     gameplay->entities = nullptr;
     gameplay->entity_count = 0;
@@ -37,7 +37,7 @@ void start_gameplay(Gameplay *gameplay, bool restart, VectorU size, bool enable_
     bool terrain_generation = restart ? gameplay->world.has_terrain : enable_terrain_generation;
 
     generate_world(&gameplay->world, world_size, terrain_generation);
-    create_player(gameplay, divide_vector_u_by_scalar(world_size, 2));
+    create_player(gameplay, divide_vector_by_scalar(vector_u_to_vector(world_size), 2));
 
     gameplay->view.position = gameplay->player->position;
     gameplay->score = 0;
@@ -72,13 +72,13 @@ Entity *add_entity(Gameplay *gameplay, const Entity entity) {
     return &gameplay->entities[last];
 }
 
-void create_player(Gameplay *gameplay, VectorU position) {
+void create_player(Gameplay *gameplay, Vector position) {
     allocate_entity(gameplay);
 
     *gameplay->player = create_player_entity(get_cell_ref_vec(&gameplay->world, position), position);
 }
 
-void create_enemy(Gameplay *gameplay, VectorU position) {
+void create_enemy(Gameplay *gameplay, Vector position) {
     allocate_entity(gameplay);
 
     gameplay->enemies[gameplay->enemy_count] =
@@ -87,11 +87,10 @@ void create_enemy(Gameplay *gameplay, VectorU position) {
     gameplay->enemy_count++;
 }
 
-// PERFORMANCE: Optimize
 void update_enemy(Gameplay *gameplay, Entity *enemy) {
-    VectorU target = gameplay->player->position;
-    VectorU position = enemy->position;
-    bool blocked = false;
+    Vector target = gameplay->player->position;
+    Vector position = enemy->position;
+    bool has_free_path = true;
 
     int32_t target_direction_x = 0;
 
@@ -99,15 +98,6 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
         target_direction_x = 1;
     } else if (target.x < position.x) {
         target_direction_x = -1;
-    }
-
-    Cell *target_cell =
-        get_cell_ref_vec(&gameplay->world, create_vector_u(position.x + target_direction_x, position.y));
-
-    blocked = target_cell->type != VOID && target_cell->type != PLAYER;
-
-    if (!blocked) {
-        enemy->direction.x = target_direction_x;
     }
 
     int32_t target_direction_y = 0;
@@ -118,83 +108,52 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
         target_direction_y = -1;
     }
 
-    target_cell = get_cell_ref_vec(&gameplay->world, create_vector_u(position.x, position.y + target_direction_y));
+    Cell *target_cell =
+        get_cell_ref_vec(&gameplay->world,
+                         create_vector(position.x + target_direction_x, position.y + target_direction_y));
 
-    blocked = target_cell->type != VOID && target_cell->type != PLAYER;
+    has_free_path = target_cell->type == VOID;
 
-    if (!blocked) {
-        enemy->direction.y = target_direction_y;
+    if (has_free_path) {
+        enemy->direction = create_vector(target_direction_x, target_direction_y);
+
+        return;
     }
 
-    if (blocked) {
-        float distances[8];
-        float smallest_distance = INFINITY;
-        uint32_t direction_index;
-        VectorU adjacent_position_vector;
+    float distances[8];
+    float smallest_distance = INFINITY;
+    uint32_t direction_index;
+    Vector adjacent_position_vector;
 
-        uint32_t distance_index = 0;
+    uint32_t distance_index = 0;
 
-        for (uint32_t j = position.y - 1; j < position.y + 2; j++) {
-            for (uint32_t k = position.x - 1; k < position.x + 2; k++) {
-                if (j != position.y || k != position.x) {
-                    adjacent_position_vector = create_vector_u(k, j);
-                    Cell *cell = get_cell_ref_vec(&gameplay->world, adjacent_position_vector);
+    for (int32_t j = position.y - 1; j < position.y + 2; j++) {
+        for (int32_t k = position.x - 1; k < position.x + 2; k++) {
+            if (j != position.y || k != position.x) {
+                adjacent_position_vector = create_vector(k, j);
+                Cell *cell = get_cell_ref_vec(&gameplay->world, adjacent_position_vector);
 
-                    if (cell->type == VOID) {
-                        distances[distance_index] = vector_u_distance(adjacent_position_vector, target);
-                    } else {
-                        distances[distance_index] = INFINITY;
-                    }
+                float penalty = j == enemy->previous_position.y && k == enemy->previous_position.x ? 1.0f : 0.0f;
 
-                    distance_index++;
+                if (cell->type == VOID) {
+                    distances[distance_index] = vector_distance(adjacent_position_vector, target) + penalty;
+                } else {
+                    distances[distance_index] = INFINITY;
                 }
-            }
-        }
 
-        for (uint32_t j = 0; j < 8; j++) {
-            if (smallest_distance > distances[j]) {
-                smallest_distance = distances[j];
-                direction_index = j;
+                distance_index++;
             }
-        }
-
-        switch (direction_index) {
-            case 0:
-                enemy->direction.x = -1;
-                enemy->direction.y = -1;
-                break;
-            case 1:
-                enemy->direction.x = 0;
-                enemy->direction.y = -1;
-                break;
-            case 2:
-                enemy->direction.x = 1;
-                enemy->direction.y = -1;
-                break;
-            case 3:
-                enemy->direction.x = -1;
-                enemy->direction.y = 0;
-                break;
-            case 4:
-                enemy->direction.x = 1;
-                enemy->direction.y = 0;
-                break;
-            case 5:
-                enemy->direction.x = -1;
-                enemy->direction.y = 1;
-                break;
-            case 6:
-                enemy->direction.x = 0;
-                enemy->direction.y = 1;
-                break;
-            case 7:
-                enemy->direction.x = 1;
-                enemy->direction.y = 1;
-                break;
-            default:
-                break;
         }
     }
+
+    for (uint32_t j = 0; j < 8; j++) {
+        if (smallest_distance > distances[j]) {
+            smallest_distance = distances[j];
+            direction_index = j;
+        }
+    }
+
+    enemy->direction = DIRECTIONS[direction_index];
 }
 
 void update_entities_movement(Gameplay *gameplay) {
@@ -209,8 +168,7 @@ void update_entities_movement(Gameplay *gameplay) {
         }
 
         if (check_and_reset_movement_accumulator(&entities[i])) {
-            VectorU new_position =
-                vector_to_vector_u(add_vector(vector_u_to_vector(entities[i].position), entities[i].direction));
+            Vector new_position = add_vector(entities[i].position, entities[i].direction);
 
             Cell *new_cell = get_cell_ref_vec(&gameplay->world, new_position);
 
@@ -243,10 +201,10 @@ void handle_coin_pick(Gameplay *gameplay) {
 
 void generate_enemy(Gameplay *gameplay) {
     while (true) {
-        VectorU position = create_vector_u(inclusive_random(1, gameplay->world.size.x - 2),
-                                           inclusive_random(1, gameplay->world.size.y - 2));
+        Vector position = create_vector(inclusive_random(1, gameplay->world.size.x - 2),
+                                        inclusive_random(1, gameplay->world.size.y - 2));
 
-        if (vector_u_distance(gameplay->player->position, position) > MIN_ENEMY_SPAWN_DISTANCE) {
+        if (vector_distance(gameplay->player->position, position) > MIN_ENEMY_SPAWN_DISTANCE) {
             Cell *cell = get_cell_ref_vec(&gameplay->world, position);
 
             if (cell->type == VOID) {

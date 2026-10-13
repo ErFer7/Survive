@@ -7,16 +7,20 @@
 
 struct Entity {
     Cell *cell;
-    VectorU position;
+    Vector position;
     float movement_acumulator;
     float speed_modifier;
     Vector direction;
+
+    // This is only used by the enemy. You might think we are wasting memory here with this "massive" 8 bytes vector,
+    // but pretty much 99% of entities are enemies anyway
+    Vector previous_position;
 };
 
-static inline Entity create_entity(Cell *cell_ref, VectorU position, const Cell cell) {
+static inline Entity create_entity(Cell *cell_ref, Vector position, const Cell cell) {
     *cell_ref = cell;
 
-    Entity entity = {cell_ref, position, 0.0f, 1.0f, VECTOR_ZERO};
+    Entity entity = {cell_ref, position, 0.0f, 1.0f, VECTOR_ZERO, VECTOR_ZERO};
 
     return entity;
 }
@@ -36,7 +40,8 @@ static inline bool check_and_reset_movement_accumulator(Entity *entity) {
     return false;
 }
 
-static inline void move_entity(Entity *entity, Cell *new_cell, VectorU new_position) {
+static inline void move_entity(Entity *entity, Cell *new_cell, Vector new_position) {
+    entity->previous_position = entity->position;
     entity->position = new_position;
     entity->direction = VECTOR_ZERO;
     *new_cell = *entity->cell;

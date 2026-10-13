@@ -6,8 +6,6 @@
 
 #include "gameplay/cell.h"
 #include "stdlib.h"
-#include "utils/color.h"
-#include "utils/normalization.h"
 #include "utils/perlin_noise.h"
 #include "utils/random.h"
 
@@ -91,8 +89,7 @@ void clear_spawn(World *world) {
 
 void generate_coin(World *world) {
     while (true) {
-        VectorU position =
-            create_vector_u(inclusive_random(1, world->size.x - 2), inclusive_random(1, world->size.y - 2));
+        Vector position = create_vector(inclusive_random(1, world->size.x - 2), inclusive_random(1, world->size.y - 2));
 
         Cell *cell = get_cell_ref_vec(world, position);
 

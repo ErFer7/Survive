@@ -24,7 +24,7 @@ static const enum Color VIEW_MAX_OUTSIZE_COLOR = BRIGHT_CYAN;
 #endif
 
 struct View {
-    VectorU position;
+    Vector position;
     struct ncplane *plane;
     struct ncplane_options plane_options;
     struct ncplane *parent_plane;
@@ -35,7 +35,7 @@ struct View {
 };
 
 void init_view(View *view,
-               VectorU initial_position,
+               Vector initial_position,
                VectorU size,
                VectorU parent_size,
                enum Color background_color,

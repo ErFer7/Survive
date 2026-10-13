@@ -29,8 +29,8 @@ void init_gameplay(Gameplay *gameplay,
                    struct ncplane *scene_plane);
 void start_gameplay(Gameplay *gameplay, bool restart, VectorU size, bool enable_terrain_generation);
 void allocate_entity(Gameplay *gameplay);
-void create_player(Gameplay *gameplay, VectorU position);
-void create_enemy(Gameplay *gameplay, VectorU position);
+void create_player(Gameplay *gameplay, Vector position);
+void create_enemy(Gameplay *gameplay, Vector position);
 void update_enemy(Gameplay *gameplay, Entity *enemy);
 void update_entities_movement(Gameplay *gameplay);
 void handle_coin_pick(Gameplay *gameplay);
