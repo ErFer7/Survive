@@ -3,6 +3,7 @@ VALGRIND_FLAGS ?= --leak-check=full --show-leak-kinds=all --track-origins=yes --
 
 .PHONY: default
 default:
+	cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_DEBUG=OFF -DENABLE_ASAN=OFF
 	cmake --build build -j$(nproc)
 
 .PHONY: setup
