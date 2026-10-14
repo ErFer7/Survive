@@ -17,7 +17,7 @@ static const char *TITLE =
     "███████║╚██████╔╝██║  ██║ ╚████╔╝ ██║ ╚████╔╝ ███████╗\n"
     "╚══════╝ ╚═════╝ ╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═══╝  ╚══════╝";
 
-static const char *VERSION = "v3.4";
+static const char *VERSION = "v3.5";
 
 static const char *START_BUTTON = " Start ";
 

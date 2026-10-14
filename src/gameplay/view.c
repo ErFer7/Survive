@@ -1,5 +1,6 @@
 #include "gameplay/view.h"
 
+#include <math.h>
 #include <stdint.h>
 
 #include "config.h"
@@ -44,11 +45,14 @@ void init_view(View *view,
 
 #ifdef COOL_EFFECTS
     view->perlin_seed = (float)rand();
-    view->shift = 0.0f;
+
+    init_cell_matrix(&view->cell_matrix);
+    generate_effects(view, size);
+
+    view->angle = 0.0f;
 #endif
 }
 
-// PERFORMANCE: Optimize this. The effects could be generated with a matrix with 3 moving pointers
 void draw_world_on_view(View *view, World *world) {
     uint32_t rows = 0;
     uint32_t columns = 0;
@@ -62,13 +66,17 @@ void draw_world_on_view(View *view, World *world) {
     int32_t origin_column = view->position.x - half_width;
 
 #ifdef COOL_EFFECTS
-    view->shift += 0.01f;
+    view->angle += VIEW_EFFECTS_ANGLE_STEP;
+    float sin_angle = sinf(view->angle);
+    float cos_angle = cosf(view->angle);
 #endif
+
+    VectorU world_size = world->cell_matrix.size;
 
     for (int32_t row = origin_row; row < (int32_t)view->position.y + half_height; row++) {
         for (int32_t column = origin_column; column < (int32_t)view->position.x + half_width; column++) {
-            if ((uint32_t)row < world->size.y && (uint32_t)column < world->size.x) {
-                Cell *cell = get_cell_ref_xy(world, row, column);
+            if (row >= 0 && (uint32_t)row < world_size.y && column >= 0 && (uint32_t)column < world_size.x) {
+                Cell *cell = get_cell_ref_xy(&world->cell_matrix, row, column);
 
                 cell->animation_index += (1.0f / (float)RENDER_FREQUENCY) * ANIMATION_SPEED;
 
@@ -77,19 +85,16 @@ void draw_world_on_view(View *view, World *world) {
                 ncplane_putc_yx(view->plane, row - origin_row, column - origin_column, &cell->cell);
             } else {
 #ifdef COOL_EFFECTS
-                float noise = perlin_noise(
-                    (float)(column - ((float)origin_column / VIEW_EFFECTS_PARALLAX)) * VIEW_PERLIN_NOISE_SCALE,
-                    (float)(row - ((float)origin_row / VIEW_EFFECTS_PARALLAX) + view->shift) * VIEW_PERLIN_NOISE_SCALE,
-                    VIEW_PERLIN_NOISE_PERSISTENCE,
-                    VIEW_PERLIN_NOISE_OCTAVES,
-                    (int)view->perlin_seed);
+                float normalized_row = (float)(row - origin_row - half_height);
+                float normalized_column = (float)(column - origin_column - half_width);
 
-                Cell outsize_cell = create_cell(VIEW_EFFECTS_CHARACTER,
-                                                VIEW_EFFECTS_CELL_ANIMATION_LENGTH,
-                                                fabsf(noise) * VIEW_MAX_OUTSIZE_COLOR,
-                                                VOID);
+                float rotated_row = normalized_row * cos_angle - normalized_column * sin_angle;
+                float rotated_column = normalized_row * sin_angle + normalized_column * cos_angle;
 
-                ncplane_putc_yx(view->plane, row - origin_row, column - origin_column, &outsize_cell.cell);
+                Cell *outsize_cell =
+                    get_cell_ref_xy_wrapped(&view->cell_matrix, (int32_t)rotated_row, (int32_t)rotated_column);
+
+                ncplane_putc_yx(view->plane, row - origin_row, column - origin_column, &outsize_cell->cell);
 #else
                 ncplane_putc_yx(view->plane, row - origin_row, column - origin_column, &DEFAULT_CELL.cell);
 #endif
@@ -98,7 +103,34 @@ void draw_world_on_view(View *view, World *world) {
     }
 }
 
+#ifdef COOL_EFFECTS
+void generate_effects(View *view, VectorU size) {
+    allocate_cell_matrix(&view->cell_matrix, size);
+
+    for (int32_t row = 0; row < (int32_t)size.y; row++) {
+        for (int32_t column = 0; column < (int32_t)size.x; column++) {
+            float noise = perlin_noise((float)column * VIEW_PERLIN_NOISE_SCALE,
+                                       (float)row * VIEW_PERLIN_NOISE_SCALE,
+                                       VIEW_PERLIN_NOISE_PERSISTENCE,
+                                       VIEW_PERLIN_NOISE_OCTAVES,
+                                       (int)view->perlin_seed);
+
+            Cell cell = create_cell(VIEW_EFFECTS_CHARACTER,
+                                    VIEW_EFFECTS_CELL_ANIMATION_LENGTH,
+                                    fabsf(noise) * VIEW_MAX_OUTSIZE_COLOR,
+                                    VOID);
+
+            set_cell_xy(&view->cell_matrix, row, column, cell);
+        }
+    }
+}
+#endif
+
 void free_view(View *view) {
     ncplane_destroy(view->plane);
     view->plane = nullptr;
+
+#ifdef COOL_EFFECTS
+    free_cell_matrix(&view->cell_matrix);
+#endif
 }

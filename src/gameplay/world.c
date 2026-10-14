@@ -9,25 +9,16 @@
 #include "utils/perlin_noise.h"
 #include "utils/random.h"
 
-void init_world(World *world);
-
 void init_world(World *world) {
-    world->size = VECTORU_ZERO;
+    init_cell_matrix(&world->cell_matrix);
     world->has_terrain = false;
-    world->matrix = nullptr;
 }
 
 void generate_world(World *world, VectorU size, bool enable_terrain_generation) {
-    world->size = size;
     world->has_terrain = enable_terrain_generation;
 
-    size_t raw_size = sizeof(Cell) * size.x * size.y;
-
-    world->matrix = malloc(raw_size);
-
-    for (uint32_t i = 0; i < size.x * size.y; i++) {
-        set_cell_i(world, i, create_default_cell());
-    }
+    allocate_cell_matrix(&world->cell_matrix, size);
+    fill_cell_matrix(&world->cell_matrix, DEFAULT_CELL);
 
     if (enable_terrain_generation) {
         generate_terrain(world);
@@ -40,23 +31,26 @@ void generate_world(World *world, VectorU size, bool enable_terrain_generation) 
 }
 
 void generate_walls(World *world) {
-    for (uint32_t row = 0; row < world->size.y; row++) {
+    VectorU size = world->cell_matrix.size;
+
+    for (uint32_t row = 0; row < size.y; row++) {
         create_wall(world, create_vector_u(0, row), OPAQUE_WALL_CHARACTER);
-        create_wall(world, create_vector_u(world->size.x - 1, row), OPAQUE_WALL_CHARACTER);
+        create_wall(world, create_vector_u(world->cell_matrix.size.x - 1, row), OPAQUE_WALL_CHARACTER);
     }
 
-    for (uint32_t columns = 0; columns < world->size.x; columns++) {
+    for (uint32_t columns = 0; columns < size.x; columns++) {
         create_wall(world, create_vector_u(columns, 0), OPAQUE_WALL_CHARACTER);
-        create_wall(world, create_vector_u(columns, world->size.y - 1), OPAQUE_WALL_CHARACTER);
+        create_wall(world, create_vector_u(columns, world->cell_matrix.size.y - 1), OPAQUE_WALL_CHARACTER);
     }
 }
 
 void generate_terrain(World *world) {
     int32_t seed = rand();
+    VectorU size = world->cell_matrix.size;
 
 #pragma omp parallel for collapse(2)
-    for (uint32_t row = 0; row < world->size.y; row++) {
-        for (uint32_t column = 0; column < world->size.x; column++) {
+    for (uint32_t row = 0; row < size.y; row++) {
+        for (uint32_t column = 0; column < size.x; column++) {
             VectorU position = create_vector_u(column, row);
             float noise = perlin_noise((float)column * WORLD_PERLIN_NOISE_SCALE,
                                        (float)row * WORLD_PERLIN_NOISE_SCALE,
@@ -76,22 +70,24 @@ void generate_terrain(World *world) {
 }
 
 void clear_spawn(World *world) {
-    VectorU center = divide_vector_u_by_scalar(world->size, 2);
+    VectorU center = divide_vector_u_by_scalar(world->cell_matrix.size, 2);
 
     for (uint32_t row = center.y - SPAWN_RADIUS; row < center.y + SPAWN_RADIUS; row++) {
         for (uint32_t column = center.x - SPAWN_RADIUS; column < center.x + SPAWN_RADIUS; column++) {
             if (vector_u_distance(create_vector_u(column, row), center) <= SPAWN_RADIUS) {
-                set_cell_xy(world, row, column, DEFAULT_CELL);
+                set_cell_xy(&world->cell_matrix, row, column, DEFAULT_CELL);
             }
         }
     }
 }
 
 void generate_coin(World *world) {
-    while (true) {
-        Vector position = create_vector(inclusive_random(1, world->size.x - 2), inclusive_random(1, world->size.y - 2));
+    VectorU size = world->cell_matrix.size;
 
-        Cell *cell = get_cell_ref_vec(world, position);
+    while (true) {
+        Vector position = create_vector(inclusive_random(1, size.x - 2), inclusive_random(1, size.y - 2));
+
+        Cell *cell = get_cell_ref_vec(&world->cell_matrix, position);
 
         if (cell->type == VOID) {
             create_coin(world, position);
@@ -101,14 +97,11 @@ void generate_coin(World *world) {
 }
 
 void generate_coins(World *world) {
-    for (uint32_t i = 0; i < ceilf((float)(world->size.x * world->size.y) / COIN_GENERATION_COEFFICIENT); i++) {
+    for (uint32_t i = 0;
+         i < ceilf((float)(world->cell_matrix.size.x * world->cell_matrix.size.y) / COIN_GENERATION_COEFFICIENT);
+         i++) {
         generate_coin(world);
     }
 }
 
-void free_world(World *world) {
-    if (world->matrix != nullptr) {
-        free(world->matrix);
-        world->matrix = nullptr;
-    }
-}
+void free_world(World *world) { free_cell_matrix(&world->cell_matrix); }

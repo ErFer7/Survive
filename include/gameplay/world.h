@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cell.h"
+#include "gameplay/cell_matrix.h"
 #include "utils/normalization.h"
 #include "utils/utf8.h"
 #include "utils/vector.h"
@@ -26,8 +27,7 @@ static const float WORLD_MIN_NOISE_THRESHOLD = 0.7f;
 static const float OPAQUE_TERRAIN_NOISE_THRESHOLD = 1.5f;
 
 struct World {
-    Cell *matrix;
-    VectorU size;
+    CellMatrix cell_matrix;
     bool has_terrain;
 };
 
@@ -40,32 +40,12 @@ void generate_coin(World *world);
 void generate_coins(World *world);
 void free_world(World *world);
 
-static inline Cell *get_cell_ref_xy(World *world, int32_t row, int32_t column) {
-    return &world->matrix[world->size.x * row + column];
-}
-
-static inline void set_cell_xy(World *world, int32_t row, int32_t column, Cell cell) {
-    world->matrix[world->size.x * row + column] = cell;
-}
-
-static inline Cell *get_cell_ref_vec(World *world, Vector position) {
-    return &world->matrix[world->size.x * position.y + position.x];
-
-    return nullptr;
-}
-
-static inline void set_cell_vec(World *world, Vector position, Cell cell) {
-    world->matrix[world->size.x * position.y + position.x] = cell;
-}
-
-static inline Cell *get_cell_ref_i(World *world, uint32_t index) { return &world->matrix[index]; }
-
-static inline void set_cell_i(World *world, uint32_t index, Cell cell) { world->matrix[index] = cell; }
-
 static inline void create_wall(World *world, VectorU position, const utf8_char wall_character) {
     utf8_char wall_array[1] = {wall_character};
 
-    set_cell_vec(world, vector_u_to_vector(position), create_cell(wall_array, WALL_ANIMATION_LENGTH, WALL_COLOR, WALL));
+    set_cell_vec(&world->cell_matrix,
+                 vector_u_to_vector(position),
+                 create_cell(wall_array, WALL_ANIMATION_LENGTH, WALL_COLOR, WALL));
 }
 
 static inline void create_terrain_wall(World *world,
@@ -74,11 +54,13 @@ static inline void create_terrain_wall(World *world,
                                        enum Color color) {
     utf8_char wall_array[1] = {wall_character};
 
-    set_cell_vec(world, vector_u_to_vector(position), create_cell(wall_array, WALL_ANIMATION_LENGTH, color, WALL));
+    set_cell_vec(&world->cell_matrix,
+                 vector_u_to_vector(position),
+                 create_cell(wall_array, WALL_ANIMATION_LENGTH, color, WALL));
 }
 
 static inline void create_coin(World *world, Vector position) {
-    set_cell_vec(world, position, create_cell(COIN_CHARACTERS, COIN_ANIMATION_LENGTH, COIN_COLOR, COIN));
+    set_cell_vec(&world->cell_matrix, position, create_cell(COIN_CHARACTERS, COIN_ANIMATION_LENGTH, COIN_COLOR, COIN));
 }
 
 static inline utf8_char get_terrain_character(float noise) {

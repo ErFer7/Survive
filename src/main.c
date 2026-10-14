@@ -11,7 +11,6 @@
     A terminal game made in C.
 */
 
-// FIX: Rare segfaults when picking up a coin
 // TODO: Analyze the design of create_* and init_*
 int main() {
     SceneContext scene_context;

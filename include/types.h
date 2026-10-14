@@ -12,6 +12,7 @@ typedef struct Text Text;
 typedef struct Button Button;
 
 typedef struct Cell Cell;
+typedef struct CellMatrix CellMatrix;
 
 typedef struct Entity Entity;
 typedef struct World World;

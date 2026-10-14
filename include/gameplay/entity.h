@@ -44,7 +44,7 @@ static inline void move_entity(Entity *entity, Cell *new_cell, Vector new_positi
     entity->previous_position = entity->position;
     entity->position = new_position;
     entity->direction = VECTOR_ZERO;
-    *new_cell = *entity->cell;
+    *new_cell = *entity->cell;  // FIX: The address sanitizer fails here with use after free
     *entity->cell = DEFAULT_CELL;
     entity->cell = new_cell;
 }

@@ -33,5 +33,3 @@ static inline Cell create_cell(const utf8_char *characters,
 
     return cell;
 }
-
-static inline Cell create_default_cell() { return DEFAULT_CELL; }

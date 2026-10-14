@@ -11,12 +11,17 @@ setup:
 
 .PHONY: debug
 debug:
-	cmake -B build -DCMAKE_BUILD_TYPE=Debug
+	cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_DEBUG=ON -DENABLE_ASAN=OFF
+	cmake --build build -j$(nproc)
+
+.PHONY: sanitize
+sanitize:
+	cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_DEBUG=ON -DENABLE_ASAN=ON
 	cmake --build build -j$(nproc)
 
 .PHONY: release
 release:
-	cmake -B build -DCMAKE_BUILD_TYPE=Release
+	cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_DEBUG=OFF -DENABLE_ASAN=OFF
 	cmake --build build -j$(nproc)
 
 .PHONY: run
