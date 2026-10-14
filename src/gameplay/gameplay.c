@@ -17,12 +17,19 @@ void init_gameplay(Gameplay *gameplay,
                    struct ncplane *scene_plane) {
     init_world(&gameplay->world);
 
-    init_view(&gameplay->view, VECTOR_ZERO, view_size, parent_size, DEFAULT_BACKGROUND, scene_plane);
+    pthread_mutex_init(&gameplay->world_mutex, nullptr);
 
-    gameplay->entities = nullptr;
-    gameplay->entity_count = 0;
+    init_view(&gameplay->view,
+              VECTOR_ZERO,
+              view_size,
+              parent_size,
+              DEFAULT_BACKGROUND,
+              scene_plane,
+              &gameplay->world_mutex);
+
+    init_entity_list(&gameplay->entities);
+
     gameplay->player = nullptr;
-    gameplay->enemies = nullptr;
     gameplay->score = 0;
     gameplay->gameover_transition = malloc(sizeof(SceneTransition));
     gameplay->score_info = score_info;
@@ -43,48 +50,17 @@ void start_gameplay(Gameplay *gameplay, bool restart, VectorU size, bool enable_
     gameplay->score = 0;
 }
 
-void allocate_entity(Gameplay *gameplay) {
-    gameplay->entity_count++;
-
-    if (gameplay->entities == nullptr) {
-        gameplay->entities = malloc(sizeof(Entity));
-    } else {
-        gameplay->entities = realloc(gameplay->entities, sizeof(Entity) * gameplay->entity_count);
-        gameplay->enemies = &gameplay->entities[1];
-    }
-
-    gameplay->player = &gameplay->entities[0];
-}
-
-Entity *add_entity(Gameplay *gameplay, const Entity entity) {
-    gameplay->entity_count++;
-
-    if (gameplay->entities == nullptr) {
-        gameplay->entities = malloc(sizeof(Entity));
-    } else {
-        gameplay->entities = realloc(gameplay->entities, sizeof(Entity) * gameplay->entity_count);
-    }
-
-    uint32_t last = gameplay->entity_count - 1;
-
-    gameplay->entities[last] = entity;
-
-    return &gameplay->entities[last];
-}
-
 void create_player(Gameplay *gameplay, Vector position) {
-    allocate_entity(gameplay);
+    Entity *entity = allocate_entity(&gameplay->entities);
+    gameplay->player = entity;
 
     *gameplay->player = create_player_entity(get_cell_ref_vec(&gameplay->world.cell_matrix, position), position);
 }
 
 void create_enemy(Gameplay *gameplay, Vector position) {
-    allocate_entity(gameplay);
+    Entity *entity = allocate_entity(&gameplay->entities);
 
-    gameplay->enemies[gameplay->enemy_count] =
-        create_enemy_entity(get_cell_ref_vec(&gameplay->world.cell_matrix, position), position);
-
-    gameplay->enemy_count++;
+    *entity = create_enemy_entity(get_cell_ref_vec(&gameplay->world.cell_matrix, position), position);
 }
 
 void update_enemy(Gameplay *gameplay, Entity *enemy) {
@@ -112,7 +88,7 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
         get_cell_ref_vec(&gameplay->world.cell_matrix,
                          create_vector(position.x + target_direction_x, position.y + target_direction_y));
 
-    has_free_path = target_cell->type == VOID;
+    has_free_path = target_cell->type == VOID || target_cell->type == PLAYER;
 
     if (has_free_path) {
         enemy->direction = create_vector(target_direction_x, target_direction_y);
@@ -157,23 +133,27 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
 }
 
 void update_entities_movement(Gameplay *gameplay) {
-    Entity *entities = gameplay->entities;
+    EntityListIterator iterator = create_entity_list_iterator(&gameplay->entities);
+    EntityListIterator *it = &iterator;
 
-    for (uint32_t i = 0; i < gameplay->entity_count; i++) {
-        if (!vector_is_zero(entities[i].direction)) {
+    pthread_mutex_lock(&gameplay->world_mutex);
+    while (it != nullptr) {
+        Entity *entity = it->entity;
+
+        if (!vector_is_zero(entity->direction)) {
             // This is ok for this game, since there is only two entities
-            const float speed = entities[i].cell->type == PLAYER ? PLAYER_SPEED : ENEMY_SPEED;
+            const float speed = entity->cell->type == PLAYER ? PLAYER_SPEED : ENEMY_SPEED;
 
-            accumulate_movement(&entities[i], speed * entities[i].speed_modifier);
+            accumulate_movement(entity, speed * entity->speed_modifier);
         }
 
-        if (check_and_reset_movement_accumulator(&entities[i])) {
-            Vector new_position = add_vector(entities[i].position, entities[i].direction);
+        if (check_and_reset_movement_accumulator(entity)) {
+            Vector new_position = add_vector(entity->position, entity->direction);
 
             Cell *new_cell = get_cell_ref_vec(&gameplay->world.cell_matrix, new_position);
 
-            if (solve_collision(gameplay, &entities[i], new_cell)) {
-                move_entity(&entities[i], new_cell, new_position);
+            if (solve_collision(gameplay, entity, new_cell)) {
+                move_entity(entity, new_cell, new_position);
             } else {
                 if (gameplay->player == nullptr) {  // Someone killed us!
                     serialize_gameover_scene_transition_args(&gameplay->score, gameplay->gameover_transition->args);
@@ -182,10 +162,13 @@ void update_entities_movement(Gameplay *gameplay) {
                     break;
                 }
 
-                entities[i].direction = VECTOR_ZERO;
+                entity->direction = VECTOR_ZERO;
             }
         }
+
+        it = iterate_on_entity_list(it);
     }
+    pthread_mutex_unlock(&gameplay->world_mutex);
 }
 
 void handle_coin_pick(Gameplay *gameplay) {
@@ -218,16 +201,9 @@ void generate_enemy(Gameplay *gameplay) {
 
 void partially_free_gameplay(Gameplay *gameplay) {
     free_world(&gameplay->world);
-
-    if (gameplay->entities != nullptr) {
-        free(gameplay->entities);
-        gameplay->entities = nullptr;
-        gameplay->entity_count = 0;
-    }
+    free_entity_list(&gameplay->entities);
 
     gameplay->player = nullptr;
-    gameplay->enemies = nullptr;
-    gameplay->enemy_count = 0;
 }
 
 void free_gameplay(Gameplay *gameplay) {
@@ -238,4 +214,6 @@ void free_gameplay(Gameplay *gameplay) {
         free(gameplay->gameover_transition);
         gameplay->gameover_transition = nullptr;
     }
+
+    pthread_mutex_destroy(&gameplay->world_mutex);
 }

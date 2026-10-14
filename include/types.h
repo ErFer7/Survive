@@ -5,6 +5,10 @@
 typedef uint32_t utf8_char;
 typedef unsigned char byte;
 
+typedef struct EntityBlock EntityBlock;
+typedef struct EntityList EntityList;
+typedef struct EntityListIterator EntityListIterator;
+
 typedef struct PeriodicThread PeriodicThread;
 typedef struct InputState InputState;
 

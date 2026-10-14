@@ -1,7 +1,9 @@
 #pragma once
 
 #include <notcurses/notcurses.h>
+#include <pthread.h>
 
+#include "gameplay/entity_list.h"
 #include "gameplay/player.h"
 #include "gameplay/view.h"
 #include "gameplay/world.h"
@@ -11,11 +13,9 @@ static const float MIN_ENEMY_SPAWN_DISTANCE = 20.0f;
 struct Gameplay {
     World world;
     View view;
-    Entity *entities;
+    pthread_mutex_t world_mutex;
+    EntityList entities;
     Entity *player;
-    Entity *enemies;
-    uint32_t entity_count;
-    uint32_t enemy_count;
     uint32_t score;
     SceneTransition *gameover_transition;
     Text *score_info;
@@ -28,7 +28,6 @@ void init_gameplay(Gameplay *gameplay,
                    Text *score_info,
                    struct ncplane *scene_plane);
 void start_gameplay(Gameplay *gameplay, bool restart, VectorU size, bool enable_terrain_generation);
-void allocate_entity(Gameplay *gameplay);
 void create_player(Gameplay *gameplay, Vector position);
 void create_enemy(Gameplay *gameplay, Vector position);
 void update_enemy(Gameplay *gameplay, Entity *enemy);
@@ -43,8 +42,14 @@ static inline void handle_gameplay_input(Gameplay *gameplay, InputState *input_s
 }
 
 static inline void update_enemies(Gameplay *gameplay) {
-    for (uint32_t i = 0; i < gameplay->enemy_count; i++) {
-        update_enemy(gameplay, &gameplay->enemies[i]);
+    EntityListIterator iterator = create_entity_list_iterator(&gameplay->entities);
+
+    // The enemies are allocated after the player, that's why there is this initial iteration here
+    EntityListIterator *it = iterate_on_entity_list(&iterator);
+
+    while (it != nullptr) {
+        update_enemy(gameplay, it->entity);
+        it = iterate_on_entity_list(it);
     }
 }
 

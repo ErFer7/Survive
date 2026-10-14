@@ -1,6 +1,7 @@
 #pragma once
 
 #include <notcurses/notcurses.h>
+#include <pthread.h>
 
 #include "gameplay/cell_matrix.h"
 #include "types.h"
@@ -29,6 +30,7 @@ struct View {
     struct ncplane *plane;
     struct ncplane_options plane_options;
     struct ncplane *parent_plane;
+    pthread_mutex_t *world_mutex;
 #ifdef COOL_EFFECTS
     CellMatrix cell_matrix;
     float perlin_seed;
@@ -41,7 +43,8 @@ void init_view(View *view,
                VectorU size,
                VectorU parent_size,
                enum Color background_color,
-               struct ncplane *parent_plane);
+               struct ncplane *parent_plane,
+               pthread_mutex_t *world_mutex);
 void draw_world_on_view(View *view, World *world);
 #ifdef COOL_EFFECTS
 void generate_effects(View *view, VectorU size);
