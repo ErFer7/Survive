@@ -13,8 +13,9 @@ static const float MIN_ENEMY_SPAWN_DISTANCE = 20.0f;
 struct Gameplay {
     World world;
     View view;
-    pthread_mutex_t world_mutex;
     EntityList entities;
+    pthread_mutex_t world_mutex;
+    bool lock_view;
     Entity *player;
     uint32_t score;
     SceneTransition *gameover_transition;
@@ -27,7 +28,7 @@ void init_gameplay(Gameplay *gameplay,
                    SceneTransition *gameover_transition,
                    Text *score_info,
                    struct ncplane *scene_plane);
-void start_gameplay(Gameplay *gameplay, bool restart, VectorU size, bool enable_terrain_generation);
+void start_gameplay(Gameplay *gameplay, bool restart, VectorU size, bool enable_terrain_generation, bool lock_view);
 void create_player(Gameplay *gameplay, Vector position);
 void create_enemy(Gameplay *gameplay, Vector position);
 void update_enemy(Gameplay *gameplay, Entity *enemy);
@@ -42,10 +43,13 @@ static inline void handle_gameplay_input(Gameplay *gameplay, InputState *input_s
 }
 
 static inline void update_enemies(Gameplay *gameplay) {
-    EntityListIterator iterator = create_entity_list_iterator(&gameplay->entities);
+    EntityListIterator iterator;
+    EntityListIterator *it = &iterator;
+
+    init_entity_list_iterator(it, &gameplay->entities);
 
     // The enemies are allocated after the player, that's why there is this initial iteration here
-    EntityListIterator *it = iterate_on_entity_list(&iterator);
+    it = iterate_on_entity_list(it);
 
     while (it != nullptr) {
         update_enemy(gameplay, it->entity);
@@ -58,7 +62,7 @@ static inline void update_gameplay(Gameplay *gameplay, InputState *input_state) 
     update_enemies(gameplay);
     update_entities_movement(gameplay);
 
-    if (gameplay->player != nullptr) {
+    if (gameplay->player != nullptr && !gameplay->lock_view) {
         gameplay->view.position = gameplay->player->position;
     }
 }

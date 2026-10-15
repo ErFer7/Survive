@@ -34,13 +34,13 @@ void generate_walls(World *world) {
     VectorU size = world->cell_matrix.size;
 
     for (uint32_t row = 0; row < size.y; row++) {
-        create_wall(world, create_vector_u(0, row), OPAQUE_WALL_CHARACTER);
-        create_wall(world, create_vector_u(world->cell_matrix.size.x - 1, row), OPAQUE_WALL_CHARACTER);
+        create_wall(world, VECTOR_U(0, row), OPAQUE_WALL_CHARACTER);
+        create_wall(world, VECTOR_U(world->cell_matrix.size.x - 1, row), OPAQUE_WALL_CHARACTER);
     }
 
     for (uint32_t columns = 0; columns < size.x; columns++) {
-        create_wall(world, create_vector_u(columns, 0), OPAQUE_WALL_CHARACTER);
-        create_wall(world, create_vector_u(columns, world->cell_matrix.size.y - 1), OPAQUE_WALL_CHARACTER);
+        create_wall(world, VECTOR_U(columns, 0), OPAQUE_WALL_CHARACTER);
+        create_wall(world, VECTOR_U(columns, world->cell_matrix.size.y - 1), OPAQUE_WALL_CHARACTER);
     }
 }
 
@@ -51,7 +51,7 @@ void generate_terrain(World *world) {
 #pragma omp parallel for collapse(2)
     for (uint32_t row = 0; row < size.y; row++) {
         for (uint32_t column = 0; column < size.x; column++) {
-            VectorU position = create_vector_u(column, row);
+            VectorU position = VECTOR_U(column, row);
             float noise = perlin_noise((float)column * WORLD_PERLIN_NOISE_SCALE,
                                        (float)row * WORLD_PERLIN_NOISE_SCALE,
                                        WORLD_PERLIN_NOISE_PERSISTENCE,
@@ -74,7 +74,7 @@ void clear_spawn(World *world) {
 
     for (uint32_t row = center.y - SPAWN_RADIUS; row < center.y + SPAWN_RADIUS; row++) {
         for (uint32_t column = center.x - SPAWN_RADIUS; column < center.x + SPAWN_RADIUS; column++) {
-            if (vector_u_distance(create_vector_u(column, row), center) <= SPAWN_RADIUS) {
+            if (vector_u_distance(VECTOR_U(column, row), center) <= SPAWN_RADIUS) {
                 set_cell_xy(&world->cell_matrix, row, column, DEFAULT_CELL);
             }
         }
@@ -85,7 +85,7 @@ void generate_coin(World *world) {
     VectorU size = world->cell_matrix.size;
 
     while (true) {
-        Vector position = create_vector(inclusive_random(1, size.x - 2), inclusive_random(1, size.y - 2));
+        Vector position = VECTOR(inclusive_random(1, size.x - 2), inclusive_random(1, size.y - 2));
 
         Cell *cell = get_cell_ref_vec(&world->cell_matrix, position);
 

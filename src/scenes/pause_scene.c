@@ -28,16 +28,21 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
     uint32_t columns;
 
     ncplane_dim_yx(parent_plane, &rows, &columns);
-    VectorU parent_size = create_vector_u(columns, rows);
+    VectorU parent_size = VECTOR_U(columns, rows);
 
-    SceneTransition resume_transition = create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
-    SceneTransition restart_transition =
-        create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
-    SceneTransition gameover_transition =
-        create_scene_transition(scene_context, (Scene *)&scene_context->gameover_scene);
+    SceneTransition resume_transition;
+    SceneTransition restart_transition;
+    SceneTransition gameover_transition;
 
-    GameplaySceneArgs resume_world_args = create_gameplay_scene_args(RESUME, false, VECTORU_ZERO);
-    GameplaySceneArgs restart_world_args = create_gameplay_scene_args(RESTART, false, VECTORU_ZERO);
+    init_scene_transition(&resume_transition, scene_context, (Scene *)&scene_context->gameplay_scene);
+    init_scene_transition(&restart_transition, scene_context, (Scene *)&scene_context->gameplay_scene);
+    init_scene_transition(&gameover_transition, scene_context, (Scene *)&scene_context->gameover_scene);
+
+    GameplaySceneArgs resume_world_args;
+    GameplaySceneArgs restart_world_args;
+
+    init_gameplay_scene_args(&resume_world_args, RESUME, false, false, VECTORU_ZERO);
+    init_gameplay_scene_args(&restart_world_args, RESTART, false, false, VECTORU_ZERO);
 
     serialize_gameplay_scene_transition_args(&resume_world_args, resume_transition.args);
     serialize_gameplay_scene_transition_args(&restart_world_args, restart_transition.args);
@@ -58,7 +63,7 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
               strlen(TITLE),
               WHITE,
               DEFAULT_BACKGROUND,
-              create_vector(0, 4),
+              VECTOR(0, 4),
               TOP,
               parent_size);
 
@@ -79,7 +84,7 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
                 strlen(RESTART_BUTTON),
                 WHITE,
                 DEFAULT_BACKGROUND,
-                create_vector(0, 2),
+                VECTOR(0, 2),
                 CENTER,
                 parent_size,
                 &restart_transition,
@@ -91,7 +96,7 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
                 strlen(GAMEOVER_BUTTON),
                 RED,
                 DEFAULT_BACKGROUND,
-                create_vector(0, 4),
+                VECTOR(0, 4),
                 CENTER,
                 parent_size,
                 &gameover_transition,
@@ -143,7 +148,7 @@ int pause_resize_callback(struct ncplane *parent_plane) {
     uint32_t columns;
 
     ncplane_dim_yx(pause_scene->base.parent_plane, &rows, &columns);
-    VectorU parent_size = create_vector_u(columns, rows);
+    VectorU parent_size = VECTOR_U(columns, rows);
 
     resize_scene(&pause_scene->base, parent_size);
 

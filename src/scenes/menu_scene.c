@@ -17,7 +17,7 @@ static const char *TITLE =
     "███████║╚██████╔╝██║  ██║ ╚████╔╝ ██║ ╚████╔╝ ███████╗\n"
     "╚══════╝ ╚═════╝ ╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═══╝  ╚══════╝";
 
-static const char *VERSION = "v3.5.1";
+static const char *VERSION = "v3.5.2";
 
 static const char *START_BUTTON = " Start ";
 
@@ -30,10 +30,13 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
     uint32_t columns;
 
     ncplane_dim_yx(parent_plane, &rows, &columns);
-    VectorU parent_size = create_vector_u(columns, rows);
+    VectorU parent_size = VECTOR_U(columns, rows);
 
-    SceneTransition start_transition = create_scene_transition(scene_context, (Scene *)&scene_context->start_scene);
-    SceneTransition info_transition = create_scene_transition(scene_context, (Scene *)&scene_context->info_scene);
+    SceneTransition start_transition;
+    SceneTransition info_transition;
+
+    init_scene_transition(&start_transition, scene_context, (Scene *)&scene_context->start_scene);
+    init_scene_transition(&info_transition, scene_context, (Scene *)&scene_context->info_scene);
 
     init_scene(&menu_scene->base,
                menu_scene,
@@ -51,7 +54,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
               strlen(TITLE),
               RED,
               DEFAULT_BACKGROUND,
-              create_vector(0, 4),
+              VECTOR(0, 4),
               TOP,
               parent_size);
 
@@ -60,7 +63,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
               strlen(VERSION),
               BLUE,
               DEFAULT_BACKGROUND,
-              create_vector(0, -1),
+              VECTOR(0, -1),
               BOTTOM,
               parent_size);
 
@@ -81,7 +84,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
                 strlen(INFO_BUTTON),
                 RED,
                 DEFAULT_BACKGROUND,
-                create_vector(0, 2),
+                VECTOR(0, 2),
                 CENTER,
                 parent_size,
                 &info_transition,
@@ -93,7 +96,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
                 strlen(QUIT_BUTTON),
                 RED,
                 DEFAULT_BACKGROUND,
-                create_vector(0, 4),
+                VECTOR(0, 4),
                 CENTER,
                 parent_size,
                 &scene_context,
@@ -145,7 +148,7 @@ int menu_resize_callback(struct ncplane *parent_plane) {
     uint32_t columns;
 
     ncplane_dim_yx(menu_scene->base.parent_plane, &rows, &columns);
-    VectorU parent_size = create_vector_u(columns, rows);
+    VectorU parent_size = VECTOR_U(columns, rows);
 
     resize_scene(&menu_scene->base, parent_size);
 

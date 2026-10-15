@@ -31,6 +31,7 @@ struct GameplayScene {
 struct GameplaySceneArgs {
     enum GameplayTransitionMode transition_mode;
     bool enable_terrain_generation;
+    bool lock_view;
     VectorU world_size;
 };
 
@@ -42,12 +43,15 @@ void exit_gameplay_scene(void *gameplay_scene, void *args);
 int gameplay_resize_callback(struct ncplane *parent_plane);
 void free_gameplay_scene(GameplayScene *gameplay_scene);
 
-static inline GameplaySceneArgs create_gameplay_scene_args(enum GameplayTransitionMode transition_mode,
-                                                           bool enable_terrain_generation,
-                                                           VectorU world_size) {
-    GameplaySceneArgs gameplay_scene_args = {transition_mode, enable_terrain_generation, world_size};
-
-    return gameplay_scene_args;
+static inline void init_gameplay_scene_args(GameplaySceneArgs *gameplay_scene_args,
+                                            enum GameplayTransitionMode transition_mode,
+                                            bool lock_view,
+                                            bool enable_terrain_generation,
+                                            VectorU world_size) {
+    gameplay_scene_args->transition_mode = transition_mode,
+    gameplay_scene_args->enable_terrain_generation = enable_terrain_generation;
+    gameplay_scene_args->lock_view = lock_view;
+    gameplay_scene_args->world_size = world_size;
 }
 
 static inline void serialize_gameplay_scene_transition_args(GameplaySceneArgs *gameplay_scene_args, byte *arg_buffer) {

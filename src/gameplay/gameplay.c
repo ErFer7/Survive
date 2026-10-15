@@ -17,8 +17,6 @@ void init_gameplay(Gameplay *gameplay,
                    struct ncplane *scene_plane) {
     init_world(&gameplay->world);
 
-    pthread_mutex_init(&gameplay->world_mutex, nullptr);
-
     init_view(&gameplay->view,
               VECTOR_ZERO,
               view_size,
@@ -29,6 +27,9 @@ void init_gameplay(Gameplay *gameplay,
 
     init_entity_list(&gameplay->entities);
 
+    pthread_mutex_init(&gameplay->world_mutex, nullptr);
+
+    gameplay->lock_view = false;
     gameplay->player = nullptr;
     gameplay->score = 0;
     gameplay->gameover_transition = malloc(sizeof(SceneTransition));
@@ -37,8 +38,10 @@ void init_gameplay(Gameplay *gameplay,
     memcpy(gameplay->gameover_transition, gameover_transition, sizeof(SceneTransition));
 }
 
-void start_gameplay(Gameplay *gameplay, bool restart, VectorU size, bool enable_terrain_generation) {
+void start_gameplay(Gameplay *gameplay, bool restart, VectorU size, bool enable_terrain_generation, bool lock_view) {
     partially_free_gameplay(gameplay);
+
+    gameplay->lock_view = restart ? gameplay->lock_view : lock_view;
 
     VectorU world_size = restart ? gameplay->world.cell_matrix.size : size;
     bool terrain_generation = restart ? gameplay->world.has_terrain : enable_terrain_generation;
@@ -54,13 +57,13 @@ void create_player(Gameplay *gameplay, Vector position) {
     Entity *entity = allocate_entity(&gameplay->entities);
     gameplay->player = entity;
 
-    *gameplay->player = create_player_entity(get_cell_ref_vec(&gameplay->world.cell_matrix, position), position);
+    init_player_entity(gameplay->player, get_cell_ref_vec(&gameplay->world.cell_matrix, position), position);
 }
 
 void create_enemy(Gameplay *gameplay, Vector position) {
     Entity *entity = allocate_entity(&gameplay->entities);
 
-    *entity = create_enemy_entity(get_cell_ref_vec(&gameplay->world.cell_matrix, position), position);
+    init_enemy_entity(entity, get_cell_ref_vec(&gameplay->world.cell_matrix, position), position);
 }
 
 void update_enemy(Gameplay *gameplay, Entity *enemy) {
@@ -84,14 +87,13 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
         target_direction_y = -1;
     }
 
-    Cell *target_cell =
-        get_cell_ref_vec(&gameplay->world.cell_matrix,
-                         create_vector(position.x + target_direction_x, position.y + target_direction_y));
+    Cell *target_cell = get_cell_ref_vec(&gameplay->world.cell_matrix,
+                                         VECTOR(position.x + target_direction_x, position.y + target_direction_y));
 
     has_free_path = target_cell->type == VOID || target_cell->type == PLAYER;
 
     if (has_free_path) {
-        enemy->direction = create_vector(target_direction_x, target_direction_y);
+        enemy->direction = VECTOR(target_direction_x, target_direction_y);
 
         return;
     }
@@ -106,7 +108,7 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
     for (int32_t j = position.y - 1; j < position.y + 2; j++) {
         for (int32_t k = position.x - 1; k < position.x + 2; k++) {
             if (j != position.y || k != position.x) {
-                adjacent_position_vector = create_vector(k, j);
+                adjacent_position_vector = VECTOR(k, j);
                 Cell *cell = get_cell_ref_vec(&gameplay->world.cell_matrix, adjacent_position_vector);
 
                 float penalty = j == enemy->previous_position.y && k == enemy->previous_position.x ? 1.0f : 0.0f;
@@ -133,8 +135,10 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
 }
 
 void update_entities_movement(Gameplay *gameplay) {
-    EntityListIterator iterator = create_entity_list_iterator(&gameplay->entities);
+    EntityListIterator iterator;
     EntityListIterator *it = &iterator;
+
+    init_entity_list_iterator(it, &gameplay->entities);
 
     pthread_mutex_lock(&gameplay->world_mutex);
     while (it != nullptr) {
@@ -186,7 +190,7 @@ void generate_enemy(Gameplay *gameplay) {
     VectorU size = gameplay->world.cell_matrix.size;
 
     while (true) {
-        Vector position = create_vector(inclusive_random(1, size.x - 2), inclusive_random(1, size.y - 2));
+        Vector position = VECTOR(inclusive_random(1, size.x - 2), inclusive_random(1, size.y - 2));
 
         if (vector_distance(gameplay->player->position, position) > MIN_ENEMY_SPAWN_DISTANCE) {
             Cell *cell = get_cell_ref_vec(&gameplay->world.cell_matrix, position);

@@ -24,14 +24,15 @@ struct EntityListIterator {
     Entity *entity;
 };
 
-static inline EntityListIterator create_entity_list_iterator(EntityList *entities) {
-    EntityListIterator iterator = {entities->head, 0, nullptr};
+static inline void init_entity_list_iterator(EntityListIterator *iterator, EntityList *entities) {
+    iterator->block = entities->head;
+    iterator->block_index = 0;
 
     if (entities->head != nullptr && entities->head->size > 0) {
-        iterator.entity = &entities->head->entities[0];
+        iterator->entity = &entities->head->entities[0];
+    } else {
+        iterator->entity = nullptr;
     }
-
-    return iterator;
 }
 
 static inline void init_entity_block(EntityBlock *block, EntityBlock *previous) {

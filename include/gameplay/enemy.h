@@ -9,6 +9,7 @@ static const enum Color ENEMY_COLOR = RED;
 static const float ENEMY_SPEED = 10.0f;
 static const Vector DIRECTIONS[8] = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
 
-static inline Entity create_enemy_entity(Cell *cell, Vector position) {
-    return create_entity(cell, position, create_cell(ENEMY_CHARACTERS, ENEMY_ANIMATION_LENGTH, ENEMY_COLOR, ENEMY));
+static inline void init_enemy_entity(Entity *entity, Cell *cell, Vector position) {
+    init_cell(cell, ENEMY_CHARACTERS, ENEMY_ANIMATION_LENGTH, ENEMY_COLOR, ENEMY);
+    init_entity(entity, cell, position);
 }

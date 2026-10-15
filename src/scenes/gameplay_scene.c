@@ -20,13 +20,17 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
     uint32_t columns;
 
     ncplane_dim_yx(parent_plane, &rows, &columns);
-    VectorU parent_size = create_vector_u(columns, rows);
+    VectorU parent_size = VECTOR_U(columns, rows);
 
-    SceneTransition pause_transition = create_scene_transition(scene_context, (Scene *)&scene_context->pause_scene);
-    SceneTransition gameover_transition =
-        create_scene_transition(scene_context, (Scene *)&scene_context->gameover_scene);
+    SceneTransition pause_transition;
+    SceneTransition gameover_transition;
 
-    GameplaySceneArgs pause_transition_args = create_gameplay_scene_args(PAUSE, false, VECTORU_ZERO);
+    init_scene_transition(&pause_transition, scene_context, (Scene *)&scene_context->pause_scene);
+    init_scene_transition(&gameover_transition, scene_context, (Scene *)&scene_context->gameover_scene);
+
+    GameplaySceneArgs pause_transition_args;
+
+    init_gameplay_scene_args(&pause_transition_args, PAUSE, false, false, VECTORU_ZERO);
 
     serialize_gameplay_scene_transition_args(&pause_transition_args, pause_transition.args);
 
@@ -58,7 +62,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               strlen(float_label),
               WHITE,
               DEFAULT_BACKGROUND,
-              create_vector(5, 0),
+              VECTOR(5, 0),
               BOTTOM_LEFT,
               parent_size);
 
@@ -67,7 +71,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               strlen(TICKS_LABEL),
               WHITE,
               DEFAULT_BACKGROUND,
-              create_vector(17, 0),
+              VECTOR(17, 0),
               BOTTOM_LEFT,
               parent_size);
 
@@ -76,7 +80,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               strlen(float_label),
               WHITE,
               DEFAULT_BACKGROUND,
-              create_vector(22, 0),
+              VECTOR(22, 0),
               BOTTOM_LEFT,
               parent_size);
 
@@ -85,7 +89,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               strlen(SCORE_LABEL),
               WHITE,
               DEFAULT_BACKGROUND,
-              create_vector(-21, 0),
+              VECTOR(-21, 0),
               BOTTOM_RIGHT,
               parent_size);
 
@@ -94,7 +98,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               strlen(int_label),
               WHITE,
               DEFAULT_BACKGROUND,
-              create_vector(-16, 0),
+              VECTOR(-16, 0),
               BOTTOM_RIGHT,
               parent_size);
 
@@ -121,7 +125,8 @@ void enter_gameplay_scene(void *gameplay_scene, void *args) {
         start_gameplay(&scene->gameplay,
                        scene_args.transition_mode == RESTART,
                        scene_args.world_size,
-                       scene_args.enable_terrain_generation);
+                       scene_args.enable_terrain_generation,
+                       scene_args.lock_view);
     }
 
     ncplane_move_yx(scene->base.plane, 0, 0);
@@ -174,7 +179,7 @@ int gameplay_resize_callback(struct ncplane *parent_plane) {
     uint32_t columns;
 
     ncplane_dim_yx(gameplay_scene->base.parent_plane, &rows, &columns);
-    VectorU parent_size = create_vector_u(columns, rows);
+    VectorU parent_size = VECTOR_U(columns, rows);
 
     resize_scene(&gameplay_scene->base, parent_size);
 

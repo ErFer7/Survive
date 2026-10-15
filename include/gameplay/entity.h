@@ -17,12 +17,13 @@ struct Entity {
     Vector previous_position;
 };
 
-static inline Entity create_entity(Cell *cell_ref, Vector position, const Cell cell) {
-    *cell_ref = cell;
-
-    Entity entity = {cell_ref, position, 0.0f, 1.0f, VECTOR_ZERO, VECTOR_ZERO};
-
-    return entity;
+static inline void init_entity(Entity *entity, Cell *cell, Vector position) {
+    entity->cell = cell;
+    entity->position = position;
+    entity->movement_acumulator = 0.0f;
+    entity->speed_modifier = 1.0f;
+    entity->direction = VECTOR_ZERO;
+    entity->previous_position = VECTOR_ZERO;
 }
 
 // Speed: cells/s

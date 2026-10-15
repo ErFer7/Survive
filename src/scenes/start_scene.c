@@ -37,25 +37,33 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
     uint32_t columns;
 
     ncplane_dim_yx(parent_plane, &rows, &columns);
-    VectorU parent_size = create_vector_u(columns, rows);
+    VectorU parent_size = VECTOR_U(columns, rows);
 
-    SceneTransition menu_transition = create_scene_transition(scene_context, (Scene *)&scene_context->menu_scene);
-    SceneTransition gameplay_transition_regular =
-        create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
-    SceneTransition gameplay_transition_small =
-        create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
-    SceneTransition gameplay_transition_large =
-        create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
-    SceneTransition gameplay_transition_mega =
-        create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
-    SceneTransition gameplay_transition_classic =
-        create_scene_transition(scene_context, (Scene *)&scene_context->gameplay_scene);
+    SceneTransition menu_transition;
+    SceneTransition gameplay_transition_regular;
+    SceneTransition gameplay_transition_small;
+    SceneTransition gameplay_transition_large;
+    SceneTransition gameplay_transition_mega;
+    SceneTransition gameplay_transition_classic;
 
-    GameplaySceneArgs regular_world_args = create_gameplay_scene_args(START, true, REGULAR_WORLD_SIZE);
-    GameplaySceneArgs small_world_args = create_gameplay_scene_args(START, true, SMALL_WORLD_SIZE);
-    GameplaySceneArgs large_world_args = create_gameplay_scene_args(START, true, LARGE_WORLD_SIZE);
-    GameplaySceneArgs mega_world_args = create_gameplay_scene_args(START, true, MEGA_WORLD_SIZE);
-    GameplaySceneArgs classic_world_args = create_gameplay_scene_args(START, false, CLASSIC_WORLD_SIZE);
+    init_scene_transition(&menu_transition, scene_context, (Scene *)&scene_context->menu_scene);
+    init_scene_transition(&gameplay_transition_regular, scene_context, (Scene *)&scene_context->gameplay_scene);
+    init_scene_transition(&gameplay_transition_small, scene_context, (Scene *)&scene_context->gameplay_scene);
+    init_scene_transition(&gameplay_transition_large, scene_context, (Scene *)&scene_context->gameplay_scene);
+    init_scene_transition(&gameplay_transition_mega, scene_context, (Scene *)&scene_context->gameplay_scene);
+    init_scene_transition(&gameplay_transition_classic, scene_context, (Scene *)&scene_context->gameplay_scene);
+
+    GameplaySceneArgs regular_world_args;
+    GameplaySceneArgs small_world_args;
+    GameplaySceneArgs large_world_args;
+    GameplaySceneArgs mega_world_args;
+    GameplaySceneArgs classic_world_args;
+
+    init_gameplay_scene_args(&regular_world_args, START, false, true, REGULAR_WORLD_SIZE);
+    init_gameplay_scene_args(&small_world_args, START, false, true, SMALL_WORLD_SIZE);
+    init_gameplay_scene_args(&large_world_args, START, false, true, LARGE_WORLD_SIZE);
+    init_gameplay_scene_args(&mega_world_args, START, false, true, MEGA_WORLD_SIZE);
+    init_gameplay_scene_args(&classic_world_args, START, true, false, CLASSIC_WORLD_SIZE);
 
     serialize_gameplay_scene_transition_args(&regular_world_args, gameplay_transition_regular.args);
     serialize_gameplay_scene_transition_args(&small_world_args, gameplay_transition_small.args);
@@ -79,7 +87,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
               strlen(TITLE),
               RED,
               DEFAULT_BACKGROUND,
-              create_vector(0, 4),
+              VECTOR(0, 4),
               TOP,
               parent_size);
 
@@ -97,7 +105,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
               strlen(WARNING),
               YELLOW,
               DEFAULT_BACKGROUND,
-              create_vector(0, 1),
+              VECTOR(0, 1),
               CENTER,
               parent_size);
 
@@ -106,7 +114,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 strlen(REGULAR_BUTTON),
                 RED,
                 DEFAULT_BACKGROUND,
-                create_vector(0, 3),
+                VECTOR(0, 3),
                 CENTER,
                 parent_size,
                 &gameplay_transition_regular,
@@ -118,7 +126,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 strlen(SMALL_BUTTON),
                 RED,
                 DEFAULT_BACKGROUND,
-                create_vector(0, 4),
+                VECTOR(0, 4),
                 CENTER,
                 parent_size,
                 &gameplay_transition_small,
@@ -130,7 +138,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 strlen(LARGE_BUTTON),
                 RED,
                 DEFAULT_BACKGROUND,
-                create_vector(0, 5),
+                VECTOR(0, 5),
                 CENTER,
                 parent_size,
                 &gameplay_transition_large,
@@ -142,7 +150,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 strlen(MEGA_BUTTON),
                 RED,
                 DEFAULT_BACKGROUND,
-                create_vector(0, 6),
+                VECTOR(0, 6),
                 CENTER,
                 parent_size,
                 &gameplay_transition_mega,
@@ -154,7 +162,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 strlen(CLASSIC_BUTTON),
                 RED,
                 DEFAULT_BACKGROUND,
-                create_vector(0, 7),
+                VECTOR(0, 7),
                 CENTER,
                 parent_size,
                 &gameplay_transition_classic,
@@ -166,7 +174,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 strlen(BACK_BUTTON),
                 WHITE,
                 DEFAULT_BACKGROUND,
-                create_vector(0, 9),
+                VECTOR(0, 9),
                 CENTER,
                 parent_size,
                 &menu_transition,
@@ -218,7 +226,7 @@ int start_resize_callback(struct ncplane *parent_plane) {
     uint32_t columns;
 
     ncplane_dim_yx(start_scene->base.parent_plane, &rows, &columns);
-    VectorU parent_size = create_vector_u(columns, rows);
+    VectorU parent_size = VECTOR_U(columns, rows);
 
     resize_scene(&start_scene->base, parent_size);
 

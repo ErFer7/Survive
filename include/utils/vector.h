@@ -9,12 +9,6 @@
         TYPE y;                   \
     } NAME;
 
-#define DEFINE_CREATE_VECTOR(NAME, TYPE, FUNCTION_NAME)         \
-    static inline NAME create_##FUNCTION_NAME(TYPE x, TYPE y) { \
-        NAME result = {x, y};                                   \
-        return result;                                          \
-    }
-
 #define DEFINE_ADD_VECTOR(NAME, TYPE, FUNCTION_NAME)         \
     static inline NAME add_##FUNCTION_NAME(NAME v, NAME w) { \
         NAME result;                                         \
@@ -94,48 +88,39 @@
 
 DEFINE_VECTOR(Vector, int32_t)
 DEFINE_VECTOR(VectorU, uint32_t)
-DEFINE_VECTOR(VectorF, float)
 
-DEFINE_CREATE_VECTOR(Vector, int32_t, vector)
-DEFINE_CREATE_VECTOR(VectorU, uint32_t, vector_u)
-DEFINE_CREATE_VECTOR(VectorF, float, vector_f)
+#define VECTOR(x, y) \
+    (Vector) { x, y }
+
+#define VECTOR_U(x, y) \
+    (VectorU) { x, y }
 
 DEFINE_ADD_VECTOR(Vector, int32_t, vector)
 DEFINE_ADD_VECTOR(VectorU, uint32_t, vector_u)
-DEFINE_ADD_VECTOR(Vector, float, vector_f)
 
 DEFINE_SUB_VECTOR(Vector, int32_t, vector)
 DEFINE_SUB_VECTOR(VectorU, uint32_t, vector_u)
-DEFINE_SUB_VECTOR(Vector, float, vector_f)
 
 DEFINE_MULTIPLY_VECTOR(Vector, int32_t, vector)
 DEFINE_MULTIPLY_VECTOR(VectorU, uint32_t, vector_u)
-DEFINE_MULTIPLY_VECTOR(Vector, float, vector_f)
 
 DEFINE_MULTIPLY_VECTOR_BY_SCALAR(Vector, int32_t, vector)
 DEFINE_MULTIPLY_VECTOR_BY_SCALAR(VectorU, uint32_t, vector_u)
-DEFINE_MULTIPLY_VECTOR_BY_SCALAR(Vector, float, vector_f)
 
 DEFINE_DIVIDE_VECTOR(Vector, int32_t, vector)
 DEFINE_DIVIDE_VECTOR(VectorU, uint32_t, vector_u)
-DEFINE_DIVIDE_VECTOR(Vector, float, vector_f)
 
 DEFINE_DIVIDE_VECTOR_BY_SCALAR(Vector, int32_t, vector)
 DEFINE_DIVIDE_VECTOR_BY_SCALAR(VectorU, uint32_t, vector_u)
-DEFINE_DIVIDE_VECTOR_BY_SCALAR(Vector, float, vector_f)
 
-DEFINE_VECTOR_CONVERSION(Vector, float, VectorF, vector, vector_f)
-DEFINE_VECTOR_CONVERSION(VectorF, int32_t, Vector, vector_f, vector)
 DEFINE_VECTOR_CONVERSION(Vector, uint32_t, VectorU, vector, vector_u)
 DEFINE_VECTOR_CONVERSION(VectorU, int32_t, Vector, vector_u, vector)
 
 DEFINE_DISTANCE(Vector, vector, int32_t)
 DEFINE_DISTANCE(VectorU, vector_u, int32_t)
-DEFINE_DISTANCE(VectorF, vector_f, float)
 
 DEFINE_IS_ZERO(Vector, vector)
 DEFINE_IS_ZERO(VectorU, vector_u)
 
 static const Vector VECTOR_ZERO = {0, 0};
 static const VectorU VECTORU_ZERO = {0U, 0U};
-static const VectorF VECTOR_F_ZERO = {0.0f, 0.0f};

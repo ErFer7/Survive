@@ -42,9 +42,11 @@ void transition(void *scene_transition);
 void quit(void *scene_context);
 void free_scene_context(SceneContext *scene_context);
 
-static inline SceneTransition create_scene_transition(SceneContext *scene_context, Scene *next_scene) {
-    SceneTransition scene_transition = {scene_context, next_scene, {}};
-    memset(&scene_transition.args, 0, TRANSITION_ARGS_SIZE);
+static inline void init_scene_transition(SceneTransition *scene_transition,
+                                         SceneContext *scene_context,
+                                         Scene *next_scene) {
+    scene_transition->scene_context = scene_context;
+    scene_transition->next_scene = next_scene;
 
-    return scene_transition;
+    memset(&scene_transition->args, 0, TRANSITION_ARGS_SIZE);
 }

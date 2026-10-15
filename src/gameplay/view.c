@@ -119,11 +119,13 @@ void generate_effects(View *view, VectorU size) {
                                        VIEW_PERLIN_NOISE_PERSISTENCE,
                                        VIEW_PERLIN_NOISE_OCTAVES,
                                        (int)view->perlin_seed);
+            Cell cell;
 
-            Cell cell = create_cell(VIEW_EFFECTS_CHARACTER,
-                                    VIEW_EFFECTS_CELL_ANIMATION_LENGTH,
-                                    fabsf(noise) * VIEW_MAX_OUTSIZE_COLOR,
-                                    VOID);
+            init_cell(&cell,
+                      VIEW_EFFECTS_CHARACTER,
+                      VIEW_EFFECTS_CELL_ANIMATION_LENGTH,
+                      fabsf(noise) * VIEW_MAX_OUTSIZE_COLOR,
+                      VOID);
 
             set_cell_xy(&view->cell_matrix, row, column, cell);
         }
