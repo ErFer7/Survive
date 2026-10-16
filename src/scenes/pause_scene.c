@@ -36,6 +36,8 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
 
     init_scene_transition(&resume_transition, scene_context, (Scene *)&scene_context->gameplay_scene);
     init_scene_transition(&restart_transition, scene_context, (Scene *)&scene_context->gameplay_scene);
+
+    // FIX: Update the score when leaving too
     init_scene_transition(&gameover_transition, scene_context, (Scene *)&scene_context->gameover_scene);
 
     GameplaySceneArgs resume_world_args;
