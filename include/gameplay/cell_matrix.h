@@ -38,8 +38,6 @@ static inline void set_cell_xy(CellMatrix *cell_matrix, int32_t row, int32_t col
 
 static inline Cell *get_cell_ref_vec(CellMatrix *cell_matrix, Vector position) {
     return &cell_matrix->matrix[cell_matrix->size.x * position.y + position.x];
-
-    return nullptr;
 }
 
 static inline Cell *get_cell_ref_vec_wrapped(CellMatrix *cell_matrix, Vector position) {
