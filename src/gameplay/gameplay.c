@@ -145,7 +145,7 @@ void update_entities_movement(Gameplay *gameplay) {
         Entity *entity = it->entity;
 
         if (!vector_is_zero(entity->direction)) {
-            // This is ok for this game, since there is only two entities
+            // This is ok for this game, since there are only two entities
             const float speed = entity->cell->type == PLAYER ? PLAYER_SPEED : ENEMY_SPEED;
 
             accumulate_movement(entity, speed * entity->speed_modifier);
