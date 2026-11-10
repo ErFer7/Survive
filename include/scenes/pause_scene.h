@@ -9,10 +9,11 @@ DEFINE_INIT_INTERFACE(PauseInterface, pause)
 struct PauseScene {
     Scene base;
     PauseInterface interface;
+    uint32_t temporary_score;
 };
 
 void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, SceneContext *scene_context);
-void enter_pause_scene(void *pause_scene, void *);
+void enter_pause_scene(void *pause_scene, void *args);
 void update_pause_scene(void *scene_context);
 void draw_pause_scene(void *pause_scene);
 void exit_pause_scene(void *pause_scene, void *);

@@ -65,11 +65,11 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
     init_gameplay_scene_args(&mega_world_args, START, false, true, MEGA_WORLD_SIZE);
     init_gameplay_scene_args(&classic_world_args, START, true, false, CLASSIC_WORLD_SIZE);
 
-    serialize_gameplay_scene_transition_args(&regular_world_args, gameplay_transition_regular.args);
-    serialize_gameplay_scene_transition_args(&small_world_args, gameplay_transition_small.args);
-    serialize_gameplay_scene_transition_args(&large_world_args, gameplay_transition_large.args);
-    serialize_gameplay_scene_transition_args(&mega_world_args, gameplay_transition_mega.args);
-    serialize_gameplay_scene_transition_args(&classic_world_args, gameplay_transition_classic.args);
+    memcpy(gameplay_transition_regular.enter_args, &regular_world_args, sizeof(GameplaySceneArgs));
+    memcpy(gameplay_transition_small.enter_args, &small_world_args, sizeof(GameplaySceneArgs));
+    memcpy(gameplay_transition_large.enter_args, &large_world_args, sizeof(GameplaySceneArgs));
+    memcpy(gameplay_transition_mega.enter_args, &mega_world_args, sizeof(GameplaySceneArgs));
+    memcpy(gameplay_transition_classic.enter_args, &classic_world_args, sizeof(GameplaySceneArgs));
 
     init_scene(&start_scene->base,
                start_scene,

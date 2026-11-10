@@ -18,11 +18,3 @@ void draw_gameover_scene(void *gameover_scene);
 void exit_gameover_scene(void *gameover_scene, void *);
 int gameover_resize_callback(struct ncplane *parent_plane);
 void free_gameover_scene(GameoverScene *gameover_scene);
-
-static inline void serialize_gameover_scene_transition_args(uint32_t *score, byte *arg_buffer) {
-    memcpy(arg_buffer, score, sizeof(uint32_t));
-}
-
-static inline void deserialize_gameover_scene_transition_args(uint32_t *score, byte *arg_buffer) {
-    memcpy(score, arg_buffer, sizeof(uint32_t));
-}

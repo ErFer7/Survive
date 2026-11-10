@@ -80,7 +80,7 @@ void draw_world_on_view(View *view, World *world) {
     for (int32_t row = origin_row; row < (int32_t)view->position.y + half_height; row++) {
         for (int32_t column = origin_column; column < (int32_t)view->position.x + half_width; column++) {
             if (row >= 0 && (uint32_t)row < world_size.y && column >= 0 && (uint32_t)column < world_size.x) {
-                Cell *cell = get_cell_ref_xy(&world->cell_matrix, row, column);
+                Cell *cell = get_cell_ptr_xy(&world->cell_matrix, row, column);
 
                 cell->animation_index += (1.0f / (float)RENDER_FREQUENCY) * ANIMATION_SPEED;
 
@@ -96,7 +96,7 @@ void draw_world_on_view(View *view, World *world) {
                 float rotated_column = normalized_row * sin_angle + normalized_column * cos_angle;
 
                 Cell *outsize_cell =
-                    get_cell_ref_xy_wrapped(&view->cell_matrix, (int32_t)rotated_row, (int32_t)rotated_column);
+                    get_cell_ptr_xy_wrapped(&view->cell_matrix, (int32_t)rotated_row, (int32_t)rotated_column);
 
                 ncplane_putc_yx(view->plane, row - origin_row, column - origin_column, &outsize_cell->cell);
 #else

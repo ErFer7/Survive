@@ -57,13 +57,13 @@ void create_player(Gameplay *gameplay, Vector position) {
     Entity *entity = allocate_entity(&gameplay->entities);
     gameplay->player = entity;
 
-    init_player_entity(gameplay->player, get_cell_ref_vec(&gameplay->world.cell_matrix, position), position);
+    init_player_entity(gameplay->player, get_cell_ptr_vec(&gameplay->world.cell_matrix, position), position);
 }
 
 void create_enemy(Gameplay *gameplay, Vector position) {
     Entity *entity = allocate_entity(&gameplay->entities);
 
-    init_enemy_entity(entity, get_cell_ref_vec(&gameplay->world.cell_matrix, position), position);
+    init_enemy_entity(entity, get_cell_ptr_vec(&gameplay->world.cell_matrix, position), position);
 }
 
 void update_enemy(Gameplay *gameplay, Entity *enemy) {
@@ -87,7 +87,7 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
         target_direction_y = -1;
     }
 
-    Cell *target_cell = get_cell_ref_vec(&gameplay->world.cell_matrix,
+    Cell *target_cell = get_cell_ptr_vec(&gameplay->world.cell_matrix,
                                          VECTOR(position.x + target_direction_x, position.y + target_direction_y));
 
     has_free_path = target_cell->type == VOID || target_cell->type == PLAYER;
@@ -109,7 +109,7 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
         for (int32_t k = position.x - 1; k < position.x + 2; k++) {
             if (j != position.y || k != position.x) {
                 adjacent_position_vector = VECTOR(k, j);
-                Cell *cell = get_cell_ref_vec(&gameplay->world.cell_matrix, adjacent_position_vector);
+                Cell *cell = get_cell_ptr_vec(&gameplay->world.cell_matrix, adjacent_position_vector);
 
                 float penalty = j == enemy->previous_position.y && k == enemy->previous_position.x ? 1.0f : 0.0f;
 
@@ -154,13 +154,14 @@ void update_entities_movement(Gameplay *gameplay) {
         if (check_and_reset_movement_accumulator(entity)) {
             Vector new_position = add_vector(entity->position, entity->direction);
 
-            Cell *new_cell = get_cell_ref_vec(&gameplay->world.cell_matrix, new_position);
+            Cell *new_cell = get_cell_ptr_vec(&gameplay->world.cell_matrix, new_position);
 
             if (solve_collision(gameplay, entity, new_cell)) {
                 move_entity(entity, new_cell, new_position);
             } else {
                 if (gameplay->player == nullptr) {  // Someone killed us!
-                    serialize_gameover_scene_transition_args(&gameplay->score, gameplay->gameover_transition->args);
+                    // FIX: The gameplay scene args should be populated here
+                    memcpy(gameplay->gameover_transition->args, &gameplay->score, sizeof(uint32_t));
 
                     transition(gameplay->gameover_transition);
                     break;
@@ -193,7 +194,7 @@ void generate_enemy(Gameplay *gameplay) {
         Vector position = VECTOR(inclusive_random(1, size.x - 2), inclusive_random(1, size.y - 2));
 
         if (vector_distance(gameplay->player->position, position) > MIN_ENEMY_SPAWN_DISTANCE) {
-            Cell *cell = get_cell_ref_vec(&gameplay->world.cell_matrix, position);
+            Cell *cell = get_cell_ptr_vec(&gameplay->world.cell_matrix, position);
 
             if (cell->type == VOID) {
                 create_enemy(gameplay, position);

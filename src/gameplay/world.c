@@ -87,7 +87,7 @@ void generate_coin(World *world) {
     while (true) {
         Vector position = VECTOR(inclusive_random(1, size.x - 2), inclusive_random(1, size.y - 2));
 
-        Cell *cell = get_cell_ref_vec(&world->cell_matrix, position);
+        Cell *cell = get_cell_ptr_vec(&world->cell_matrix, position);
 
         if (cell->type == VOID) {
             create_coin(world, position);
