@@ -160,8 +160,13 @@ void update_entities_movement(Gameplay *gameplay) {
                 move_entity(entity, new_cell, new_position);
             } else {
                 if (gameplay->player == nullptr) {  // Someone killed us!
-                    // FIX: The gameplay scene args should be populated here
-                    memcpy(gameplay->gameover_transition->args, &gameplay->score, sizeof(uint32_t));
+                    memcpy(gameplay->gameover_transition->enter_args, &gameplay->score, sizeof(uint32_t));
+
+                    enum GameplayTransitionMode exit_transition_mode = GAMEOVER;
+
+                    memcpy(gameplay->gameover_transition->exit_args,
+                           &exit_transition_mode,
+                           sizeof(enum GameplayTransitionMode));
 
                     transition(gameplay->gameover_transition);
                     break;

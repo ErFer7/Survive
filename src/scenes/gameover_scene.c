@@ -32,17 +32,14 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
     ncplane_dim_yx(parent_plane, &rows, &columns);
     VectorU parent_size = VECTOR_U(columns, rows);
 
-    SceneTransition restart_transition;
-    SceneTransition menu_transition;
+    init_scene_transition(&gameover_scene->restart_transition, scene_context, (Scene *)&scene_context->gameplay_scene);
+    init_scene_transition(&gameover_scene->menu_transition, scene_context, (Scene *)&scene_context->menu_scene);
 
-    init_scene_transition(&restart_transition, scene_context, (Scene *)&scene_context->gameplay_scene);
-    init_scene_transition(&menu_transition, scene_context, (Scene *)&scene_context->menu_scene);
-
-    GameplaySceneArgs restart_world_args;
+    GameplaySceneEnterArgs restart_world_args;
 
     init_gameplay_scene_args(&restart_world_args, RESTART, false, false, VECTORU_ZERO);
 
-    memcpy(restart_transition.args, &restart_world_args, sizeof(GameplaySceneArgs));
+    memcpy(gameover_scene->restart_transition.enter_args, &restart_world_args, sizeof(GameplaySceneEnterArgs));
 
     init_scene(&gameover_scene->base,
                gameover_scene,
@@ -90,8 +87,7 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
                 VECTOR(0, 2),
                 CENTER,
                 parent_size,
-                &restart_transition,
-                sizeof(SceneTransition),
+                &gameover_scene->restart_transition,
                 &transition);
 
     init_button(&gameover_scene->interface.buttons[1],
@@ -102,11 +98,10 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
                 VECTOR(0, 4),
                 CENTER,
                 parent_size,
-                &menu_transition,
-                sizeof(SceneTransition),
+                &gameover_scene->menu_transition,
                 &transition);
 
-    init_gameover_interface(&gameover_scene->interface, &menu_transition, sizeof(SceneTransition), &transition);
+    init_gameover_interface(&gameover_scene->interface, &gameover_scene->menu_transition, &transition);
 }
 
 void enter_gameover_scene(void *gameover_scene, void *args) {
@@ -180,6 +175,5 @@ void free_gameover_scene(GameoverScene *gameover_scene) {
     free_interface(gameover_scene->interface.texts,
                    sizeof(gameover_scene->interface.texts) / sizeof(Text),
                    gameover_scene->interface.buttons,
-                   sizeof(gameover_scene->interface.buttons) / sizeof(Button),
-                   gameover_scene->interface.escape_handler_arg);
+                   sizeof(gameover_scene->interface.buttons) / sizeof(Button));
 }

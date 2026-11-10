@@ -19,13 +19,17 @@ enum GameplayTransitionMode {
     RESTART = GENERATE | PRESERVE,
 
     IGNORE = 0b1000,
+    FREE = 0b10000,
     RESUME = IGNORE,
     PAUSE = IGNORE,
+    GAMEOVER = FREE,
 };
 
 struct GameplayScene {
     Scene base;
     GameplayInterface interface;
+    SceneTransition pause_transition;
+    SceneTransition gameover_transition;
     Gameplay gameplay;
 };
 
@@ -36,18 +40,13 @@ struct GameplaySceneEnterArgs {
     VectorU world_size;
 };
 
-struct PauseTransitionWrapperArg {
-    uint32_t *score_ptr;
-    SceneTransition scene_transition;
-};
-
 void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_plane, SceneContext *scene_context);
 void enter_gameplay_scene(void *gameplay_scene, void *args);
 void update_gameplay_scene(void *scene_context);
 void draw_gameplay_scene(void *gameplay_scene);
 void exit_gameplay_scene(void *gameplay_scene, void *args);
 int gameplay_resize_callback(struct ncplane *parent_plane);
-void pause_transition_wrapper(void *arg);
+void pause_transition_wrapper(void *gameplay_scene);
 void free_gameplay_scene(GameplayScene *gameplay_scene);
 
 static inline void init_gameplay_scene_args(GameplaySceneEnterArgs *gameplay_scene_args,
@@ -59,11 +58,4 @@ static inline void init_gameplay_scene_args(GameplaySceneEnterArgs *gameplay_sce
     gameplay_scene_args->enable_terrain_generation = enable_terrain_generation;
     gameplay_scene_args->lock_view = lock_view;
     gameplay_scene_args->world_size = world_size;
-}
-
-static inline void init_pause_transition_wrapper_arg(PauseTransitionWrapperArg *arg,
-                                                     uint32_t *score_ptr,
-                                                     SceneTransition scene_transition) {
-    arg->score_ptr = score_ptr;
-    arg->scene_transition = scene_transition;
 }

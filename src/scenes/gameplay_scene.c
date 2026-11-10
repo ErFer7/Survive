@@ -26,21 +26,12 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
     ncplane_dim_yx(parent_plane, &rows, &columns);
     VectorU parent_size = VECTOR_U(columns, rows);
 
-    PauseTransitionWrapperArg pause_transition_wrapper_arg;
-    SceneTransition gameover_transition;
-
-    pause_transition_wrapper_arg.score_ptr = &gameplay_scene->gameplay.score;
-
-    init_scene_transition(&pause_transition_wrapper_arg.scene_transition,
-                          scene_context,
-                          (Scene *)&scene_context->pause_scene);
-    init_scene_transition(&gameover_transition, scene_context, (Scene *)&scene_context->gameover_scene);
+    init_scene_transition(&gameplay_scene->pause_transition, scene_context, (Scene *)&scene_context->pause_scene);
+    init_scene_transition(&gameplay_scene->gameover_transition, scene_context, (Scene *)&scene_context->gameover_scene);
 
     enum GameplayTransitionMode exit_transition_mode = PAUSE;
 
-    memcpy(pause_transition_wrapper_arg.scene_transition.exit_args,
-           &exit_transition_mode,
-           sizeof(enum GameplayTransitionMode));
+    memcpy(gameplay_scene->pause_transition.exit_args, &exit_transition_mode, sizeof(enum GameplayTransitionMode));
 
     init_scene(&gameplay_scene->base,
                gameplay_scene,
@@ -107,15 +98,12 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               BOTTOM_RIGHT,
               parent_size);
 
-    init_gameplay_interface(&gameplay_scene->interface,
-                            &pause_transition_wrapper_arg,
-                            sizeof(PauseTransitionWrapperArg),
-                            &pause_transition_wrapper);
+    init_gameplay_interface(&gameplay_scene->interface, gameplay_scene, &pause_transition_wrapper);
 
     init_gameplay(&gameplay_scene->gameplay,
                   vector_to_vector_u(add_vector(vector_u_to_vector(parent_size), VIEW_SIZE_OFFSET)),
                   parent_size,
-                  &gameover_transition,
+                  &gameplay_scene->gameover_transition,
                   &gameplay_scene->interface.texts[5],
                   gameplay_scene->base.plane);
 
@@ -204,22 +192,16 @@ int gameplay_resize_callback(struct ncplane *parent_plane) {
     return 0;
 }
 
-void pause_transition_wrapper(void *arg) {
-    PauseTransitionWrapperArg *pause_transition_wrapper_arg = (PauseTransitionWrapperArg *)arg;
+void pause_transition_wrapper(void *gameplay_scene) {
+    GameplayScene *scene = (GameplayScene *)gameplay_scene;
 
-    memcpy(pause_transition_wrapper_arg->scene_transition.enter_args,
-           pause_transition_wrapper_arg->score_ptr,
-           sizeof(uint32_t));
+    memcpy(scene->pause_transition.enter_args, &scene->gameplay.score, sizeof(uint32_t));
 
-    transition(&pause_transition_wrapper_arg->scene_transition);
+    transition(&scene->pause_transition);
 }
 
 void free_gameplay_scene(GameplayScene *gameplay_scene) {
     free_scene(&gameplay_scene->base);
-    free_interface(gameplay_scene->interface.texts,
-                   sizeof(gameplay_scene->interface.texts) / sizeof(Text),
-                   nullptr,
-                   0,
-                   gameplay_scene->interface.escape_handler_arg);
+    free_interface(gameplay_scene->interface.texts, sizeof(gameplay_scene->interface.texts) / sizeof(Text), nullptr, 0);
     free_gameplay(&gameplay_scene->gameplay);
 }

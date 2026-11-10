@@ -2,6 +2,7 @@
 
 #include "interface/interface.h"
 #include "scene.h"
+#include "scenes/scene_transition.h"
 
 DEFINE_INTERFACE(InfoInterface, 2, 1)
 DEFINE_INIT_INTERFACE(InfoInterface, info)
@@ -9,6 +10,7 @@ DEFINE_INIT_INTERFACE(InfoInterface, info)
 struct InfoScene {
     Scene base;
     InfoInterface interface;
+    SceneTransition menu_transition;
 };
 
 void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneContext *scene_context);

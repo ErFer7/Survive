@@ -17,7 +17,7 @@ static const char *TITLE =
     "███████║╚██████╔╝██║  ██║ ╚████╔╝ ██║ ╚████╔╝ ███████╗\n"
     "╚══════╝ ╚═════╝ ╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═══╝  ╚══════╝";
 
-static const char *VERSION = "v3.5.2";
+static const char *VERSION = "v3.5.3";
 
 static const char *START_BUTTON = " Start ";
 
@@ -32,11 +32,8 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
     ncplane_dim_yx(parent_plane, &rows, &columns);
     VectorU parent_size = VECTOR_U(columns, rows);
 
-    SceneTransition start_transition;
-    SceneTransition info_transition;
-
-    init_scene_transition(&start_transition, scene_context, (Scene *)&scene_context->start_scene);
-    init_scene_transition(&info_transition, scene_context, (Scene *)&scene_context->info_scene);
+    init_scene_transition(&menu_scene->start_transition, scene_context, (Scene *)&scene_context->start_scene);
+    init_scene_transition(&menu_scene->info_transition, scene_context, (Scene *)&scene_context->info_scene);
 
     init_scene(&menu_scene->base,
                menu_scene,
@@ -75,8 +72,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
                 VECTOR_ZERO,
                 CENTER,
                 parent_size,
-                &start_transition,
-                sizeof(SceneTransition),
+                &menu_scene->start_transition,
                 &transition);
 
     init_button(&menu_scene->interface.buttons[1],
@@ -87,8 +83,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
                 VECTOR(0, 2),
                 CENTER,
                 parent_size,
-                &info_transition,
-                sizeof(SceneTransition),
+                &menu_scene->info_transition,
                 &transition);
 
     init_button(&menu_scene->interface.buttons[2],
@@ -99,11 +94,10 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
                 VECTOR(0, 4),
                 CENTER,
                 parent_size,
-                &scene_context,
-                sizeof(SceneContext *),
+                scene_context,
                 &quit);
 
-    init_menu_interface(&menu_scene->interface, &scene_context, sizeof(SceneContext *), &quit);
+    init_menu_interface(&menu_scene->interface, scene_context, &quit);
 }
 
 void enter_menu_scene(void *menu_scene, void *) {
@@ -168,6 +162,5 @@ void free_menu_scene(MenuScene *menu_scene) {
     free_interface(menu_scene->interface.texts,
                    sizeof(menu_scene->interface.texts) / sizeof(Text),
                    menu_scene->interface.buttons,
-                   sizeof(menu_scene->interface.buttons) / sizeof(Button),
-                   menu_scene->interface.escape_handler_arg);
+                   sizeof(menu_scene->interface.buttons) / sizeof(Button));
 }

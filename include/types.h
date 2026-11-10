@@ -33,7 +33,6 @@ typedef struct PauseScene PauseScene;
 typedef struct GameoverScene GameoverScene;
 
 typedef struct GameplaySceneEnterArgs GameplaySceneEnterArgs;
-typedef struct PauseTransitionWrapperArg PauseTransitionWrapperArg;
 
 typedef struct PauseSceneEnterArgs PauseSceneEnterArgs;
 

@@ -82,18 +82,12 @@ void resize_interface(Text *texts, uint32_t text_count, Button *buttons, uint32_
 void free_interface(Text *texts,
                     uint32_t text_count,
                     Button *buttons,
-                    uint32_t button_count,
-                    void **escape_handler_arg) {
+                    uint32_t button_count) {
     for (uint32_t i = 0; i < text_count; i++) {
         free_text(&texts[i]);
     }
 
     for (uint32_t i = 0; i < button_count; i++) {
         free_button(&buttons[i]);
-    }
-
-    if (escape_handler_arg != nullptr) {
-        free(escape_handler_arg);
-        escape_handler_arg = nullptr;
     }
 }

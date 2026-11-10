@@ -88,7 +88,7 @@ void transition(void *scene_transition) {
 }
 
 void quit(void *scene_context) {
-    SceneContext *context = *(SceneContext **)scene_context;
+    SceneContext *context = (SceneContext *)scene_context;
 
     stop_periodic_thread(&context->update_thread);
     stop_periodic_thread(&context->render_thread);
