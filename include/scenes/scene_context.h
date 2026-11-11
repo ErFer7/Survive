@@ -2,16 +2,15 @@
 
 #include <notcurses/notcurses.h>
 
-#include "scenes/gameover_scene.h"
-#include "scenes/gameplay_scene.h"
-#include "scenes/info_scene.h"
-#include "scenes/menu_scene.h"
-#include "scenes/pause_scene.h"
-#include "scenes/start_scene.h"
+#include "gameover_scene.h"
+#include "gameplay_scene.h"
+#include "info_scene.h"
+#include "menu_scene.h"
+#include "pause_scene.h"
+#include "scene_transition.h"
+#include "start_scene.h"
 #include "system/input.h"
 #include "system/periodic_thread.h"
-
-#define TRANSITION_ARGS_SIZE 16
 
 struct SceneContext {
     Scene *current_scene;
@@ -28,12 +27,6 @@ struct SceneContext {
     GameoverScene gameover_scene;
 };
 
-struct SceneTransition {
-    SceneContext *scene_context;
-    Scene *next_scene;
-    byte args[TRANSITION_ARGS_SIZE];
-};
-
 void init_scene_context(SceneContext *scene_context);
 void run(SceneContext *scene_context);
 void update_scene(void *scene_context);
@@ -48,5 +41,6 @@ static inline void init_scene_transition(SceneTransition *scene_transition,
     scene_transition->scene_context = scene_context;
     scene_transition->next_scene = next_scene;
 
-    memset(&scene_transition->args, 0, TRANSITION_ARGS_SIZE);
+    memset(&scene_transition->enter_args, 0, TRANSITION_ARGS_SIZE);
+    memset(&scene_transition->exit_args, 0, TRANSITION_ARGS_SIZE);
 }

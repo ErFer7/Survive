@@ -2,6 +2,7 @@
 
 #include "interface/interface.h"
 #include "scene.h"
+#include "scenes/scene_transition.h"
 
 DEFINE_INTERFACE(PauseInterface, 1, 3)
 DEFINE_INIT_INTERFACE(PauseInterface, pause)
@@ -9,10 +10,13 @@ DEFINE_INIT_INTERFACE(PauseInterface, pause)
 struct PauseScene {
     Scene base;
     PauseInterface interface;
+    SceneTransition resume_transition;
+    SceneTransition restart_transition;
+    SceneTransition gameover_transition;
 };
 
 void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, SceneContext *scene_context);
-void enter_pause_scene(void *pause_scene, void *);
+void enter_pause_scene(void *pause_scene, void *args);
 void update_pause_scene(void *scene_context);
 void draw_pause_scene(void *pause_scene);
 void exit_pause_scene(void *pause_scene, void *);

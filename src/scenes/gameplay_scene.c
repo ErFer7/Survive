@@ -15,6 +15,10 @@ static const char *TICKS_LABEL = "TPS:";
 
 static const char *SCORE_LABEL = "Score:";
 
+static const char *FLOAT_LABEL = "000000.000";
+
+static const char *INT_LABEL = "0000000000";
+
 void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_plane, SceneContext *scene_context) {
     uint32_t rows;
     uint32_t columns;
@@ -22,20 +26,12 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
     ncplane_dim_yx(parent_plane, &rows, &columns);
     VectorU parent_size = VECTOR_U(columns, rows);
 
-    SceneTransition pause_transition;
-    SceneTransition gameover_transition;
+    init_scene_transition(&gameplay_scene->pause_transition, scene_context, (Scene *)&scene_context->pause_scene);
+    init_scene_transition(&gameplay_scene->gameover_transition, scene_context, (Scene *)&scene_context->gameover_scene);
 
-    init_scene_transition(&pause_transition, scene_context, (Scene *)&scene_context->pause_scene);
-    init_scene_transition(&gameover_transition, scene_context, (Scene *)&scene_context->gameover_scene);
+    enum GameplayTransitionMode exit_transition_mode = PAUSE;
 
-    GameplaySceneArgs pause_transition_args;
-
-    init_gameplay_scene_args(&pause_transition_args, PAUSE, false, false, VECTORU_ZERO);
-
-    serialize_gameplay_scene_transition_args(&pause_transition_args, pause_transition.args);
-
-    const char *float_label = "000000.000";
-    const char *int_label = "0000000000";
+    memcpy(gameplay_scene->pause_transition.exit_args, &exit_transition_mode, sizeof(enum GameplayTransitionMode));
 
     init_scene(&gameplay_scene->base,
                gameplay_scene,
@@ -58,8 +54,8 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               parent_size);
 
     init_text(&gameplay_scene->interface.texts[1],
-              float_label,
-              strlen(float_label),
+              FLOAT_LABEL,
+              strlen(FLOAT_LABEL),
               WHITE,
               DEFAULT_BACKGROUND,
               VECTOR(5, 0),
@@ -76,8 +72,8 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               parent_size);
 
     init_text(&gameplay_scene->interface.texts[3],
-              float_label,
-              strlen(float_label),
+              FLOAT_LABEL,
+              strlen(FLOAT_LABEL),
               WHITE,
               DEFAULT_BACKGROUND,
               VECTOR(22, 0),
@@ -94,20 +90,20 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               parent_size);
 
     init_text(&gameplay_scene->interface.texts[5],
-              int_label,
-              strlen(int_label),
+              INT_LABEL,
+              strlen(INT_LABEL),
               WHITE,
               DEFAULT_BACKGROUND,
               VECTOR(-16, 0),
               BOTTOM_RIGHT,
               parent_size);
 
-    init_gameplay_interface(&gameplay_scene->interface, &pause_transition, sizeof(SceneTransition), &transition);
+    init_gameplay_interface(&gameplay_scene->interface, gameplay_scene, &pause_transition_wrapper);
 
     init_gameplay(&gameplay_scene->gameplay,
                   vector_to_vector_u(add_vector(vector_u_to_vector(parent_size), VIEW_SIZE_OFFSET)),
                   parent_size,
-                  &gameover_transition,
+                  &gameplay_scene->gameover_transition,
                   &gameplay_scene->interface.texts[5],
                   gameplay_scene->base.plane);
 
@@ -117,9 +113,9 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
 
 void enter_gameplay_scene(void *gameplay_scene, void *args) {
     GameplayScene *scene = (GameplayScene *)gameplay_scene;
-    GameplaySceneArgs scene_args;
+    GameplaySceneEnterArgs scene_args;
 
-    deserialize_gameplay_scene_transition_args(&scene_args, args);
+    memcpy(&scene_args, args, sizeof(GameplaySceneEnterArgs));
 
     if (scene_args.transition_mode == START || scene_args.transition_mode == RESTART) {
         start_gameplay(&scene->gameplay,
@@ -161,11 +157,11 @@ void draw_gameplay_scene(void *gameplay_scene) {
 
 void exit_gameplay_scene(void *gameplay_scene, void *args) {
     GameplayScene *scene = (GameplayScene *)gameplay_scene;
-    GameplaySceneArgs scene_args;
+    enum GameplayTransitionMode exit_transition_mode;
 
-    deserialize_gameplay_scene_transition_args(&scene_args, args);
+    memcpy(&exit_transition_mode, args, sizeof(enum GameplayTransitionMode));
 
-    if (scene_args.transition_mode != PAUSE) {
+    if (exit_transition_mode != PAUSE) {
         partially_free_gameplay(&scene->gameplay);
     }
 
@@ -196,12 +192,16 @@ int gameplay_resize_callback(struct ncplane *parent_plane) {
     return 0;
 }
 
+void pause_transition_wrapper(void *gameplay_scene) {
+    GameplayScene *scene = (GameplayScene *)gameplay_scene;
+
+    memcpy(scene->pause_transition.enter_args, &scene->gameplay.score, sizeof(uint32_t));
+
+    transition(&scene->pause_transition);
+}
+
 void free_gameplay_scene(GameplayScene *gameplay_scene) {
     free_scene(&gameplay_scene->base);
-    free_interface(gameplay_scene->interface.texts,
-                   sizeof(gameplay_scene->interface.texts) / sizeof(Text),
-                   nullptr,
-                   0,
-                   gameplay_scene->interface.escape_handler_arg);
+    free_interface(gameplay_scene->interface.texts, sizeof(gameplay_scene->interface.texts) / sizeof(Text), nullptr, 0);
     free_gameplay(&gameplay_scene->gameplay);
 }

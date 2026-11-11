@@ -17,7 +17,6 @@ void init_button(Button *button,
                  enum Alignment alignment,
                  VectorU parent_size,
                  void *call_arg,
-                 size_t call_arg_size,
                  void (*call)(void *));
 void toggle_selection(Button *button);
 void free_button(Button *button);

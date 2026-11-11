@@ -32,9 +32,7 @@ void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneC
     ncplane_dim_yx(parent_plane, &rows, &columns);
     VectorU parent_size = VECTOR_U(columns, rows);
 
-    SceneTransition menu_transition;
-
-    init_scene_transition(&menu_transition, scene_context, (Scene *)&scene_context->menu_scene);
+    init_scene_transition(&info_scene->menu_transition, scene_context, (Scene *)&scene_context->menu_scene);
 
     init_scene(&info_scene->base,
                info_scene,
@@ -73,11 +71,10 @@ void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneC
                 VECTOR(0, 10),
                 CENTER,
                 parent_size,
-                &menu_transition,
-                sizeof(SceneTransition),
+                &info_scene->menu_transition,
                 &transition);
 
-    init_info_interface(&info_scene->interface, &menu_transition, sizeof(SceneTransition), &transition);
+    init_info_interface(&info_scene->interface, &info_scene->menu_transition, &transition);
 }
 
 void enter_info_scene(void *info_scene, void *) {
@@ -142,6 +139,5 @@ void free_info_scene(InfoScene *info_scene) {
     free_interface(info_scene->interface.texts,
                    sizeof(info_scene->interface.texts) / sizeof(Text),
                    info_scene->interface.buttons,
-                   sizeof(info_scene->interface.buttons) / sizeof(Button),
-                   info_scene->interface.escape_handler_arg);
+                   sizeof(info_scene->interface.buttons) / sizeof(Button));
 }

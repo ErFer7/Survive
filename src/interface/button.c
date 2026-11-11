@@ -9,17 +9,10 @@ void init_button(Button *button,
                  enum Alignment alignment,
                  VectorU parent_size,
                  void *call_arg,
-                 size_t call_arg_size,
                  void (*call)(void *)) {
     init_text(&button->text, content, length, foreground_color, background_color, position, alignment, parent_size);
 
-    if (call_arg_size > 0) {
-        button->call_arg = malloc(call_arg_size);
-        memcpy(button->call_arg, call_arg, call_arg_size);
-    } else {
-        button->call_arg = nullptr;
-    }
-
+    button->call_arg = call_arg;
     button->call = call;
 }
 
@@ -34,8 +27,5 @@ void toggle_selection(Button *button) {
 void free_button(Button *button) {
     free_text(&button->text);
 
-    if (button->call_arg != nullptr) {
-        free(button->call_arg);
-        button->call_arg = nullptr;
-    }
+    button->call_arg = nullptr;
 }

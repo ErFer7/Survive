@@ -2,6 +2,7 @@
 
 #include "interface/interface.h"
 #include "scene.h"
+#include "scenes/scene_transition.h"
 
 DEFINE_INTERFACE(StartInterface, 3, 6)
 DEFINE_INIT_INTERFACE(StartInterface, start)
@@ -9,6 +10,12 @@ DEFINE_INIT_INTERFACE(StartInterface, start)
 struct StartScene {
     Scene base;
     StartInterface interface;
+    SceneTransition menu_transition;
+    SceneTransition gameplay_transition_regular;
+    SceneTransition gameplay_transition_small;
+    SceneTransition gameplay_transition_large;
+    SceneTransition gameplay_transition_mega;
+    SceneTransition gameplay_transition_classic;
 };
 
 void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, SceneContext *scene_context);

@@ -18,11 +18,11 @@ static inline void fill_cell_matrix(CellMatrix *cell_matrix, const Cell cell) {
     }
 }
 
-static inline Cell *get_cell_ref_xy(CellMatrix *cell_matrix, int32_t row, int32_t column) {
+static inline Cell *get_cell_ptr_xy(CellMatrix *cell_matrix, int32_t row, int32_t column) {
     return &cell_matrix->matrix[cell_matrix->size.x * row + column];
 }
 
-static inline Cell *get_cell_ref_xy_wrapped(CellMatrix *cell_matrix, int32_t row, int32_t column) {
+static inline Cell *get_cell_ptr_xy_wrapped(CellMatrix *cell_matrix, int32_t row, int32_t column) {
     int32_t safe_row = row % (int32_t)cell_matrix->size.y;
     safe_row = (uint32_t)(safe_row < 0 ? safe_row + (int32_t)cell_matrix->size.y : safe_row);
 
@@ -36,11 +36,11 @@ static inline void set_cell_xy(CellMatrix *cell_matrix, int32_t row, int32_t col
     cell_matrix->matrix[cell_matrix->size.x * row + column] = cell;
 }
 
-static inline Cell *get_cell_ref_vec(CellMatrix *cell_matrix, Vector position) {
+static inline Cell *get_cell_ptr_vec(CellMatrix *cell_matrix, Vector position) {
     return &cell_matrix->matrix[cell_matrix->size.x * position.y + position.x];
 }
 
-static inline Cell *get_cell_ref_vec_wrapped(CellMatrix *cell_matrix, Vector position) {
+static inline Cell *get_cell_ptr_vec_wrapped(CellMatrix *cell_matrix, Vector position) {
     int32_t safe_row = position.y % (int32_t)cell_matrix->size.y;
     safe_row = (uint32_t)(safe_row < 0 ? safe_row + (int32_t)cell_matrix->size.y : safe_row);
 
@@ -54,6 +54,6 @@ static inline void set_cell_vec(CellMatrix *cell_matrix, Vector position, Cell c
     cell_matrix->matrix[cell_matrix->size.x * position.y + position.x] = cell;
 }
 
-static inline Cell *get_cell_ref_i(CellMatrix *cell_matrix, uint32_t index) { return &cell_matrix->matrix[index]; }
+static inline Cell *get_cell_ptr_i(CellMatrix *cell_matrix, uint32_t index) { return &cell_matrix->matrix[index]; }
 
 static inline void set_cell_i(CellMatrix *cell_matrix, uint32_t index, Cell cell) { cell_matrix->matrix[index] = cell; }

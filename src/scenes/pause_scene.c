@@ -1,6 +1,7 @@
 #include "scenes/pause_scene.h"
 
 #include <notcurses/notcurses.h>
+#include <stdint.h>
 
 #include "interface/button.h"
 #include "interface/text.h"
@@ -30,24 +31,18 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
     ncplane_dim_yx(parent_plane, &rows, &columns);
     VectorU parent_size = VECTOR_U(columns, rows);
 
-    SceneTransition resume_transition;
-    SceneTransition restart_transition;
-    SceneTransition gameover_transition;
+    init_scene_transition(&pause_scene->resume_transition, scene_context, (Scene *)&scene_context->gameplay_scene);
+    init_scene_transition(&pause_scene->restart_transition, scene_context, (Scene *)&scene_context->gameplay_scene);
+    init_scene_transition(&pause_scene->gameover_transition, scene_context, (Scene *)&scene_context->gameover_scene);
 
-    init_scene_transition(&resume_transition, scene_context, (Scene *)&scene_context->gameplay_scene);
-    init_scene_transition(&restart_transition, scene_context, (Scene *)&scene_context->gameplay_scene);
-
-    // FIX: Update the score when leaving too
-    init_scene_transition(&gameover_transition, scene_context, (Scene *)&scene_context->gameover_scene);
-
-    GameplaySceneArgs resume_world_args;
-    GameplaySceneArgs restart_world_args;
+    GameplaySceneEnterArgs resume_world_args;
+    GameplaySceneEnterArgs restart_world_args;
 
     init_gameplay_scene_args(&resume_world_args, RESUME, false, false, VECTORU_ZERO);
     init_gameplay_scene_args(&restart_world_args, RESTART, false, false, VECTORU_ZERO);
 
-    serialize_gameplay_scene_transition_args(&resume_world_args, resume_transition.args);
-    serialize_gameplay_scene_transition_args(&restart_world_args, restart_transition.args);
+    memcpy(pause_scene->resume_transition.enter_args, &resume_world_args, sizeof(GameplaySceneEnterArgs));
+    memcpy(pause_scene->restart_transition.enter_args, &restart_world_args, sizeof(GameplaySceneEnterArgs));
 
     init_scene(&pause_scene->base,
                pause_scene,
@@ -77,8 +72,7 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
                 VECTOR_ZERO,
                 CENTER,
                 parent_size,
-                &resume_transition,
-                sizeof(SceneTransition),
+                &pause_scene->resume_transition,
                 &transition);
 
     init_button(&pause_scene->interface.buttons[1],
@@ -89,8 +83,7 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
                 VECTOR(0, 2),
                 CENTER,
                 parent_size,
-                &restart_transition,
-                sizeof(SceneTransition),
+                &pause_scene->restart_transition,
                 &transition);
 
     init_button(&pause_scene->interface.buttons[2],
@@ -101,15 +94,17 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
                 VECTOR(0, 4),
                 CENTER,
                 parent_size,
-                &gameover_transition,
-                sizeof(SceneTransition),
+                &pause_scene->gameover_transition,
                 &transition);
 
-    init_pause_interface(&pause_scene->interface, &resume_transition, sizeof(SceneTransition), &transition);
+    init_pause_interface(&pause_scene->interface, &pause_scene->resume_transition, &transition);
 }
 
-void enter_pause_scene(void *pause_scene, void *) {
+void enter_pause_scene(void *pause_scene, void *args) {
     PauseScene *scene = (PauseScene *)pause_scene;
+    uint32_t *score_ptr = (uint32_t *)args;
+
+    memcpy(scene->gameover_transition.enter_args, score_ptr, sizeof(uint32_t));
 
     ncplane_move_yx(scene->base.plane, 0, 0);
 }
@@ -170,6 +165,5 @@ void free_pause_scene(PauseScene *pause_scene) {
     free_interface(pause_scene->interface.texts,
                    sizeof(pause_scene->interface.texts) / sizeof(Text),
                    pause_scene->interface.buttons,
-                   sizeof(pause_scene->interface.buttons) / sizeof(Button),
-                   pause_scene->interface.escape_handler_arg);
+                   sizeof(pause_scene->interface.buttons) / sizeof(Button));
 }

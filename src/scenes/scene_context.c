@@ -80,15 +80,15 @@ void transition(void *scene_transition) {
 
     pthread_mutex_lock(&scene_context->transition_render_mutex);
 
-    scene_context->current_scene->exit(scene_context->current_scene, transition->args);
+    scene_context->current_scene->exit(scene_context->current_scene, transition->exit_args);
     scene_context->current_scene = next_scene;
-    scene_context->current_scene->enter(scene_context->current_scene, transition->args);
+    scene_context->current_scene->enter(scene_context->current_scene, transition->enter_args);
 
     pthread_mutex_unlock(&scene_context->transition_render_mutex);
 }
 
 void quit(void *scene_context) {
-    SceneContext *context = *(SceneContext **)scene_context;
+    SceneContext *context = (SceneContext *)scene_context;
 
     stop_periodic_thread(&context->update_thread);
     stop_periodic_thread(&context->render_thread);
