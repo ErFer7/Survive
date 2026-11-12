@@ -6,7 +6,7 @@
 #include "scene_transition.h"
 #include "types.h"
 
-DEFINE_BUTTONLESS_INTERFACE(GameplayInterface, 6)
+DEFINE_BUTTONLESS_INTERFACE(GameplayInterface, 8)
 DEFINE_INIT_BUTTONLESS_INTERFACE(GameplayInterface, gameplay)
 
 enum GameplayTransitionMode {

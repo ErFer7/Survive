@@ -28,7 +28,7 @@ void init_text(Text *text,
 void draw_text(Text *text, struct ncplane *plane);
 void free_text(Text *text);
 
-static inline void set_single_line_text_content(Text *text, char *new_content, size_t length) {
+static inline void set_single_line_text_content(Text *text, const char *new_content, size_t length) {
     memcpy(text->content, new_content, length);
 }
 

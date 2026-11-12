@@ -13,6 +13,7 @@ void init_gameplay(Gameplay *gameplay,
                    VectorU view_size,
                    VectorU parent_size,
                    SceneTransition *gameover_transition,
+                   Text *stamina_info,
                    Text *score_info,
                    struct ncplane *scene_plane) {
     init_world(&gameplay->world);
@@ -29,11 +30,13 @@ void init_gameplay(Gameplay *gameplay,
 
     pthread_mutex_init(&gameplay->world_mutex, nullptr);
 
-    gameplay->lock_view = false;
     gameplay->player = nullptr;
-    gameplay->score = 0;
     gameplay->gameover_transition = malloc(sizeof(SceneTransition));
+    gameplay->stamina_info = stamina_info;
     gameplay->score_info = score_info;
+    gameplay->score = 0;
+    gameplay->player_stamina = 100.0f;
+    gameplay->lock_view = false;
 
     memcpy(gameplay->gameover_transition, gameover_transition, sizeof(SceneTransition));
 }
@@ -51,6 +54,10 @@ void start_gameplay(Gameplay *gameplay, bool restart, VectorU size, bool enable_
 
     gameplay->view.position = gameplay->player->position;
     gameplay->score = 0;
+    gameplay->player_stamina = 100.0f;
+
+    update_score_info(gameplay);
+    update_stamina_info(gameplay);
 }
 
 void create_player(Gameplay *gameplay, Vector position) {
@@ -131,7 +138,7 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
         }
     }
 
-    enemy->direction = DIRECTIONS[direction_index];
+    enemy->direction = DIRECTIONS[direction_index];  // FIX: The sanitizer caught a read segfault here once
 }
 
 void update_entities_movement(Gameplay *gameplay) {
@@ -144,9 +151,37 @@ void update_entities_movement(Gameplay *gameplay) {
     while (it != nullptr) {
         Entity *entity = it->entity;
 
+        if (entity->cell->type == PLAYER && entity->speed_modifier < PLAYER_FAST_SPEED_MODIFIER &&
+            gameplay->player_stamina < 100.0f) {
+            gameplay->player_stamina += (1.0f / (float)UPDATE_FREQUENCY) * PLAYER_STAMINA_INCREASE_RATE;
+
+            if (gameplay->player_stamina > 100.0f) {
+                gameplay->player_stamina = 100.0f;
+            }
+
+            update_stamina_info(gameplay);
+        }
+
         if (!vector_is_zero(entity->direction)) {
             // This is ok for this game, since there are only two entities
-            const float speed = entity->cell->type == PLAYER ? PLAYER_SPEED : ENEMY_SPEED;
+            float speed;
+
+            if (entity->cell->type == PLAYER) {
+                if (entity->speed_modifier > PLAYER_DEFAULT_SPEED_MODIFIER) {
+                    gameplay->player_stamina -= (1.0f / (float)UPDATE_FREQUENCY) * PLAYER_STAMINA_DECREASE_RATE;
+
+                    if (gameplay->player_stamina < 0.0f) {
+                        gameplay->player_stamina = 0.0f;
+                        entity->speed_modifier = PLAYER_DEFAULT_SPEED_MODIFIER;
+                    }
+
+                    update_stamina_info(gameplay);
+                }
+
+                speed = PLAYER_SPEED;
+            } else {
+                speed = ENEMY_SPEED;
+            }
 
             accumulate_movement(entity, speed * entity->speed_modifier);
         }
@@ -183,13 +218,11 @@ void update_entities_movement(Gameplay *gameplay) {
 
 void handle_coin_pick(Gameplay *gameplay) {
     generate_coin(&gameplay->world);
+    gameplay->player_stamina = 100.0f;
     gameplay->score++;
 
-    char score_info_str[11];
-
-    snprintf(score_info_str, sizeof(score_info_str), "%010d", gameplay->score);
-
-    set_single_line_text_content(gameplay->score_info, score_info_str, sizeof(score_info_str));
+    update_stamina_info(gameplay);
+    update_score_info(gameplay);
 }
 
 void generate_enemy(Gameplay *gameplay) {

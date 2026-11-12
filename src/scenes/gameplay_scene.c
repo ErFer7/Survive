@@ -13,11 +13,15 @@ static const char *FPS_LABEL = "FPS:";
 
 static const char *TICKS_LABEL = "TPS:";
 
+static const char *STAMINA_LABEL = "Stamina:";
+
 static const char *SCORE_LABEL = "Score:";
 
 static const char *FLOAT_LABEL = "000000.000";
 
 static const char *INT_LABEL = "0000000000";
+
+static const char *PERCENTAGE_LABEL = "000%";
 
 void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_plane, SceneContext *scene_context) {
     uint32_t rows;
@@ -81,6 +85,24 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               parent_size);
 
     init_text(&gameplay_scene->interface.texts[4],
+              STAMINA_LABEL,
+              strlen(STAMINA_LABEL),
+              YELLOW,
+              DEFAULT_BACKGROUND,
+              VECTOR(34, 0),
+              BOTTOM_LEFT,
+              parent_size);
+
+    init_text(&gameplay_scene->interface.texts[5],
+              PERCENTAGE_LABEL,
+              strlen(PERCENTAGE_LABEL),
+              YELLOW,
+              DEFAULT_BACKGROUND,
+              VECTOR(43, 0),
+              BOTTOM_LEFT,
+              parent_size);
+
+    init_text(&gameplay_scene->interface.texts[6],
               SCORE_LABEL,
               strlen(SCORE_LABEL),
               WHITE,
@@ -89,7 +111,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               BOTTOM_RIGHT,
               parent_size);
 
-    init_text(&gameplay_scene->interface.texts[5],
+    init_text(&gameplay_scene->interface.texts[7],
               INT_LABEL,
               strlen(INT_LABEL),
               WHITE,
@@ -105,6 +127,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
                   parent_size,
                   &gameplay_scene->gameover_transition,
                   &gameplay_scene->interface.texts[5],
+                  &gameplay_scene->interface.texts[7],
                   gameplay_scene->base.plane);
 
     scene_context->render_thread.frequency_info = &gameplay_scene->interface.texts[1];
