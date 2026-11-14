@@ -15,10 +15,15 @@ static const utf8_char COIN_CHARACTERS[6] = {UTF8("⠇"), UTF8("⠋"), UTF8("⠙
 static const uint32_t COIN_ANIMATION_LENGTH = 6;
 static const enum Color COIN_COLOR = YELLOW;
 
+static const utf8_char POWERUP_CHARACTERS[4] = {UTF8("▤"), UTF8("▧"), UTF8("▥"), UTF8("▨")};
+static const uint32_t POWERUP_ANIMATION_LENGTH = 4;
+static const uint32_t POWERUP_COLOR = MAGENTA;
+
 static const uint32_t SPAWN_RADIUS = 16;
 
 // 1 coin for 3600 cells
 static const float COIN_GENERATION_COEFFICIENT = 3600.0f;
+static const float POWERUP_GENERATION_COEFFICIENT = 65536.0f;
 
 static const float WORLD_PERLIN_NOISE_SCALE = 0.1f;
 static const float WORLD_PERLIN_NOISE_PERSISTENCE = 0.65f;
@@ -36,8 +41,11 @@ void generate_world(World *world, VectorU size, bool enable_terrain_generation);
 void generate_walls(World *world);
 void generate_terrain(World *world);
 void clear_spawn(World *world);
+Vector get_random_empty_position(World *world, bool avoid_point, Vector avoidance_point, float avoidance_distance);
 void generate_coin(World *world);
+void generate_powerup(World *world);
 void generate_coins(World *world);
+void generate_powerups(World *world);
 void free_world(World *world);
 
 static inline void create_wall(World *world, VectorU position, const utf8_char wall_character) {
@@ -63,6 +71,13 @@ static inline void create_coin(World *world, Vector position) {
     Cell cell;
 
     init_cell(&cell, COIN_CHARACTERS, COIN_ANIMATION_LENGTH, COIN_COLOR, COIN);
+    set_cell_vec(&world->cell_matrix, position, cell);
+}
+
+static inline void create_powerup(World *world, Vector position) {
+    Cell cell;
+
+    init_cell(&cell, POWERUP_CHARACTERS, POWERUP_ANIMATION_LENGTH, POWERUP_COLOR, POWERUP);
     set_cell_vec(&world->cell_matrix, position, cell);
 }
 

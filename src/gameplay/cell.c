@@ -8,6 +8,9 @@ void update_cell_character(Cell *cell) {
     uint32_t animation_length;
 
     switch (cell->type) {
+        case WALL:
+            animation_length = WALL_ANIMATION_LENGTH;
+            break;
         case PLAYER:
             animation_length = PLAYER_ANIMATION_LENGTH;
             break;
@@ -17,8 +20,8 @@ void update_cell_character(Cell *cell) {
         case COIN:
             animation_length = COIN_ANIMATION_LENGTH;
             break;
-        case WALL:
-            animation_length = WALL_ANIMATION_LENGTH;
+        case POWERUP:
+            animation_length = POWERUP_ANIMATION_LENGTH;
             break;
         default:
             animation_length = 1;

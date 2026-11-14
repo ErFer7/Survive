@@ -226,20 +226,9 @@ void handle_coin_pick(Gameplay *gameplay) {
 }
 
 void generate_enemy(Gameplay *gameplay) {
-    VectorU size = gameplay->world.cell_matrix.size;
-
-    while (true) {
-        Vector position = VECTOR(inclusive_random(1, size.x - 2), inclusive_random(1, size.y - 2));
-
-        if (vector_distance(gameplay->player->position, position) > MIN_ENEMY_SPAWN_DISTANCE) {
-            Cell *cell = get_cell_ptr_vec(&gameplay->world.cell_matrix, position);
-
-            if (cell->type == VOID) {
-                create_enemy(gameplay, position);
-                break;
-            }
-        }
-    }
+    Vector position =
+        get_random_empty_position(&gameplay->world, true, gameplay->player->position, MIN_ENEMY_SPAWN_DISTANCE);
+    create_enemy(gameplay, position);
 }
 
 void partially_free_gameplay(Gameplay *gameplay) {

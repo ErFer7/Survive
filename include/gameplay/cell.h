@@ -7,7 +7,7 @@
 
 #define MAX_ANIMATION_LENGTH 6
 
-enum CellType { VOID, WALL, PLAYER, COIN, ENEMY };
+enum CellType { VOID, WALL, PLAYER, ENEMY, COIN, POWERUP };
 
 // 48 bytes
 struct Cell {

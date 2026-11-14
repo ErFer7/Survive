@@ -28,6 +28,7 @@ void generate_world(World *world, VectorU size, bool enable_terrain_generation) 
     clear_spawn(world);
 
     generate_coins(world);
+    generate_powerups(world);
 }
 
 void generate_walls(World *world) {
@@ -81,19 +82,31 @@ void clear_spawn(World *world) {
     }
 }
 
-void generate_coin(World *world) {
+Vector get_random_empty_position(World *world, bool avoid_point, Vector avoidance_point, float avoidance_distance) {
     VectorU size = world->cell_matrix.size;
 
     while (true) {
         Vector position = VECTOR(inclusive_random(1, size.x - 2), inclusive_random(1, size.y - 2));
 
-        Cell *cell = get_cell_ptr_vec(&world->cell_matrix, position);
+        if (!avoid_point || vector_distance(avoidance_point, position) > avoidance_distance) {
+            Cell *cell = get_cell_ptr_vec(&world->cell_matrix, position);
 
-        if (cell->type == VOID) {
-            create_coin(world, position);
-            break;
+            if (cell->type == VOID) {
+                return position;
+            }
         }
     }
+}
+
+// TODO: These functions are quite similar, they could be refactored and unified
+void generate_coin(World *world) {
+    Vector position = get_random_empty_position(world, false, VECTOR_ZERO, 0.0);
+    create_coin(world, position);
+}
+
+void generate_powerup(World *world) {
+    Vector position = get_random_empty_position(world, false, VECTOR_ZERO, 0.0);
+    create_powerup(world, position);
 }
 
 void generate_coins(World *world) {
@@ -101,6 +114,14 @@ void generate_coins(World *world) {
          i < ceilf((float)(world->cell_matrix.size.x * world->cell_matrix.size.y) / COIN_GENERATION_COEFFICIENT);
          i++) {
         generate_coin(world);
+    }
+}
+
+void generate_powerups(World *world) {
+    for (uint32_t i = 0;
+         i < ceilf((float)(world->cell_matrix.size.x * world->cell_matrix.size.y) / POWERUP_GENERATION_COEFFICIENT);
+         i++) {
+        generate_powerup(world);
     }
 }
 
