@@ -36,6 +36,7 @@ void init_gameplay(Gameplay *gameplay,
     gameplay->score_info = score_info;
     gameplay->score = 0;
     gameplay->player_stamina = 100.0f;
+    gameplay->powerup_charge = 0.0f;
     gameplay->lock_view = false;
 
     memcpy(gameplay->gameover_transition, gameover_transition, sizeof(SceneTransition));
@@ -55,6 +56,7 @@ void start_gameplay(Gameplay *gameplay, bool restart, VectorU size, bool enable_
     gameplay->view.position = gameplay->player->position;
     gameplay->score = 0;
     gameplay->player_stamina = 100.0f;
+    gameplay->powerup_charge = 0.0f;
 
     update_score_info(gameplay);
     update_stamina_info(gameplay);
@@ -73,7 +75,7 @@ void create_enemy(Gameplay *gameplay, Vector position) {
     init_enemy_entity(entity, get_cell_ptr_vec(&gameplay->world.cell_matrix, position), position);
 }
 
-void update_enemy(Gameplay *gameplay, Entity *enemy) {
+void update_enemy(Gameplay *gameplay, Entity *enemy, bool flee) {
     Vector target = gameplay->player->position;
     Vector position = enemy->position;
     bool has_free_path = true;
@@ -81,17 +83,17 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
     int32_t target_direction_x = 0;
 
     if (target.x > position.x) {
-        target_direction_x = 1;
+        target_direction_x = flee ? -1 : 1;
     } else if (target.x < position.x) {
-        target_direction_x = -1;
+        target_direction_x = flee ? 1 : -1;
     }
 
     int32_t target_direction_y = 0;
 
     if (target.y > position.y) {
-        target_direction_y = 1;
+        target_direction_y = flee ? -1 : 1;
     } else if (target.y < position.y) {
-        target_direction_y = -1;
+        target_direction_y = flee ? 1 : -1;
     }
 
     Cell *target_cell = get_cell_ptr_vec(&gameplay->world.cell_matrix,
@@ -106,7 +108,7 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
     }
 
     float distances[8];
-    float smallest_distance = INFINITY;
+    float optimal_distance = flee ? 0 : INFINITY;
     uint32_t direction_index;
     Vector adjacent_position_vector;
 
@@ -132,15 +134,24 @@ void update_enemy(Gameplay *gameplay, Entity *enemy) {
     }
 
     for (uint32_t j = 0; j < 8; j++) {
-        if (smallest_distance > distances[j]) {
-            smallest_distance = distances[j];
-            direction_index = j;
+        // TODO: Refactor this
+        if (flee) {
+            if (optimal_distance < distances[j] && distances[j] < INFINITY) {
+                optimal_distance = distances[j];
+                direction_index = j;
+            }
+        } else {
+            if (optimal_distance > distances[j]) {
+                optimal_distance = distances[j];
+                direction_index = j;
+            }
         }
     }
 
     enemy->direction = DIRECTIONS[direction_index];  // FIX: The sanitizer caught a read segfault here once
 }
 
+// TODO: This will probably need a refactor
 void update_entities_movement(Gameplay *gameplay) {
     EntityListIterator iterator;
     EntityListIterator *it = &iterator;
@@ -150,6 +161,7 @@ void update_entities_movement(Gameplay *gameplay) {
     pthread_mutex_lock(&gameplay->world_mutex);
     while (it != nullptr) {
         Entity *entity = it->entity;
+        Entity *killed_entity = nullptr;
 
         if (entity->cell->type == PLAYER && entity->speed_modifier < PLAYER_FAST_SPEED_MODIFIER &&
             gameplay->player_stamina < 100.0f) {
@@ -191,10 +203,11 @@ void update_entities_movement(Gameplay *gameplay) {
 
             Cell *new_cell = get_cell_ptr_vec(&gameplay->world.cell_matrix, new_position);
 
-            if (solve_collision(gameplay, entity, new_cell)) {
+            if (solve_collision(gameplay, entity, new_cell, &killed_entity)) {
                 move_entity(entity, new_cell, new_position);
             } else {
-                if (gameplay->player == nullptr) {  // Someone killed us!
+                // TODO: Write functions for this stuff
+                if (killed_entity == gameplay->player) {  // Someone killed us!
                     memcpy(gameplay->gameover_transition->enter_args, &gameplay->score, sizeof(uint32_t));
 
                     enum GameplayTransitionMode exit_transition_mode = GAMEOVER;
@@ -205,13 +218,22 @@ void update_entities_movement(Gameplay *gameplay) {
 
                     transition(gameplay->gameover_transition);
                     break;
-                }
+                } else if (killed_entity != nullptr) {  // We killed someone
+                    // FIX: An index should be passed here. Maybe each entity should have a reference to its position in
+                    // the list
+                    remove_entity(&gameplay->entities, killed_entity->reference);
 
-                entity->direction = VECTOR_ZERO;
+                    gameplay->score += 10;
+                    update_score_info(gameplay);
+                } else {
+                    entity->direction = VECTOR_ZERO;
+                }
             }
         }
 
-        it = iterate_on_entity_list(it);
+        if (killed_entity == nullptr) {
+            it = iterate_on_entity_list(it);
+        }
     }
     pthread_mutex_unlock(&gameplay->world_mutex);
 }
@@ -226,20 +248,9 @@ void handle_coin_pick(Gameplay *gameplay) {
 }
 
 void generate_enemy(Gameplay *gameplay) {
-    VectorU size = gameplay->world.cell_matrix.size;
-
-    while (true) {
-        Vector position = VECTOR(inclusive_random(1, size.x - 2), inclusive_random(1, size.y - 2));
-
-        if (vector_distance(gameplay->player->position, position) > MIN_ENEMY_SPAWN_DISTANCE) {
-            Cell *cell = get_cell_ptr_vec(&gameplay->world.cell_matrix, position);
-
-            if (cell->type == VOID) {
-                create_enemy(gameplay, position);
-                break;
-            }
-        }
-    }
+    Vector position =
+        get_random_empty_position(&gameplay->world, true, gameplay->player->position, MIN_ENEMY_SPAWN_DISTANCE);
+    create_enemy(gameplay, position);
 }
 
 void partially_free_gameplay(Gameplay *gameplay) {

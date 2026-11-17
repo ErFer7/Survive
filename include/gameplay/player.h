@@ -14,6 +14,6 @@ static const float PLAYER_FAST_SPEED_MODIFIER = 1.5f;
 void handle_player_input(Entity *player, InputState *input_state);
 
 static inline void init_player_entity(Entity *entity, Cell *cell, Vector position) {
-    init_cell(cell, PLAYER_CHARACTER, PLAYER_ANIMATION_LENGTH, PLAYER_COLOR, PLAYER);
+    init_cell(cell, PLAYER_CHARACTER, PLAYER_ANIMATION_LENGTH, PLAYER_COLOR, PLAYER, entity);
     init_entity(entity, cell, position);
 }

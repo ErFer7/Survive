@@ -125,7 +125,8 @@ void generate_effects(View *view, VectorU size) {
                       VIEW_EFFECTS_CHARACTER,
                       VIEW_EFFECTS_CELL_ANIMATION_LENGTH,
                       fabsf(noise) * VIEW_MAX_OUTSIZE_COLOR,
-                      VOID);
+                      VOID,
+                      nullptr);
 
             set_cell_xy(&view->cell_matrix, row, column, cell);
         }
