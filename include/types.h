@@ -7,6 +7,7 @@ typedef unsigned char byte;
 
 typedef struct EntityBlock EntityBlock;
 typedef struct EntityList EntityList;
+typedef struct EntityListReference EntityListReference;
 typedef struct EntityListIterator EntityListIterator;
 
 typedef struct PeriodicThread PeriodicThread;

@@ -52,7 +52,7 @@ static inline void create_wall(World *world, VectorU position, const utf8_char w
     utf8_char wall_array[1] = {wall_character};
     Cell cell;
 
-    init_cell(&cell, wall_array, WALL_ANIMATION_LENGTH, WALL_COLOR, WALL);
+    init_cell(&cell, wall_array, WALL_ANIMATION_LENGTH, WALL_COLOR, WALL, nullptr);
     set_cell_vec(&world->cell_matrix, vector_u_to_vector(position), cell);
 }
 
@@ -63,21 +63,21 @@ static inline void create_terrain_wall(World *world,
     utf8_char wall_array[1] = {wall_character};
     Cell cell;
 
-    init_cell(&cell, wall_array, WALL_ANIMATION_LENGTH, color, WALL);
+    init_cell(&cell, wall_array, WALL_ANIMATION_LENGTH, color, WALL, nullptr);
     set_cell_vec(&world->cell_matrix, vector_u_to_vector(position), cell);
 }
 
 static inline void create_coin(World *world, Vector position) {
     Cell cell;
 
-    init_cell(&cell, COIN_CHARACTERS, COIN_ANIMATION_LENGTH, COIN_COLOR, COIN);
+    init_cell(&cell, COIN_CHARACTERS, COIN_ANIMATION_LENGTH, COIN_COLOR, COIN, nullptr);
     set_cell_vec(&world->cell_matrix, position, cell);
 }
 
 static inline void create_powerup(World *world, Vector position) {
     Cell cell;
 
-    init_cell(&cell, POWERUP_CHARACTERS, POWERUP_ANIMATION_LENGTH, POWERUP_COLOR, POWERUP);
+    init_cell(&cell, POWERUP_CHARACTERS, POWERUP_ANIMATION_LENGTH, POWERUP_COLOR, POWERUP, nullptr);
     set_cell_vec(&world->cell_matrix, position, cell);
 }
 

@@ -25,6 +25,7 @@ struct Gameplay {
     Text *score_info;
     uint32_t score;
     float player_stamina;
+    float powerup_charge;
     bool lock_view;
 };
 
@@ -38,7 +39,7 @@ void init_gameplay(Gameplay *gameplay,
 void start_gameplay(Gameplay *gameplay, bool restart, VectorU size, bool enable_terrain_generation, bool lock_view);
 void create_player(Gameplay *gameplay, Vector position);
 void create_enemy(Gameplay *gameplay, Vector position);
-void update_enemy(Gameplay *gameplay, Entity *enemy);
+void update_enemy(Gameplay *gameplay, Entity *enemy, bool flee);
 void update_entities_movement(Gameplay *gameplay);
 void handle_coin_pick(Gameplay *gameplay);
 void generate_enemy(Gameplay *gameplay);
@@ -59,7 +60,7 @@ static inline void update_enemies(Gameplay *gameplay) {
     it = iterate_on_entity_list(it);
 
     while (it != nullptr) {
-        update_enemy(gameplay, it->entity);
+        update_enemy(gameplay, it->entity, gameplay->powerup_charge > 0.0f);
         it = iterate_on_entity_list(it);
     }
 }
@@ -74,16 +75,22 @@ static inline void update_gameplay(Gameplay *gameplay, InputState *input_state) 
     }
 }
 
-static inline bool solve_collision(Gameplay *gameplay, Entity *entity, Cell *cell) {
+// TODO: Unline this
+static inline bool solve_collision(Gameplay *gameplay, Entity *entity, Cell *cell, Entity **killed_entity) {
     if (entity->cell->type == PLAYER) {
         switch (cell->type) {
             case COIN:
                 handle_coin_pick(gameplay);
                 generate_enemy(gameplay);
+                return true;
+            case POWERUP:
+                gameplay->powerup_charge = 30.0f;  // TODO: Magic numbers constants
+                return true;
             case VOID:
                 return true;
             case ENEMY:
-                gameplay->player = nullptr;
+                *killed_entity = gameplay->powerup_charge > 0.0f ? cell->entity_ptr : entity;
+                return false;
             default:
                 return false;
         }
@@ -92,7 +99,8 @@ static inline bool solve_collision(Gameplay *gameplay, Entity *entity, Cell *cel
             case VOID:
                 return true;
             case PLAYER:
-                gameplay->player = nullptr;
+                *killed_entity = gameplay->powerup_charge > 0.0f ? entity : cell->entity_ptr;
+                return false;
             default:
                 return false;
         }

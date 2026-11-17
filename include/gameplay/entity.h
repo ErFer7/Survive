@@ -1,6 +1,7 @@
 #pragma once
 
 #include "config.h"
+#include "entity_list_reference.h"
 #include "gameplay/cell.h"
 #include "types.h"
 #include "utils/vector.h"
@@ -15,6 +16,7 @@ struct Entity {
     // This is only used by the enemy. You might think we are wasting memory here with this "massive" 8 bytes vector,
     // but pretty much 99% of entities are enemies anyway
     Vector previous_position;
+    EntityListReference reference;
 };
 
 static inline void init_entity(Entity *entity, Cell *cell, Vector position) {
@@ -41,11 +43,14 @@ static inline bool check_and_reset_movement_accumulator(Entity *entity) {
     return false;
 }
 
+// TODO: Check this up
 static inline void move_entity(Entity *entity, Cell *new_cell, Vector new_position) {
+    entity->cell->entity_ptr = nullptr;
     entity->previous_position = entity->position;
     entity->position = new_position;
     entity->direction = VECTOR_ZERO;
     *new_cell = *entity->cell;
     *entity->cell = DEFAULT_CELL;
     entity->cell = new_cell;
+    new_cell->entity_ptr = entity;
 }

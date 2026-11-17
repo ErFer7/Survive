@@ -15,9 +15,10 @@ struct Cell {
     nccell cell;
     float animation_index;
     enum CellType type;
+    Entity *entity_ptr;  // TODO: Add _ptr to references
 };
 
-static const Cell DEFAULT_CELL = {{}, NCCELL_TRIVIAL_INITIALIZER, 0, VOID};
+static const Cell DEFAULT_CELL = {{}, NCCELL_TRIVIAL_INITIALIZER, 0, VOID, nullptr};
 
 void update_cell_character(Cell *cell);
 
@@ -25,12 +26,14 @@ static inline void init_cell(Cell *cell,
                              const utf8_char *characters,
                              uint32_t animation_length,
                              enum Color color,
-                             enum CellType type) {
+                             enum CellType type,
+                             Entity *entity_ptr) {
     memcpy(cell->characters, characters, sizeof(utf8_char) * animation_length);
 
     cell->cell = (nccell)NCCELL_CHAR_INITIALIZER(characters[0]);
     cell->animation_index = 0.0f;
     cell->type = type;
+    cell->entity_ptr = entity_ptr;
 
     nccell_set_fg_rgb(&cell->cell, color);
 }
