@@ -10,6 +10,10 @@
 #include "utils/color.h"
 #include "utils/vector.h"
 
+enum InfoTextsID { TITLE_ID };
+
+enum InfoButtonsID { RESUME_BUTTON_ID, RESTART_BUTTON_ID, GAMEOVER_BUTTON_ID };
+
 static const char *TITLE =
     "██████╗  █████╗ ██╗   ██╗███████╗███████╗\n"
     "██╔══██╗██╔══██╗██║   ██║██╔════╝██╔════╝\n"
@@ -38,8 +42,8 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
     GameplaySceneEnterArgs resume_world_args;
     GameplaySceneEnterArgs restart_world_args;
 
-    init_gameplay_scene_args(&resume_world_args, RESUME, false, false, VECTORU_ZERO);
-    init_gameplay_scene_args(&restart_world_args, RESTART, false, false, VECTORU_ZERO);
+    init_gameplay_scene_args(&resume_world_args, RESUME, false, false, false, VECTORU_ZERO);
+    init_gameplay_scene_args(&restart_world_args, RESTART, false, false, false, VECTORU_ZERO);
 
     memcpy(pause_scene->resume_transition.enter_args, &resume_world_args, sizeof(GameplaySceneEnterArgs));
     memcpy(pause_scene->restart_transition.enter_args, &restart_world_args, sizeof(GameplaySceneEnterArgs));
@@ -55,7 +59,7 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
                DEFAULT_BACKGROUND,
                parent_plane);
 
-    init_text(&pause_scene->interface.texts[0],
+    init_text(&pause_scene->interface.texts[TITLE_ID],
               TITLE,
               strlen(TITLE),
               WHITE,
@@ -64,7 +68,7 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
               TOP,
               parent_size);
 
-    init_button(&pause_scene->interface.buttons[0],
+    init_button(&pause_scene->interface.buttons[RESUME_BUTTON_ID],
                 RESUME_BUTTON,
                 strlen(RESUME_BUTTON),
                 WHITE,
@@ -75,7 +79,7 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
                 &pause_scene->resume_transition,
                 &transition);
 
-    init_button(&pause_scene->interface.buttons[1],
+    init_button(&pause_scene->interface.buttons[RESTART_BUTTON_ID],
                 RESTART_BUTTON,
                 strlen(RESTART_BUTTON),
                 WHITE,
@@ -86,7 +90,7 @@ void init_pause_scene(PauseScene *pause_scene, struct ncplane *parent_plane, Sce
                 &pause_scene->restart_transition,
                 &transition);
 
-    init_button(&pause_scene->interface.buttons[2],
+    init_button(&pause_scene->interface.buttons[GAMEOVER_BUTTON_ID],
                 GAMEOVER_BUTTON,
                 strlen(GAMEOVER_BUTTON),
                 RED,

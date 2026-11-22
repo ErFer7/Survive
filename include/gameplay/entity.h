@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math.h>
+
 #include "config.h"
 #include "entity_list_reference.h"
 #include "gameplay/cell.h"
@@ -55,4 +57,9 @@ static inline void move_entity(Entity *entity, Cell *new_cell, Vector new_positi
     new_cell->entity_ptr = entity;
 }
 
-static inline void deactivate_entity(Entity *entity) { entity->cell = nullptr; }
+static inline void deactivate_entity(Entity *entity) {
+    // The entity will be completely stopped, the idea here is to just stop it for an iteration in the
+    // update_entity_movement() in order to delete it later. This will avoid the cost of a validity check for every
+    // entity :p
+    entity->movement_acumulator = -INFINITY;
+}

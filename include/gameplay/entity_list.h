@@ -87,10 +87,9 @@ static inline Entity *allocate_entity(EntityList *entities) {
     return allocate_entity_on_block(block);
 }
 
-// The idea here is to delete the entity pointed by the iterator
-// TODO: Handle everything and also dealloc empty blocks
+// TODO: Dealloc empty blocks
 static inline void remove_entity(EntityList *entities, EntityListReference reference) {
-    if (reference.block_index > reference.block->size - 1) {
+    if (reference.block_index < reference.block->size - 1) {
         reference.block->entities[reference.block_index] = entities->tail->entities[entities->tail->size - 1];
     }
 

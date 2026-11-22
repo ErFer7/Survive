@@ -14,8 +14,9 @@ void init_world(World *world) {
     world->has_terrain = false;
 }
 
-void generate_world(World *world, VectorU size, bool enable_terrain_generation) {
+void generate_world(World *world, VectorU size, bool enable_terrain_generation, bool enable_powerup_generation) {
     world->has_terrain = enable_terrain_generation;
+    world->has_powerup = enable_powerup_generation;
 
     allocate_cell_matrix(&world->cell_matrix, size);
     fill_cell_matrix(&world->cell_matrix, DEFAULT_CELL);
@@ -28,7 +29,10 @@ void generate_world(World *world, VectorU size, bool enable_terrain_generation) 
     clear_spawn(world);
 
     generate_coins(world);
-    generate_powerups(world);
+
+    if (enable_powerup_generation) {
+        generate_powerup(world);
+    }
 }
 
 void generate_walls(World *world) {
@@ -114,14 +118,6 @@ void generate_coins(World *world) {
          i < ceilf((float)(world->cell_matrix.size.x * world->cell_matrix.size.y) / COIN_GENERATION_COEFFICIENT);
          i++) {
         generate_coin(world);
-    }
-}
-
-void generate_powerups(World *world) {
-    for (uint32_t i = 0;
-         i < ceilf((float)(world->cell_matrix.size.x * world->cell_matrix.size.y) / POWERUP_GENERATION_COEFFICIENT);
-         i++) {
-        generate_powerup(world);
     }
 }
 

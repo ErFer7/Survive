@@ -23,7 +23,6 @@ static const uint32_t SPAWN_RADIUS = 16;
 
 // 1 coin for 3600 cells
 static const float COIN_GENERATION_COEFFICIENT = 3600.0f;
-static const float POWERUP_GENERATION_COEFFICIENT = 65536.0f;
 
 static const float WORLD_PERLIN_NOISE_SCALE = 0.1f;
 static const float WORLD_PERLIN_NOISE_PERSISTENCE = 0.65f;
@@ -34,10 +33,11 @@ static const float OPAQUE_TERRAIN_NOISE_THRESHOLD = 1.5f;
 struct World {
     CellMatrix cell_matrix;
     bool has_terrain;
+    bool has_powerup;
 };
 
 void init_world(World *world);
-void generate_world(World *world, VectorU size, bool enable_terrain_generation);
+void generate_world(World *world, VectorU size, bool enable_terrain_generation, bool enable_powerup_generation);
 void generate_walls(World *world);
 void generate_terrain(World *world);
 void clear_spawn(World *world);
@@ -45,7 +45,6 @@ Vector get_random_empty_position(World *world, bool avoid_point, Vector avoidanc
 void generate_coin(World *world);
 void generate_powerup(World *world);
 void generate_coins(World *world);
-void generate_powerups(World *world);
 void free_world(World *world);
 
 static inline void create_wall(World *world, VectorU position, const utf8_char wall_character) {

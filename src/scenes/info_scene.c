@@ -8,6 +8,10 @@
 #include "utils/color.h"
 #include "utils/vector.h"
 
+enum InfoTextsID { TITLE_ID, INFO_ID };
+
+enum InfoButtonsID { BACK_BUTTON_ID };
+
 static const char *TITLE =
     "██╗███╗   ██╗███████╗ ██████╗ \n"
     "██║████╗  ██║██╔════╝██╔═══██╗\n"
@@ -45,7 +49,7 @@ void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneC
                DEFAULT_BACKGROUND,
                parent_plane);
 
-    init_text(&info_scene->interface.texts[0],
+    init_text(&info_scene->interface.texts[TITLE_ID],
               TITLE,
               strlen(TITLE),
               GREEN,
@@ -54,7 +58,7 @@ void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneC
               TOP,
               parent_size);
 
-    init_text(&info_scene->interface.texts[1],
+    init_text(&info_scene->interface.texts[INFO_ID],
               INFO,
               strlen(INFO),
               WHITE,
@@ -63,7 +67,7 @@ void init_info_scene(InfoScene *info_scene, struct ncplane *parent_plane, SceneC
               CENTER,
               parent_size);
 
-    init_button(&info_scene->interface.buttons[0],
+    init_button(&info_scene->interface.buttons[BACK_BUTTON_ID],
                 BACK_BUTTON,
                 strlen(BACK_BUTTON),
                 GREEN,
