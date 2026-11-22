@@ -158,10 +158,11 @@ void update_entities_movement(Gameplay *gameplay) {
 
     init_entity_list_iterator(it, &gameplay->entities);
 
+    Entity *killed_entity = nullptr;
+
     pthread_mutex_lock(&gameplay->world_mutex);
     while (it != nullptr) {
         Entity *entity = it->entity;
-        Entity *killed_entity = nullptr;
 
         if (entity->cell->type == PLAYER && entity->speed_modifier < PLAYER_FAST_SPEED_MODIFIER &&
             gameplay->player_stamina < 100.0f) {
@@ -200,40 +201,40 @@ void update_entities_movement(Gameplay *gameplay) {
 
         if (check_and_reset_movement_accumulator(entity)) {
             Vector new_position = add_vector(entity->position, entity->direction);
-
             Cell *new_cell = get_cell_ptr_vec(&gameplay->world.cell_matrix, new_position);
+            bool can_move = solve_collision(gameplay, entity, new_cell, &killed_entity);
 
-            if (solve_collision(gameplay, entity, new_cell, &killed_entity)) {
+            if (killed_entity == gameplay->player) {
+                memcpy(gameplay->gameover_transition->enter_args, &gameplay->score, sizeof(uint32_t));
+
+                enum GameplayTransitionMode exit_transition_mode = GAMEOVER;
+
+                memcpy(gameplay->gameover_transition->exit_args,
+                       &exit_transition_mode,
+                       sizeof(enum GameplayTransitionMode));
+
+                transition(gameplay->gameover_transition);
+
+                // If the player died we can just unlock and return, it's over
+                pthread_mutex_unlock(&gameplay->world_mutex);
+                return;
+            }
+
+            if (can_move) {
                 move_entity(entity, new_cell, new_position);
             } else {
-                // TODO: Write functions for this stuff
-                if (killed_entity == gameplay->player) {  // Someone killed us!
-                    memcpy(gameplay->gameover_transition->enter_args, &gameplay->score, sizeof(uint32_t));
-
-                    enum GameplayTransitionMode exit_transition_mode = GAMEOVER;
-
-                    memcpy(gameplay->gameover_transition->exit_args,
-                           &exit_transition_mode,
-                           sizeof(enum GameplayTransitionMode));
-
-                    transition(gameplay->gameover_transition);
-                    break;
-                } else if (killed_entity != nullptr) {  // We killed someone
-                    // FIX: An index should be passed here. Maybe each entity should have a reference to its position in
-                    // the list
-                    remove_entity(&gameplay->entities, killed_entity->reference);
-
-                    gameplay->score += 10;
-                    update_score_info(gameplay);
-                } else {
-                    entity->direction = VECTOR_ZERO;
-                }
+                entity->direction = VECTOR_ZERO;
             }
         }
 
-        if (killed_entity == nullptr) {
-            it = iterate_on_entity_list(it);
-        }
+        // TODO: Handle the iteration with the added entity removal
+        it = iterate_on_entity_list(it);
+    }
+
+    if (killed_entity != nullptr) {
+        remove_entity(&gameplay->entities, killed_entity->reference);
+        gameplay->score += 10;
+        update_score_info(gameplay);
     }
     pthread_mutex_unlock(&gameplay->world_mutex);
 }

@@ -75,7 +75,7 @@ static inline void update_gameplay(Gameplay *gameplay, InputState *input_state) 
     }
 }
 
-// TODO: Unline this
+// TODO: Uninline this
 static inline bool solve_collision(Gameplay *gameplay, Entity *entity, Cell *cell, Entity **killed_entity) {
     if (entity->cell->type == PLAYER) {
         switch (cell->type) {
@@ -89,7 +89,13 @@ static inline bool solve_collision(Gameplay *gameplay, Entity *entity, Cell *cel
             case VOID:
                 return true;
             case ENEMY:
-                *killed_entity = gameplay->powerup_charge > 0.0f ? cell->entity_ptr : entity;
+                if (gameplay->powerup_charge > 0.0f) {
+                    *killed_entity = cell->entity_ptr;
+                    deactivate_entity(*killed_entity);  // Only needed for enemies
+                    return true;
+                }
+
+                *killed_entity = entity;
                 return false;
             default:
                 return false;
@@ -99,7 +105,13 @@ static inline bool solve_collision(Gameplay *gameplay, Entity *entity, Cell *cel
             case VOID:
                 return true;
             case PLAYER:
-                *killed_entity = gameplay->powerup_charge > 0.0f ? entity : cell->entity_ptr;
+                if (gameplay->powerup_charge > 0.0f) {
+                    *killed_entity = entity;
+                    deactivate_entity(*killed_entity);  // Only needed for enemies
+                } else {
+                    *killed_entity = cell->entity_ptr;
+                }
+
                 return false;
             default:
                 return false;

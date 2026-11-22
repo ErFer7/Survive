@@ -54,3 +54,5 @@ static inline void move_entity(Entity *entity, Cell *new_cell, Vector new_positi
     entity->cell = new_cell;
     new_cell->entity_ptr = entity;
 }
+
+static inline void deactivate_entity(Entity *entity) { entity->cell = nullptr; }
