@@ -9,6 +9,10 @@
 #include "utils/color.h"
 #include "utils/vector.h"
 
+enum InfoTextsID { TITLE_ID, SCORE_LABEL_ID, SCORE_ID };
+
+enum InfoButtonsID { RESTART_BUTTON_ID, MENU_BUTTON_ID };
+
 static const char *TITLE =
     " ██████╗  █████╗ ███╗   ███╗███████╗ ██████╗ ██╗   ██╗███████╗██████╗ \n"
     "██╔════╝ ██╔══██╗████╗ ████║██╔════╝██╔═══██╗██║   ██║██╔════╝██╔══██╗\n"
@@ -37,7 +41,7 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
 
     GameplaySceneEnterArgs restart_world_args;
 
-    init_gameplay_scene_args(&restart_world_args, RESTART, false, false, VECTORU_ZERO);
+    init_gameplay_scene_args(&restart_world_args, RESTART, false, false, false, VECTORU_ZERO);
 
     memcpy(gameover_scene->restart_transition.enter_args, &restart_world_args, sizeof(GameplaySceneEnterArgs));
 
@@ -52,7 +56,7 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
                DEFAULT_BACKGROUND,
                parent_plane);
 
-    init_text(&gameover_scene->interface.texts[0],
+    init_text(&gameover_scene->interface.texts[TITLE_ID],
               TITLE,
               strlen(TITLE),
               RED,
@@ -61,7 +65,7 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
               TOP,
               parent_size);
 
-    init_text(&gameover_scene->interface.texts[1],
+    init_text(&gameover_scene->interface.texts[SCORE_LABEL_ID],
               SCORE_LABEL,
               strlen(SCORE_LABEL),
               WHITE,
@@ -70,7 +74,7 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
               CENTER,
               parent_size);
 
-    init_text(&gameover_scene->interface.texts[2],
+    init_text(&gameover_scene->interface.texts[SCORE_ID],
               INT_LABEL,
               strlen(INT_LABEL),
               WHITE,
@@ -79,7 +83,7 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
               CENTER,
               parent_size);
 
-    init_button(&gameover_scene->interface.buttons[0],
+    init_button(&gameover_scene->interface.buttons[RESTART_BUTTON_ID],
                 RESTART_BUTTON,
                 strlen(RESTART_BUTTON),
                 WHITE,
@@ -90,7 +94,7 @@ void init_gameover_scene(GameoverScene *gameover_scene, struct ncplane *parent_p
                 &gameover_scene->restart_transition,
                 &transition);
 
-    init_button(&gameover_scene->interface.buttons[1],
+    init_button(&gameover_scene->interface.buttons[MENU_BUTTON_ID],
                 MENU_BUTTON,
                 strlen(MENU_BUTTON),
                 RED,
@@ -114,7 +118,7 @@ void enter_gameover_scene(void *gameover_scene, void *args) {
 
     snprintf(score_str, sizeof(score_str), "%010d", score);
 
-    set_single_line_text_content(&scene->interface.texts[2], score_str, sizeof(score_str));
+    set_single_line_text_content(&scene->interface.texts[SCORE_ID], score_str, sizeof(score_str));
 
     ncplane_move_yx(scene->base.plane, 0, 0);
 }

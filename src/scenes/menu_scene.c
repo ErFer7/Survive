@@ -9,6 +9,10 @@
 #include "utils/color.h"
 #include "utils/vector.h"
 
+enum MenuTextsID { TITLE_ID, VERSION_ID };
+
+enum MenuButtonsID { START_BUTTON_ID, INFO_BUTTON_ID, QUIT_BUTTON_ID };
+
 static const char *TITLE =
     "███████╗██╗   ██╗██████╗ ██╗   ██╗██╗██╗   ██╗███████╗\n"
     "██╔════╝██║   ██║██╔══██╗██║   ██║██║██║   ██║██╔════╝\n"
@@ -17,7 +21,7 @@ static const char *TITLE =
     "███████║╚██████╔╝██║  ██║ ╚████╔╝ ██║ ╚████╔╝ ███████╗\n"
     "╚══════╝ ╚═════╝ ╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═══╝  ╚══════╝";
 
-static const char *VERSION = "v3.6";
+static const char *VERSION = "v3.7";
 
 static const char *START_BUTTON = " Start ";
 
@@ -46,7 +50,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
                DEFAULT_BACKGROUND,
                parent_plane);
 
-    init_text(&menu_scene->interface.texts[0],
+    init_text(&menu_scene->interface.texts[TITLE_ID],
               TITLE,
               strlen(TITLE),
               RED,
@@ -55,7 +59,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
               TOP,
               parent_size);
 
-    init_text(&menu_scene->interface.texts[1],
+    init_text(&menu_scene->interface.texts[VERSION_ID],
               VERSION,
               strlen(VERSION),
               BLUE,
@@ -64,7 +68,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
               BOTTOM,
               parent_size);
 
-    init_button(&menu_scene->interface.buttons[0],
+    init_button(&menu_scene->interface.buttons[START_BUTTON_ID],
                 START_BUTTON,
                 strlen(START_BUTTON),
                 RED,
@@ -75,7 +79,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
                 &menu_scene->start_transition,
                 &transition);
 
-    init_button(&menu_scene->interface.buttons[1],
+    init_button(&menu_scene->interface.buttons[INFO_BUTTON_ID],
                 INFO_BUTTON,
                 strlen(INFO_BUTTON),
                 RED,
@@ -86,7 +90,7 @@ void init_menu_scene(MenuScene *menu_scene, struct ncplane *parent_plane, SceneC
                 &menu_scene->info_transition,
                 &transition);
 
-    init_button(&menu_scene->interface.buttons[2],
+    init_button(&menu_scene->interface.buttons[QUIT_BUTTON_ID],
                 QUIT_BUTTON,
                 strlen(QUIT_BUTTON),
                 RED,

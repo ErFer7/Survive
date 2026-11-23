@@ -9,11 +9,26 @@
 #include "utils/color.h"
 #include "utils/vector.h"
 
+enum InfoTextsID {
+    FPS_LABEL_ID,
+    FPS_ID,
+    TICKS_LABEL_ID,
+    TICKS_ID,
+    STAMINA_LABEL_ID,
+    STAMINA_ID,
+    POWERUP_LABEL_ID,
+    POWERUP_ID,
+    SCORE_LABEL_ID,
+    SCORE_ID
+};
+
 static const char *FPS_LABEL = "FPS:";
 
 static const char *TICKS_LABEL = "TPS:";
 
 static const char *STAMINA_LABEL = "Stamina:";
+
+static const char *POWERUP_LABEL = "Powerup:";
 
 static const char *SCORE_LABEL = "Score:";
 
@@ -22,6 +37,8 @@ static const char *FLOAT_LABEL = "000000.000";
 static const char *INT_LABEL = "0000000000";
 
 static const char *PERCENTAGE_LABEL = "000%";
+
+static const char *TIME_LABEL = "00s";
 
 void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_plane, SceneContext *scene_context) {
     uint32_t rows;
@@ -48,7 +65,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
                DEFAULT_BACKGROUND,
                parent_plane);
 
-    init_text(&gameplay_scene->interface.texts[0],
+    init_text(&gameplay_scene->interface.texts[FPS_LABEL_ID],
               FPS_LABEL,
               strlen(FPS_LABEL),
               WHITE,
@@ -57,7 +74,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               BOTTOM_LEFT,
               parent_size);
 
-    init_text(&gameplay_scene->interface.texts[1],
+    init_text(&gameplay_scene->interface.texts[FPS_ID],
               FLOAT_LABEL,
               strlen(FLOAT_LABEL),
               WHITE,
@@ -66,7 +83,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               BOTTOM_LEFT,
               parent_size);
 
-    init_text(&gameplay_scene->interface.texts[2],
+    init_text(&gameplay_scene->interface.texts[TICKS_LABEL_ID],
               TICKS_LABEL,
               strlen(TICKS_LABEL),
               WHITE,
@@ -75,7 +92,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               BOTTOM_LEFT,
               parent_size);
 
-    init_text(&gameplay_scene->interface.texts[3],
+    init_text(&gameplay_scene->interface.texts[TICKS_ID],
               FLOAT_LABEL,
               strlen(FLOAT_LABEL),
               WHITE,
@@ -84,7 +101,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               BOTTOM_LEFT,
               parent_size);
 
-    init_text(&gameplay_scene->interface.texts[4],
+    init_text(&gameplay_scene->interface.texts[STAMINA_LABEL_ID],
               STAMINA_LABEL,
               strlen(STAMINA_LABEL),
               YELLOW,
@@ -93,7 +110,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               BOTTOM_LEFT,
               parent_size);
 
-    init_text(&gameplay_scene->interface.texts[5],
+    init_text(&gameplay_scene->interface.texts[STAMINA_ID],
               PERCENTAGE_LABEL,
               strlen(PERCENTAGE_LABEL),
               YELLOW,
@@ -102,7 +119,25 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               BOTTOM_LEFT,
               parent_size);
 
-    init_text(&gameplay_scene->interface.texts[6],
+    init_text(&gameplay_scene->interface.texts[POWERUP_LABEL_ID],
+              POWERUP_LABEL,
+              strlen(POWERUP_LABEL),
+              MAGENTA,
+              DEFAULT_BACKGROUND,
+              VECTOR(49, 0),
+              BOTTOM_LEFT,
+              parent_size);
+
+    init_text(&gameplay_scene->interface.texts[POWERUP_ID],
+              TIME_LABEL,
+              strlen(TIME_LABEL),
+              VERY_DARK_GRAY,
+              DEFAULT_BACKGROUND,
+              VECTOR(58, 0),
+              BOTTOM_LEFT,
+              parent_size);
+
+    init_text(&gameplay_scene->interface.texts[SCORE_LABEL_ID],
               SCORE_LABEL,
               strlen(SCORE_LABEL),
               WHITE,
@@ -111,7 +146,7 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
               BOTTOM_RIGHT,
               parent_size);
 
-    init_text(&gameplay_scene->interface.texts[7],
+    init_text(&gameplay_scene->interface.texts[SCORE_ID],
               INT_LABEL,
               strlen(INT_LABEL),
               WHITE,
@@ -126,12 +161,13 @@ void init_gameplay_scene(GameplayScene *gameplay_scene, struct ncplane *parent_p
                   vector_to_vector_u(add_vector(vector_u_to_vector(parent_size), VIEW_SIZE_OFFSET)),
                   parent_size,
                   &gameplay_scene->gameover_transition,
-                  &gameplay_scene->interface.texts[5],
-                  &gameplay_scene->interface.texts[7],
+                  &gameplay_scene->interface.texts[STAMINA_ID],
+                  &gameplay_scene->interface.texts[SCORE_ID],
+                  &gameplay_scene->interface.texts[POWERUP_ID],
                   gameplay_scene->base.plane);
 
-    scene_context->render_thread.frequency_info = &gameplay_scene->interface.texts[1];
-    scene_context->update_thread.frequency_info = &gameplay_scene->interface.texts[3];
+    scene_context->render_thread.frequency_info = &gameplay_scene->interface.texts[FPS_ID];
+    scene_context->update_thread.frequency_info = &gameplay_scene->interface.texts[TICKS_ID];
 }
 
 void enter_gameplay_scene(void *gameplay_scene, void *args) {
@@ -145,6 +181,7 @@ void enter_gameplay_scene(void *gameplay_scene, void *args) {
                        scene_args.transition_mode == RESTART,
                        scene_args.world_size,
                        scene_args.enable_terrain_generation,
+                       scene_args.enable_powerup_generation,
                        scene_args.lock_view);
     }
 

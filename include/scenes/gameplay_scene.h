@@ -6,7 +6,7 @@
 #include "scene_transition.h"
 #include "types.h"
 
-DEFINE_BUTTONLESS_INTERFACE(GameplayInterface, 8)
+DEFINE_BUTTONLESS_INTERFACE(GameplayInterface, 10)
 DEFINE_INIT_BUTTONLESS_INTERFACE(GameplayInterface, gameplay)
 
 enum GameplayTransitionMode {
@@ -36,6 +36,7 @@ struct GameplayScene {
 struct GameplaySceneEnterArgs {
     enum GameplayTransitionMode transition_mode;
     bool enable_terrain_generation;
+    bool enable_powerup_generation;
     bool lock_view;
     VectorU world_size;
 };
@@ -53,9 +54,11 @@ static inline void init_gameplay_scene_args(GameplaySceneEnterArgs *gameplay_sce
                                             enum GameplayTransitionMode transition_mode,
                                             bool lock_view,
                                             bool enable_terrain_generation,
+                                            bool enable_powerup_generation,
                                             VectorU world_size) {
     gameplay_scene_args->transition_mode = transition_mode,
     gameplay_scene_args->enable_terrain_generation = enable_terrain_generation;
+    gameplay_scene_args->enable_powerup_generation = enable_powerup_generation;
     gameplay_scene_args->lock_view = lock_view;
     gameplay_scene_args->world_size = world_size;
 }

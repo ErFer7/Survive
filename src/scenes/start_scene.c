@@ -8,6 +8,17 @@
 #include "utils/color.h"
 #include "utils/vector.h"
 
+enum InfoTextsID { TITLE_ID, INFO_ID, WARNING_ID };
+
+enum InfoButtonsID {
+    REGULAR_BUTTON_ID,
+    SMALL_BUTTON_ID,
+    LARGE_BUTTON_ID,
+    MEGA_BUTTON_ID,
+    CLASSIC_BUTTON_ID,
+    BACK_BUTTON_ID
+};
+
 static const char *TITLE =
     "███████╗████████╗ █████╗ ██████╗ ████████╗\n"
     "██╔════╝╚══██╔══╝██╔══██╗██╔══██╗╚══██╔══╝\n"
@@ -62,11 +73,11 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
     GameplaySceneEnterArgs mega_world_args;
     GameplaySceneEnterArgs classic_world_args;
 
-    init_gameplay_scene_args(&regular_world_args, START, false, true, REGULAR_WORLD_SIZE);
-    init_gameplay_scene_args(&small_world_args, START, false, true, SMALL_WORLD_SIZE);
-    init_gameplay_scene_args(&large_world_args, START, false, true, LARGE_WORLD_SIZE);
-    init_gameplay_scene_args(&mega_world_args, START, false, true, MEGA_WORLD_SIZE);
-    init_gameplay_scene_args(&classic_world_args, START, true, false, CLASSIC_WORLD_SIZE);
+    init_gameplay_scene_args(&regular_world_args, START, false, true, true, REGULAR_WORLD_SIZE);
+    init_gameplay_scene_args(&small_world_args, START, false, true, true, SMALL_WORLD_SIZE);
+    init_gameplay_scene_args(&large_world_args, START, false, true, true, LARGE_WORLD_SIZE);
+    init_gameplay_scene_args(&mega_world_args, START, false, true, true, MEGA_WORLD_SIZE);
+    init_gameplay_scene_args(&classic_world_args, START, true, false, false, CLASSIC_WORLD_SIZE);
 
     memcpy(start_scene->gameplay_transition_regular.enter_args, &regular_world_args, sizeof(GameplaySceneEnterArgs));
     memcpy(start_scene->gameplay_transition_small.enter_args, &small_world_args, sizeof(GameplaySceneEnterArgs));
@@ -85,7 +96,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                DEFAULT_BACKGROUND,
                parent_plane);
 
-    init_text(&start_scene->interface.texts[0],
+    init_text(&start_scene->interface.texts[TITLE_ID],
               TITLE,
               strlen(TITLE),
               RED,
@@ -94,7 +105,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
               TOP,
               parent_size);
 
-    init_text(&start_scene->interface.texts[1],
+    init_text(&start_scene->interface.texts[INFO_ID],
               INFO,
               strlen(INFO),
               WHITE,
@@ -103,7 +114,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
               CENTER,
               parent_size);
 
-    init_text(&start_scene->interface.texts[2],
+    init_text(&start_scene->interface.texts[WARNING_ID],
               WARNING,
               strlen(WARNING),
               YELLOW,
@@ -112,7 +123,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
               CENTER,
               parent_size);
 
-    init_button(&start_scene->interface.buttons[0],
+    init_button(&start_scene->interface.buttons[REGULAR_BUTTON_ID],
                 REGULAR_BUTTON,
                 strlen(REGULAR_BUTTON),
                 RED,
@@ -123,7 +134,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 &start_scene->gameplay_transition_regular,
                 &transition);
 
-    init_button(&start_scene->interface.buttons[1],
+    init_button(&start_scene->interface.buttons[SMALL_BUTTON_ID],
                 SMALL_BUTTON,
                 strlen(SMALL_BUTTON),
                 RED,
@@ -134,7 +145,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 &start_scene->gameplay_transition_small,
                 &transition);
 
-    init_button(&start_scene->interface.buttons[2],
+    init_button(&start_scene->interface.buttons[LARGE_BUTTON_ID],
                 LARGE_BUTTON,
                 strlen(LARGE_BUTTON),
                 RED,
@@ -145,7 +156,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 &start_scene->gameplay_transition_large,
                 &transition);
 
-    init_button(&start_scene->interface.buttons[3],
+    init_button(&start_scene->interface.buttons[MEGA_BUTTON_ID],
                 MEGA_BUTTON,
                 strlen(MEGA_BUTTON),
                 RED,
@@ -156,7 +167,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 &start_scene->gameplay_transition_mega,
                 &transition);
 
-    init_button(&start_scene->interface.buttons[4],
+    init_button(&start_scene->interface.buttons[CLASSIC_BUTTON_ID],
                 CLASSIC_BUTTON,
                 strlen(CLASSIC_BUTTON),
                 RED,
@@ -167,7 +178,7 @@ void init_start_scene(StartScene *start_scene, struct ncplane *parent_plane, Sce
                 &start_scene->gameplay_transition_classic,
                 &transition);
 
-    init_button(&start_scene->interface.buttons[5],
+    init_button(&start_scene->interface.buttons[BACK_BUTTON_ID],
                 BACK_BUTTON,
                 strlen(BACK_BUTTON),
                 WHITE,

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "entity_list_reference.h"
 #include "gameplay/entity.h"
 #include "types.h"
 
@@ -19,14 +20,14 @@ struct EntityList {
 };
 
 struct EntityListIterator {
-    EntityBlock *block;
-    uint32_t block_index;
+    EntityListReference reference;
     Entity *entity;
 };
 
+// TODO: Refactor these struct accesses
 static inline void init_entity_list_iterator(EntityListIterator *iterator, EntityList *entities) {
-    iterator->block = entities->head;
-    iterator->block_index = 0;
+    iterator->reference.block = entities->head;
+    iterator->reference.block_index = 0;
 
     if (entities->head != nullptr && entities->head->size > 0) {
         iterator->entity = &entities->head->entities[0];
@@ -45,7 +46,15 @@ static inline void init_entity_block(EntityBlock *block, EntityBlock *previous) 
     }
 }
 
-static inline Entity *allocate_entity_on_block(EntityBlock *block) { return &block->entities[block->size++]; }
+static inline Entity *allocate_entity_on_block(EntityBlock *block) {
+    Entity *entity = &block->entities[block->size];
+    entity->reference.block = block;
+    entity->reference.block_index = block->size;
+
+    block->size++;
+
+    return entity;
+}
 
 static inline void init_entity_list(EntityList *entities) {
     entities->head = nullptr;
@@ -78,22 +87,33 @@ static inline Entity *allocate_entity(EntityList *entities) {
     return allocate_entity_on_block(block);
 }
 
-static inline EntityListIterator *iterate_on_entity_list(EntityListIterator *iterator) {
-    iterator->block_index++;
+// TODO: Dealloc empty blocks
+static inline void remove_entity(EntityList *entities, EntityListReference reference) {
+    if (reference.block_index < reference.block->size - 1) {
+        reference.block->entities[reference.block_index] = entities->tail->entities[entities->tail->size - 1];
+    }
 
-    if (iterator->block_index < iterator->block->size) {
-        iterator->entity = &iterator->block->entities[iterator->block_index];
+    entities->tail->size--;
+    entities->size--;
+}
+
+// TODO: Refactor these struct accesses
+static inline EntityListIterator *iterate_on_entity_list(EntityListIterator *iterator) {
+    iterator->reference.block_index++;
+
+    if (iterator->reference.block_index < iterator->reference.block->size) {
+        iterator->entity = &iterator->reference.block->entities[iterator->reference.block_index];
         return iterator;
     }
 
-    iterator->block = iterator->block->next;
-    iterator->block_index = 0;
+    iterator->reference.block = iterator->reference.block->next;
+    iterator->reference.block_index = 0;
 
-    if (iterator->block == nullptr || iterator->block->size == 0) {
+    if (iterator->reference.block == nullptr || iterator->reference.block->size == 0) {
         return nullptr;
     }
 
-    iterator->entity = &iterator->block->entities[iterator->block_index];
+    iterator->entity = &iterator->reference.block->entities[iterator->reference.block_index];
 
     return iterator;
 }

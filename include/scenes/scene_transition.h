@@ -2,7 +2,7 @@
 
 #include "types.h"
 
-#define TRANSITION_ARGS_SIZE 16
+#define TRANSITION_ARGS_SIZE 20
 
 struct SceneTransition {
     SceneContext *scene_context;

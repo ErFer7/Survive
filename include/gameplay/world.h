@@ -15,6 +15,10 @@ static const utf8_char COIN_CHARACTERS[6] = {UTF8("⠇"), UTF8("⠋"), UTF8("⠙
 static const uint32_t COIN_ANIMATION_LENGTH = 6;
 static const enum Color COIN_COLOR = YELLOW;
 
+static const utf8_char POWERUP_CHARACTERS[4] = {UTF8("▤"), UTF8("▧"), UTF8("▥"), UTF8("▨")};
+static const uint32_t POWERUP_ANIMATION_LENGTH = 4;
+static const uint32_t POWERUP_COLOR = MAGENTA;
+
 static const uint32_t SPAWN_RADIUS = 16;
 
 // 1 coin for 3600 cells
@@ -29,14 +33,17 @@ static const float OPAQUE_TERRAIN_NOISE_THRESHOLD = 1.5f;
 struct World {
     CellMatrix cell_matrix;
     bool has_terrain;
+    bool has_powerup;
 };
 
 void init_world(World *world);
-void generate_world(World *world, VectorU size, bool enable_terrain_generation);
+void generate_world(World *world, VectorU size, bool enable_terrain_generation, bool enable_powerup_generation);
 void generate_walls(World *world);
 void generate_terrain(World *world);
 void clear_spawn(World *world);
+Vector get_random_empty_position(World *world, bool avoid_point, Vector avoidance_point, float avoidance_distance);
 void generate_coin(World *world);
+void generate_powerup(World *world);
 void generate_coins(World *world);
 void free_world(World *world);
 
@@ -44,7 +51,7 @@ static inline void create_wall(World *world, VectorU position, const utf8_char w
     utf8_char wall_array[1] = {wall_character};
     Cell cell;
 
-    init_cell(&cell, wall_array, WALL_ANIMATION_LENGTH, WALL_COLOR, WALL);
+    init_cell(&cell, wall_array, WALL_ANIMATION_LENGTH, WALL_COLOR, WALL, nullptr);
     set_cell_vec(&world->cell_matrix, vector_u_to_vector(position), cell);
 }
 
@@ -55,14 +62,21 @@ static inline void create_terrain_wall(World *world,
     utf8_char wall_array[1] = {wall_character};
     Cell cell;
 
-    init_cell(&cell, wall_array, WALL_ANIMATION_LENGTH, color, WALL);
+    init_cell(&cell, wall_array, WALL_ANIMATION_LENGTH, color, WALL, nullptr);
     set_cell_vec(&world->cell_matrix, vector_u_to_vector(position), cell);
 }
 
 static inline void create_coin(World *world, Vector position) {
     Cell cell;
 
-    init_cell(&cell, COIN_CHARACTERS, COIN_ANIMATION_LENGTH, COIN_COLOR, COIN);
+    init_cell(&cell, COIN_CHARACTERS, COIN_ANIMATION_LENGTH, COIN_COLOR, COIN, nullptr);
+    set_cell_vec(&world->cell_matrix, position, cell);
+}
+
+static inline void create_powerup(World *world, Vector position) {
+    Cell cell;
+
+    init_cell(&cell, POWERUP_CHARACTERS, POWERUP_ANIMATION_LENGTH, POWERUP_COLOR, POWERUP, nullptr);
     set_cell_vec(&world->cell_matrix, position, cell);
 }
 
