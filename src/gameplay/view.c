@@ -6,14 +6,15 @@
 #include "config.h"
 #include "gameplay/world.h"
 #include "utils/perlin_noise.h"
+#include "utils/random.h"
 
 void init_view(View *view,
                Vector initial_position,
                VectorU size,
                VectorU parent_size,
                enum Color background_color,
-               struct ncplane *parent_plane,
-               pthread_mutex_t *world_mutex) {
+               struct ncplane *parent_plane_ptr,
+               pthread_mutex_t *world_mutex_ptr) {
     view->position = initial_position;
 
     const struct ncplane_options plane_options = {(parent_size.y - size.y) / 2,
@@ -29,8 +30,8 @@ void init_view(View *view,
 
     memcpy(&view->plane_options, &plane_options, sizeof(ncplane_options));
 
-    view->plane = ncplane_create(parent_plane, &view->plane_options);
-    view->parent_plane = parent_plane;
+    view->plane = ncplane_create(parent_plane_ptr, &view->plane_options);
+    view->parent_plane = parent_plane_ptr;
 
     uint64_t channels = 0;
     byte red;
@@ -44,7 +45,7 @@ void init_view(View *view,
     ncplane_set_base(view->plane, " ", 0, channels);
     ncplane_erase(view->plane);
 
-    view->world_mutex = world_mutex;
+    view->world_mutex_ptr = world_mutex_ptr;
 
 #ifdef COOL_EFFECTS
     view->perlin_seed = (float)rand();
@@ -76,7 +77,7 @@ void draw_world_on_view(View *view, World *world) {
 
     VectorU world_size = world->cell_matrix.size;
 
-    pthread_mutex_lock(view->world_mutex);
+    pthread_mutex_lock(view->world_mutex_ptr);
     for (int32_t row = origin_row; row < (int32_t)view->position.y + half_height; row++) {
         for (int32_t column = origin_column; column < (int32_t)view->position.x + half_width; column++) {
             if (row >= 0 && (uint32_t)row < world_size.y && column >= 0 && (uint32_t)column < world_size.x) {
@@ -105,7 +106,7 @@ void draw_world_on_view(View *view, World *world) {
             }
         }
     }
-    pthread_mutex_unlock(view->world_mutex);
+    pthread_mutex_unlock(view->world_mutex_ptr);
 }
 
 #ifdef COOL_EFFECTS
@@ -121,8 +122,13 @@ void generate_effects(View *view, VectorU size) {
                                        (int)view->perlin_seed);
             Cell cell;
 
+            // TODO: This could be a cool visual, maybe add this later
+            utf8_char random_char = {inclusive_random(0xE2A180, 0xE2A1BF)};
+            utf8_char fixed_char = ((random_char & 0xFF) << 16) | (random_char & 0xFF00) | ((random_char & 0xFF0000) >> 16);
+            utf8_char chars[1] = {fixed_char};
+
             init_cell(&cell,
-                      VIEW_EFFECTS_CHARACTER,
+                      chars,
                       VIEW_EFFECTS_CELL_ANIMATION_LENGTH,
                       fabsf(noise) * VIEW_MAX_OUTSIZE_COLOR,
                       VOID,

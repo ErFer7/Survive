@@ -12,10 +12,10 @@
 void init_gameplay(Gameplay *gameplay,
                    VectorU view_size,
                    VectorU parent_size,
-                   SceneTransition *gameover_transition,
-                   Text *stamina_info,
-                   Text *score_info,
-                   Text *powerup_info,
+                   SceneTransition *gameover_transition_ptr,
+                   Text *stamina_info_ptr,
+                   Text *score_info_ptr,
+                   Text *powerup_info_ptr,
                    struct ncplane *scene_plane) {
     init_world(&gameplay->world);
 
@@ -31,17 +31,17 @@ void init_gameplay(Gameplay *gameplay,
 
     pthread_mutex_init(&gameplay->world_mutex, nullptr);
 
-    gameplay->player = nullptr;
-    gameplay->gameover_transition = malloc(sizeof(SceneTransition));
-    gameplay->stamina_info = stamina_info;
-    gameplay->score_info = score_info;
-    gameplay->powerup_info = powerup_info;
+    gameplay->player_ptr = nullptr;
+    gameplay->gameover_transition_ptr = malloc(sizeof(SceneTransition));
+    gameplay->stamina_info_ptr = stamina_info_ptr;
+    gameplay->score_info_ptr = score_info_ptr;
+    gameplay->powerup_info_ptr = powerup_info_ptr;
     gameplay->score = 0;
     gameplay->player_stamina = PLAYER_MAX_STAMINA;
     gameplay->player_powerup_time = 0.0f;
     gameplay->lock_view = false;
 
-    memcpy(gameplay->gameover_transition, gameover_transition, sizeof(SceneTransition));
+    memcpy(gameplay->gameover_transition_ptr, gameover_transition_ptr, sizeof(SceneTransition));
 }
 
 void start_gameplay(Gameplay *gameplay,
@@ -61,7 +61,7 @@ void start_gameplay(Gameplay *gameplay,
     generate_world(&gameplay->world, world_size, terrain_generation, powerup_generation);
     create_player(gameplay, divide_vector_by_scalar(vector_u_to_vector(world_size), 2));
 
-    gameplay->view.position = gameplay->player->position;
+    gameplay->view.position = gameplay->player_ptr->position;
     gameplay->score = 0;
     gameplay->player_stamina = PLAYER_MAX_STAMINA;
     gameplay->player_powerup_time = 0.0f;
@@ -73,9 +73,9 @@ void start_gameplay(Gameplay *gameplay,
 
 void create_player(Gameplay *gameplay, Vector position) {
     Entity *entity = allocate_entity(&gameplay->entities);
-    gameplay->player = entity;
+    gameplay->player_ptr = entity;
 
-    init_player_entity(gameplay->player, get_cell_ptr_vec(&gameplay->world.cell_matrix, position), position);
+    init_player_entity(gameplay->player_ptr, get_cell_ptr_vec(&gameplay->world.cell_matrix, position), position);
 }
 
 void create_enemy(Gameplay *gameplay, Vector position) {
@@ -85,7 +85,7 @@ void create_enemy(Gameplay *gameplay, Vector position) {
 }
 
 void update_enemy(Gameplay *gameplay, Entity *enemy, bool flee) {
-    Vector target = gameplay->player->position;
+    Vector target = gameplay->player_ptr->position;
     Vector position = enemy->position;
     bool has_free_path = true;
 
@@ -169,42 +169,27 @@ void update_entities_movement(Gameplay *gameplay) {
 
     Entity *killed_entity = nullptr;
 
+    // FIX: More than one enemy can die in a loop
     pthread_mutex_lock(&gameplay->world_mutex);
-    recover_player_stamina(gameplay);
-
     while (it != nullptr) {
         Entity *entity = it->entity;
+        const float speed = entity->cell_ptr->type == PLAYER ? PLAYER_SPEED : ENEMY_SPEED;
 
-        if (!vector_is_zero(entity->direction)) {
-            // This is ok for this game, since there are only two entities
-            float speed;
-
-            if (entity->cell->type == PLAYER) {
-                consume_player_stamina(gameplay);
-
-                speed = PLAYER_SPEED;
-            } else {
-                speed = ENEMY_SPEED;
-            }
-
-            accumulate_movement(entity, speed * entity->speed_modifier);
-        }
-
-        if (check_and_reset_movement_accumulator(entity)) {
+        if (update_and_check_movement_accumulator(entity, speed)) {
             Vector new_position = add_vector(entity->position, entity->direction);
             Cell *new_cell = get_cell_ptr_vec(&gameplay->world.cell_matrix, new_position);
             bool can_move = solve_collision(gameplay, entity, new_cell, &killed_entity);
 
-            if (killed_entity == gameplay->player) {
-                memcpy(gameplay->gameover_transition->enter_args, &gameplay->score, sizeof(uint32_t));
+            if (killed_entity == gameplay->player_ptr) {
+                memcpy(gameplay->gameover_transition_ptr->enter_args, &gameplay->score, sizeof(uint32_t));
 
                 enum GameplayTransitionMode exit_transition_mode = GAMEOVER;
 
-                memcpy(gameplay->gameover_transition->exit_args,
+                memcpy(gameplay->gameover_transition_ptr->exit_args,
                        &exit_transition_mode,
                        sizeof(enum GameplayTransitionMode));
 
-                transition(gameplay->gameover_transition);
+                transition(gameplay->gameover_transition_ptr);
 
                 // If the player died we can just unlock and return, it's over
                 pthread_mutex_unlock(&gameplay->world_mutex);
@@ -251,7 +236,7 @@ void handle_powerup_pick(Gameplay *gameplay) {
 
 void generate_enemy(Gameplay *gameplay) {
     Vector position =
-        get_random_empty_position(&gameplay->world, true, gameplay->player->position, MIN_ENEMY_SPAWN_DISTANCE);
+        get_random_empty_position(&gameplay->world, true, gameplay->player_ptr->position, MIN_ENEMY_SPAWN_DISTANCE);
     create_enemy(gameplay, position);
 }
 
@@ -259,16 +244,16 @@ void partially_free_gameplay(Gameplay *gameplay) {
     free_world(&gameplay->world);
     free_entity_list(&gameplay->entities);
 
-    gameplay->player = nullptr;
+    gameplay->player_ptr = nullptr;
 }
 
 void free_gameplay(Gameplay *gameplay) {
     partially_free_gameplay(gameplay);
     free_view(&gameplay->view);
 
-    if (gameplay->gameover_transition != nullptr) {
-        free(gameplay->gameover_transition);
-        gameplay->gameover_transition = nullptr;
+    if (gameplay->gameover_transition_ptr != nullptr) {
+        free(gameplay->gameover_transition_ptr);
+        gameplay->gameover_transition_ptr = nullptr;
     }
 
     pthread_mutex_destroy(&gameplay->world_mutex);

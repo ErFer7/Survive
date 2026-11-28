@@ -26,7 +26,7 @@ void init_text(Text *text,
     uint32_t width = 0;
     uint32_t height = 1;
 
-    while (1) {
+    while (true) {
         char *new_line = strchr(line, '\n');
 
         if (new_line != nullptr) {

@@ -22,6 +22,8 @@ static const Cell DEFAULT_CELL = {{}, NCCELL_TRIVIAL_INITIALIZER, 0, VOID, nullp
 
 void update_cell_character(Cell *cell);
 
+static inline void set_cell_color(Cell *cell, enum Color color) { nccell_set_fg_rgb(&cell->cell, color); }
+
 static inline void init_cell(Cell *cell,
                              const utf8_char *characters,
                              uint32_t animation_length,
@@ -35,5 +37,5 @@ static inline void init_cell(Cell *cell,
     cell->type = type;
     cell->entity_ptr = entity_ptr;
 
-    nccell_set_fg_rgb(&cell->cell, color);
+    set_cell_color(cell, color);
 }

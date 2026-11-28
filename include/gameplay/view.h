@@ -20,7 +20,7 @@ static const float VIEW_EFFECTS_ANGLE_STEP = 0.001f;
 static const float VIEW_PERLIN_NOISE_SCALE = 0.1f;
 static const float VIEW_PERLIN_NOISE_PERSISTENCE = 1.75f;
 static const int32_t VIEW_PERLIN_NOISE_OCTAVES = 5;
-static const utf8_char VIEW_EFFECTS_CHARACTER[1] = {UTF8("█")};
+static const utf8_char VIEW_EFFECTS_CHARACTERS[1] = {UTF8("⣿")};
 static const uint32_t VIEW_EFFECTS_CELL_ANIMATION_LENGTH = 1;
 static const enum Color VIEW_MAX_OUTSIZE_COLOR = BRIGHT_CYAN;
 #endif
@@ -30,7 +30,7 @@ struct View {
     struct ncplane *plane;
     struct ncplane_options plane_options;
     struct ncplane *parent_plane;
-    pthread_mutex_t *world_mutex;
+    pthread_mutex_t *world_mutex_ptr;
 #ifdef COOL_EFFECTS
     CellMatrix cell_matrix;
     float perlin_seed;
@@ -43,8 +43,8 @@ void init_view(View *view,
                VectorU size,
                VectorU parent_size,
                enum Color background_color,
-               struct ncplane *parent_plane,
-               pthread_mutex_t *world_mutex);
+               struct ncplane *parent_plane_ptr,
+               pthread_mutex_t *world_mutex_ptr);
 void draw_world_on_view(View *view, World *world);
 #ifdef COOL_EFFECTS
 void generate_effects(View *view, VectorU size);

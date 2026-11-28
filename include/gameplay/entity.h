@@ -9,7 +9,7 @@
 #include "utils/vector.h"
 
 struct Entity {
-    Cell *cell;
+    Cell *cell_ptr;
     Vector position;
     float movement_acumulator;
     float speed_modifier;
@@ -21,8 +21,8 @@ struct Entity {
     EntityListReference reference;
 };
 
-static inline void init_entity(Entity *entity, Cell *cell, Vector position) {
-    entity->cell = cell;
+static inline void init_entity(Entity *entity, Cell *cell_ptr, Vector position) {
+    entity->cell_ptr = cell_ptr;
     entity->position = position;
     entity->movement_acumulator = 0.0f;
     entity->speed_modifier = 1.0f;
@@ -31,11 +31,11 @@ static inline void init_entity(Entity *entity, Cell *cell, Vector position) {
 }
 
 // Speed: cells/s
-static inline void accumulate_movement(Entity *entity, const float speed) {
-    entity->movement_acumulator += (1.0f / (float)UPDATE_FREQUENCY) * speed;
-}
+static inline bool update_and_check_movement_accumulator(Entity *entity, const float speed) {
+    if (!vector_is_zero(entity->direction)) {
+        entity->movement_acumulator += (1.0f / (float)UPDATE_FREQUENCY) * speed * entity->speed_modifier;
+    }
 
-static inline bool check_and_reset_movement_accumulator(Entity *entity) {
     if (entity->movement_acumulator > 1.0f) {
         entity->movement_acumulator = 0.0f;
 
@@ -46,15 +46,15 @@ static inline bool check_and_reset_movement_accumulator(Entity *entity) {
 }
 
 // TODO: Check this up
-static inline void move_entity(Entity *entity, Cell *new_cell, Vector new_position) {
-    entity->cell->entity_ptr = nullptr;
+static inline void move_entity(Entity *entity, Cell *new_cell_ptr, Vector new_position) {
+    entity->cell_ptr->entity_ptr = nullptr;
     entity->previous_position = entity->position;
     entity->position = new_position;
     entity->direction = VECTOR_ZERO;
-    *new_cell = *entity->cell;
-    *entity->cell = DEFAULT_CELL;
-    entity->cell = new_cell;
-    new_cell->entity_ptr = entity;
+    *new_cell_ptr = *entity->cell_ptr;
+    *entity->cell_ptr = DEFAULT_CELL;
+    entity->cell_ptr = new_cell_ptr;
+    new_cell_ptr->entity_ptr = entity;
 }
 
 static inline void deactivate_entity(Entity *entity) {
@@ -63,3 +63,5 @@ static inline void deactivate_entity(Entity *entity) {
     // entity :p
     entity->movement_acumulator = -INFINITY;
 }
+
+static inline void set_entity_color(Entity *entity, enum Color color) { set_cell_color(entity->cell_ptr, color); }
